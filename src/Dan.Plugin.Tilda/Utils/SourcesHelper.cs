@@ -20,7 +20,7 @@ namespace Dan.Plugin.Tilda.Utils
 
                 var classes = AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(t => t.GetTypes())
-                    .Where(t => t.IsClass && t.Namespace == "ES_AGGREGATE_AUDIT_V3.TildaSources" &&
+                    .Where(t => t.IsClass && t.Namespace == "Dan.Plugin.Tilda.TildaSources" &&
                                 t.IsNestedPrivate == false && t.GetInterfaces().Contains(typeof(T)));
 
              
@@ -49,7 +49,7 @@ namespace Dan.Plugin.Tilda.Utils
 
                 var classes = AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(t => t.GetTypes())
-                    .Where(t => t.IsClass && t.Namespace == "ES_AGGREGATE_AUDIT_V3.TildaSources" &&
+                    .Where(t => t.IsClass && t.Namespace == "Dan.Plugin.Tilda.TildaSources" &&
                                 t.IsNestedPrivate == false && t.GetInterfaces().Contains(typeof(T)));
 
                 foreach (Type cls in classes)
@@ -77,7 +77,7 @@ namespace Dan.Plugin.Tilda.Utils
 
                 var classes = AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(t => t.GetTypes())
-                    .Where(t => t.IsClass && t.Namespace == "ES_AGGREGATE_AUDIT_V3.TildaSources" && t.IsNestedPrivate == false);
+                    .Where(t => t.IsClass && t.Namespace == "Dan.Plugin.Tilda.TildaSources" && t.IsNestedPrivate == false);
 
                 foreach (Type cls in classes)
                 {

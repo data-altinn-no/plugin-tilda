@@ -15,7 +15,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 {
  
 
-    public class Digitaliseringsdirektoratet : TildaDataSource//, ITildaAuditReports, ITildaNPDIDAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaTrendReportsAll, ITildaAuditCoordinationAll, ITildaAuditReportsAll, ITildaAlertMessage
+    public class Digitaliseringsdirektoratet : TildaDataSource, ITildaPdfReport//, ITildaAuditReports, ITildaNPDIDAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaTrendReportsAll, ITildaAuditCoordinationAll, ITildaAuditReportsAll, ITildaAlertMessage
     {
 
         private const string orgNo = "991825827";
@@ -143,6 +143,13 @@ namespace Dan.Plugin.Tilda.TildaSources
             }
 
             return resultList;
+        }
+
+        public override async Task<byte[]> GetPdfReport(EvidenceHarvesterRequest req, string internTilsynsId)
+        {
+            var url = "https://www.orimi.com/pdf-test.pdf";
+
+            return await Helpers.GetPdfreport(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
         public override async Task<AuditCoordinationList> GetAuditCoordinationAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)

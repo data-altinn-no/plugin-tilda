@@ -38,19 +38,9 @@ var host = new HostBuilder()
 
         var distributedCache = services.BuildServiceProvider().GetRequiredService<IDistributedCache>();
 
-        var registry = new PolicyRegistry()
-        {
-            { "defaultCircuitBreaker", HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(4, TimeSpan.Parse(settings.Breaker_RetryWaitTime)) },
-            { "ERCachePolicy", Policy.CacheAsync(distributedCache.AsAsyncCacheProvider<string>(), TimeSpan.FromHours(12)) }
-        };
-
-        services.AddPolicyRegistry(registry);
-
-        services.AddHttpClient("SafeHttpClient", client =>
-            {
-                client.Timeout = new TimeSpan(0, 0, 30);
-            })
-            .AddPolicyHandlerFromRegistry("defaultCircuitBreaker");
+        var policyRegistry = services.BuildServiceProvider().GetRequiredService<IPolicyRegistry<string>>();
+        policyRegistry.Add("defaultCircuitBreaker", HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(4, TimeSpan.Parse(settings.Breaker_RetryWaitTime)));
+        policyRegistry.Add("ERCachePolicy", Policy.CacheAsync(distributedCache.AsAsyncCacheProvider<string>(), TimeSpan.FromHours(12)));
 
         // Client configured without circuit breaker policies. shorter timeout
         services.AddHttpClient("ERHttpClient", client =>

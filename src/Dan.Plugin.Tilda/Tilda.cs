@@ -19,8 +19,10 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Dan.Common.Extensions;
 using Dan.Common.Interfaces;
 using Dan.Common.Services;
+using Polly;
 
 
 namespace Dan.Plugin.Tilda
@@ -51,9 +53,9 @@ namespace Dan.Plugin.Tilda
         }
 
         [Function("TildaMeldingTilAnnenMyndighetv1")]
-        public async Task<HttpResponseData> TildaMeldingTilAnnenMyndighet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaMeldingTilAnnenMyndighetv1")] HttpRequestData req, ILogger log)
+        public async Task<HttpResponseData> TildaMeldingTilAnnenMyndighet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaMeldingTilAnnenMyndighetv1")] HttpRequestData req, FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
 
@@ -61,9 +63,9 @@ namespace Dan.Plugin.Tilda
         }
 
         [Function("TildaStorulykkevirksomhet")]
-        public async Task<HttpResponseData> TildaStorulykkevirksomhet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhet")] HttpRequestData req, ILogger log)
+        public async Task<HttpResponseData> TildaStorulykkevirksomhet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhet")] HttpRequestData req, FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
 
@@ -74,9 +76,9 @@ namespace Dan.Plugin.Tilda
 
 
         [Function("TildaStorulykkevirksomhetAlle")]
-        public async Task<HttpResponseData> TildaStorulykkevirksomhetAlle([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhetAlle")] HttpRequestData req, ILogger log)
+        public async Task<HttpResponseData> TildaStorulykkevirksomhetAlle([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhetAlle")] HttpRequestData req, FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
 
@@ -87,10 +89,9 @@ namespace Dan.Plugin.Tilda
 
         [Function("TildaTilsynsrapportv1")]
         public async Task<HttpResponseData> Tilsynsrapport(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynsrapportv1")] HttpRequestData req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynsrapportv1")] HttpRequestData req, FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
 
@@ -99,10 +100,9 @@ namespace Dan.Plugin.Tilda
 
         [Function("TildaTilsynsrapportAllev1")]
         public async Task<HttpResponseData> TilsynsrapportAlle(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynsrapportAllev1")] HttpRequestData req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynsrapportAllev1")] HttpRequestData req, FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
 
@@ -112,9 +112,9 @@ namespace Dan.Plugin.Tilda
         [Function("TildaTilsynskoordineringv1")]
         public async Task<HttpResponseData> Tilsynskoordinering(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynskoordineringv1")] HttpRequestData req,
-            ILogger log)
+            FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
             return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesTilsynskoordinering(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
@@ -123,9 +123,9 @@ namespace Dan.Plugin.Tilda
         [Function("TildaTilsynskoordineringAllev1")]
         public async Task<HttpResponseData> TilsynskoordineringAlle(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynskoordineringAllev1")] HttpRequestData req,
-            ILogger log)
+            FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
             return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesTilsynskoordingeringAllASync(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
@@ -135,9 +135,9 @@ namespace Dan.Plugin.Tilda
         [Function("TildaTrendrapportv1")]
         public async Task<HttpResponseData> Trend(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTrendrapportv1")] HttpRequestData req,
-            ILogger log)
+            FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
             return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesTrend(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
@@ -146,9 +146,9 @@ namespace Dan.Plugin.Tilda
         [Function("TildaTrendrapportAllev1")]
         public async Task<HttpResponseData> TrendAlle(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTrendrapportAllev1")] HttpRequestData req,
-            ILogger log)
+            FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
             return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesTrendAll(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
@@ -157,9 +157,9 @@ namespace Dan.Plugin.Tilda
         [Function("TildaNPDIDv1")]
         public async Task<HttpResponseData> NPDID(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaNPDIDv1")] HttpRequestData req,
-            ILogger log)
+            FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
 
@@ -168,13 +168,55 @@ namespace Dan.Plugin.Tilda
 
         [Function("TildaMetadatav1")]
         public async Task<HttpResponseData> TildaMetadata(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaMetadatav1")] HttpRequestData req, ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaMetadatav1")] HttpRequestData req, FunctionContext context)
         {
-            _logger = log;
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
 
             return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesTildaMetadata(evidenceHarvesterRequest));
+        }
+
+        [Function("TildaTilsynsrapportpdfv1")]
+        public async Task<HttpResponseData> TildaPdfReport(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynsrapportpdfv1")] HttpRequestData req, FunctionContext context)
+        {
+            _logger = context.GetLogger(context.FunctionDefinition.Name);
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
+
+            return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesTildaPdfReportV1(evidenceHarvesterRequest));
+        }
+
+        private async Task<List<EvidenceValue>> GetEvidenceValuesTildaPdfReportV1(EvidenceHarvesterRequest req)
+        {
+            var taskList = new List<Task<string>>();
+            var id = req.GetParameter("internTilsynsId").ToString();
+            string filter = req.SubjectParty?.NorwegianOrganizationNumber;
+            byte[] result;
+
+            try
+            {
+                //Should always only return ONE source
+                var pdfTarget = SourcesHelper.GetRelevantSources<ITildaPdfReport>(filter, _client, _logger, _settings).FirstOrDefault();
+
+                if (pdfTarget == null)
+                {
+                    _logger.LogError($"plugin tilda does not support pdf for source {filter}");
+                    throw new EvidenceSourcePermanentClientException(1, $"Source {filter} does not support pdf reports");
+                }
+
+                result = await pdfTarget.GetPdfReport(req, id);
+                var ecb = new EvidenceBuilder(_metadata, "TildaTilsynsrapportpdfv1");
+                ecb.AddEvidenceValue($"pdfrapport", result, "Tilda", false);
+
+                return ecb.GetEvidenceValues();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw new EvidenceSourcePermanentClientException(1, $"Source {filter} does not support pdf reports");
+            }
         }
 
         private async Task<List<EvidenceValue>> GetEvidenceValuesMeldingTilAnnenMyndighet(EvidenceHarvesterRequest req, TildaParameters param)
@@ -241,6 +283,8 @@ namespace Dan.Plugin.Tilda
 
             var npdid = SourcesHelper.GetAllSources<ITildaNPDIDAuditReports>(_settings, _client, _logger, false).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
+            var pdfReport = SourcesHelper.GetAllSources<ITildaPdfReport>(_settings, _client, _logger, false).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+
             var all = SourcesHelper.GetAllRegisteredSources(_settings).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
          
@@ -255,6 +299,8 @@ namespace Dan.Plugin.Tilda
             ecb.AddEvidenceValue("TildaTilsynskoordineringAllev1", string.Join(",", coordinationAll), "Tilda", false);
 
             ecb.AddEvidenceValue("TildaNPDIDv1", string.Join(",", npdid), "Tilda", false);
+
+            ecb.AddEvidenceValue("TildaTilsynsrapportpdfv1", string.Join(",", pdfReport), "Tilda", false);
 
             ecb.AddEvidenceValue("AlleKilder", string.Join(",", all), "Tilda", false);
 

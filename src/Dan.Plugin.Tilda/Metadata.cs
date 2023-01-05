@@ -71,6 +71,7 @@ namespace Dan.Plugin.Tilda
             a.AddRange(await GetTildaMetadataMetadata());
             a.AddRange(await GetTildaStorulykkeMetadata());
             a.AddRange(await GetTildaStorulykkeMetadataAlle());
+            a.AddRange(GetPdfReportMetadata());
             // *** TEMPORARY TILDA FILTERING ***
             if (_settings.IsTest)
             {
@@ -78,6 +79,43 @@ namespace Dan.Plugin.Tilda
             }
 
             return a;
+        }
+
+        private static IEnumerable<EvidenceCode> GetPdfReportMetadata()
+        {
+            var a = new EvidenceCode()
+            {
+                Description = "TildaTilsynsrapportpdfv1",
+                EvidenceCodeName = "TildaTilsynsrapportpdfv1",
+                EvidenceSource = "Tilda",
+                IsAsynchronous = false,
+                BelongsToServiceContexts = belongsToTilda,
+                MaxValidDays = 365,
+                AuthorizationRequirements = GetTildaAuthRequirements<ITildaPdfReport>(),
+                Values = new List<EvidenceValue>()
+                {
+                    new EvidenceValue()
+                    {
+                        EvidenceValueName = "pdfrapport",
+                        Source = "Tilda",
+                        ValueType = EvidenceValueType.Attachment
+                    }
+                },
+                Parameters = new List<EvidenceParameter>()
+                {
+                    new EvidenceParameter()
+                    {
+                        EvidenceParamName = "internTilsynsId",
+                        ParamType = EvidenceParamType.String,
+                        Required = true
+                    }
+                }
+            };
+
+            return new List<EvidenceCode>()
+            {
+                a
+            };
         }
 
         private static async Task<IEnumerable<EvidenceCode>> GetTildaStorulykkeMetadataAlle()
@@ -256,6 +294,12 @@ namespace Dan.Plugin.Tilda
                     new EvidenceValue()
                     {
                         EvidenceValueName = "TildaTilsynskoordineringAllev1",
+                        Source = "Tilda",
+                        ValueType = EvidenceValueType.String
+                    },
+                    new EvidenceValue()
+                    {
+                        EvidenceValueName = "TildaTilsynsrapportpdfv1",
                         Source = "Tilda",
                         ValueType = EvidenceValueType.String
                     },
@@ -617,32 +661,6 @@ namespace Dan.Plugin.Tilda
             {
                 a
             };
-        }
-
-        private static async Task<JSchema> GetJSchema<T>(string name, string fileName = "")
-        {
-            if (fileName.Equals(string.Empty))
-            {
-                JSchemaGenerator generator = new JSchemaGenerator();
-                generator.GenerationProviders.Add(new StringEnumGenerationProvider());
-                generator.SchemaIdGenerationHandling = SchemaIdGenerationHandling.TypeName;
-                JSchema schema = generator.Generate(typeof(T));
-                schema.SchemaVersion = new Uri("http://json-schema.org/draft-07/schema#");
-                schema.Title = name;
-
-                return schema;
-            }
-            else
-            {
-                return await LoadSchemaFromFile(fileName);
-            }
-        }
-
-        private static async Task<JSchema> LoadSchemaFromFile(string name)
-        {
-            var binDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var rootDirectory = Path.GetFullPath(Path.Combine(binDirectory, ".."));
-            return JSchema.Parse(await File.ReadAllTextAsync(rootDirectory + $@"\JsonSchemas\{name}"));
         }
 
         public static async Task<List<EvidenceCode>> GetTilsynsdataRapportAllMetadata()

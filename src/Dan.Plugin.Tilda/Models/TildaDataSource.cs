@@ -30,6 +30,8 @@ namespace Dan.Plugin.Tilda.Models
 
         protected virtual string AlertDatasetName => "meldingtilannenmyndighet";
 
+        protected virtual string PdfReportDatasetName => "tilsyn/pdf";
+
         protected Settings _settings;
         protected ILogger _logger;
         protected HttpClient _client;
@@ -104,6 +106,12 @@ namespace Dan.Plugin.Tilda.Models
         public virtual string GetUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "")
         {
             return Helpers.GetUri(baseUri, dataset, organizationNumber, requestor, fromDate, toDate, null, npdid);
+        }
+
+        public virtual async Task<byte[]> GetPdfReport(EvidenceHarvesterRequest req, string internTilsynsId)
+        {
+            var url = GetUri(BaseUri, PdfReportDatasetName, req.Requestor, null, null, null, internTilsynsId);
+            return await Helpers.GetPdfreport(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
         public virtual string GetUriAll(string baseUri, string dataset, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "", string filter = "")

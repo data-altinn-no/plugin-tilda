@@ -18,6 +18,7 @@ using System.Web;
 using Dan.Common.Exceptions;
 using Dan.Common.Extensions;
 using Dan.Plugin.Tilda.Extensions;
+using Newtonsoft.Json.Linq;
 
 
 namespace Dan.Plugin.Tilda.Utils
@@ -468,6 +469,60 @@ namespace Dan.Plugin.Tilda.Utils
             return new string(input.ToCharArray()
                 .Where(c => !Char.IsWhiteSpace(c))
                 .ToArray());
+        }
+
+        public static async Task<byte[]> GetPdfreport(string url, string sourceOrgNo, HttpClient client, ILogger logger, string mpToken, string requestor)
+        {
+            //For local test purposes
+            if (string.IsNullOrEmpty(mpToken))
+                mpToken = "NOT SET";
+
+            using var t = logger.Timer($"{sourceOrgNo}-retrieval");
+
+            byte[] result = null;
+
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.TryAddWithoutValidation("Accept", "application/pdf");
+                request.Headers.TryAddWithoutValidation("Authorization", "bearer " + mpToken);
+
+                logger.LogInformation("Data retrieval started from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor}",
+                    sourceOrgNo, url, requestor);
+                var responseMessage = await client.SendAsync(request);
+                logger.LogInformation(
+                    "Data retrieval completed from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} status={status}",
+                    sourceOrgNo, url, requestor, t.ElapsedMilliseconds, "ok");
+
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    result = await responseMessage.Content.ReadAsByteArrayAsync();
+
+
+                    if (result.Length == 0)
+                    {
+                        logger.LogWarning(
+                            "Data retrieval completed from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} status={status}",
+                            sourceOrgNo, url, requestor, t.ElapsedMilliseconds, "okwarn");
+                    }
+                }
+                else
+                {
+                    logger.LogWarning(
+                        "Data retrieval failed gracefully sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} statusCode={statusCode} reasonPhrase={reasonPhrase} status={status}",
+                        sourceOrgNo, url, requestor, t.ElapsedMilliseconds, responseMessage.StatusCode.ToString(), responseMessage.ReasonPhrase, "softfail"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(
+                    "Data retrieval failed with exception sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} ex={ex} message={message} status={status}",
+                    sourceOrgNo, url, requestor, t.ElapsedMilliseconds, ex.GetType().Name, ex.Message, "hardfail"
+                );
+            }
+
+            return result;
         }
     }
 }
