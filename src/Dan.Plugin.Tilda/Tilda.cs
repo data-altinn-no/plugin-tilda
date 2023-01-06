@@ -32,22 +32,20 @@ namespace Dan.Plugin.Tilda
         private HttpClient _client;
         private HttpClient _erClient;
         private Settings _settings;
-        private EvidenceSourceMetadata _metadata;
-
         private readonly IEntityRegistryService _entityRegistryService;
-
+        private readonly IEvidenceSourceMetadata _metadata;
         private List<string> P6Orgs;
         private List<string> P9Orgs;
 
-        public Tilda(IHttpClientFactory httpClientFactory, IOptions<Settings> settings, IPolicyRegistry<string> policyRegistry, IEntityRegistryService entityRegistry)
+        public Tilda(IHttpClientFactory httpClientFactory, IOptions<Settings> settings, IPolicyRegistry<string> policyRegistry, IEntityRegistryService entityRegistry, IEvidenceSourceMetadata metadata)
         {
             _policyRegistry = policyRegistry;
             _client = httpClientFactory.CreateClient("SafeHttpClient");
             _erClient = httpClientFactory.CreateClient("ERHttpClient");
             _settings = settings.Value;
-            _metadata = new EvidenceSourceMetadata(_settings);
             _entityRegistryService = entityRegistry;
             _entityRegistryService.AllowTestCcrLookup = _settings.IsLocalDevelopment || _settings.IsLocalDevelopment;
+            _metadata = metadata;
         }
 
         [Function("TildaMeldingTilAnnenMyndighetv1")]

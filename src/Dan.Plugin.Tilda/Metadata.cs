@@ -17,12 +17,14 @@ using Dan.Common.Enums;
 using Dan.Common.Interfaces;
 using Dan.Common.Models;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Options;
 using JsonSchema = NJsonSchema.JsonSchema;
+using Azure.Core.Serialization;
 
 namespace Dan.Plugin.Tilda
 {
-    public class Metadata
+    public class Metadata : IEvidenceSourceMetadata
     {
 
         const string mpScope = "brreg:tilda";
@@ -32,50 +34,61 @@ namespace Dan.Plugin.Tilda
         private Settings _settings;
         public static List<string> belongsToTilda = new List<string>() { "Tilda" };
 
-        public Metadata(Settings settings)
+        public const string SourceEnhetsregisteret = "Tilsynsdata";
+
+        public const int ERROR_ORGANIZATION_NOT_FOUND = 1;
+
+        public const int ERROR_CCR_UPSTREAM_ERROR = 2;
+
+        public const int ERROR_NO_REPORT_AVAILABLE = 3;
+
+        public const int ERROR_ASYNC_REQUIRED_PARAMS_MISSING = 4;
+
+        public const int ERROR_ASYNC_ALREADY_INITIALIZED = 5;
+
+        public const int ERROR_ASYNC_NOT_INITIALIZED = 6;
+
+        public const int ERROR_AYNC_STATE_STORAGE = 7;
+
+        public const int ERROR_ASYNC_HARVEST_NOT_AVAILABLE = 8;
+
+        public const int ERROR_CERTIFICATE_OF_REGISTRATION_NOT_AVAILABLE = 9;
+
+        public Metadata(IOptions<Settings> settings)
         {
-            _settings = settings;
+            _settings = settings.Value;
         }
 
         [Function(Constants.EvidenceSourceMetadataFunctionName)]
-        public async Task<HttpResponseMessage> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequestMessage req,
-            ILogger log)
+        public async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequestData req, FunctionContext context)
         {
-            var response = new HttpResponseMessage()
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonConvert.SerializeObject(await GetEvidenceCodes(), typeof(List<EvidenceCode>), new JsonSerializerSettings
-                {
-                    TypeNameHandling = TypeNameHandling.Auto,
-                    NullValueHandling = NullValueHandling.Ignore
-                })),
-                RequestMessage = req
-            };
+            var logger = context.GetLogger(context.FunctionDefinition.Name);
+            var response = req.CreateResponse(HttpStatusCode.OK);
 
-
+            await response.WriteAsJsonAsync(GetEvidenceCodes(), new NewtonsoftJsonObjectSerializer(new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto }));
             return response;
         }
 
-        public async Task<List<EvidenceCode>> GetEvidenceCodes()
+        public List<EvidenceCode> GetEvidenceCodes()
         {
             var a = new List<EvidenceCode>();
 
-            a.AddRange(await GetTilsynsdataRapportMetadata());
-            a.AddRange(await GetTilsynsdataRapportAllMetadata());
-            a.AddRange(await GetTilsynskoordineringMetadata());
-            a.AddRange(await GetTilsynskoordineringAllMetadata());
-            a.AddRange(await GetTilsynsTrendMetadata());
-            a.AddRange(await GetTilsynsTrendMetadataAll());
-            a.AddRange(await GetNPDIDMetadata());
-            a.AddRange(await GetTildaMetadataMetadata());
-            a.AddRange(await GetTildaStorulykkeMetadata());
-            a.AddRange(await GetTildaStorulykkeMetadataAlle());
+            a.AddRange(GetTilsynsdataRapportMetadata());
+            a.AddRange(GetTilsynsdataRapportAllMetadata());
+            a.AddRange(GetTilsynskoordineringMetadata());
+            a.AddRange(GetTilsynskoordineringAllMetadata());
+            a.AddRange(GetTilsynsTrendMetadata());
+            a.AddRange(GetTilsynsTrendMetadataAll());
+            a.AddRange(GetNPDIDMetadata());
+            a.AddRange(GetTildaMetadataMetadata());
+            a.AddRange(GetTildaStorulykkeMetadata());
+            a.AddRange(GetTildaStorulykkeMetadataAlle());
             a.AddRange(GetPdfReportMetadata());
             // *** TEMPORARY TILDA FILTERING ***
             if (_settings.IsTest)
             {
-                a.AddRange(await GetTildaMeldingTilAnnenMyndighetMetadata());
+                a.AddRange(GetTildaMeldingTilAnnenMyndighetMetadata());
             }
 
             return a;
@@ -118,7 +131,7 @@ namespace Dan.Plugin.Tilda
             };
         }
 
-        private static async Task<IEnumerable<EvidenceCode>> GetTildaStorulykkeMetadataAlle()
+        private static IEnumerable<EvidenceCode> GetTildaStorulykkeMetadataAlle()
         {
             var schema = JsonSchema.FromType<StorulykkevirksomhetListe>().ToJson(Formatting.Indented);
 
@@ -156,7 +169,7 @@ namespace Dan.Plugin.Tilda
             };
         }
 
-        private static async Task<IEnumerable<EvidenceCode>> GetTildaStorulykkeMetadata()
+        private static IEnumerable<EvidenceCode> GetTildaStorulykkeMetadata()
         {
             var schema = JsonSchema.FromType<StorulykkevirksomhetKontroll>().ToJson(Formatting.Indented);
 
@@ -187,7 +200,7 @@ namespace Dan.Plugin.Tilda
             };
         }
 
-        private static async Task<List<EvidenceCode>> GetTildaMeldingTilAnnenMyndighetMetadata()
+        private static List<EvidenceCode> GetTildaMeldingTilAnnenMyndighetMetadata()
         {
             var schema = JsonSchema.FromType<AlertMessageList>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var a = new EvidenceCode()
@@ -245,7 +258,7 @@ namespace Dan.Plugin.Tilda
             };
         }
 
-        private static async Task<IEnumerable<EvidenceCode>> GetTildaMetadataMetadata()
+        private static IEnumerable<EvidenceCode> GetTildaMetadataMetadata()
         {
 
             var a = new EvidenceCode()
@@ -318,14 +331,14 @@ namespace Dan.Plugin.Tilda
                 }
             };
 
-            return await Task.FromResult(new List<EvidenceCode>
+            return new List<EvidenceCode>()
             {
                 a
-            });
+            };
 
         }
 
-        private static async Task<IEnumerable<EvidenceCode>> GetTilsynsTrendMetadataAll()
+        private static IEnumerable<EvidenceCode> GetTilsynsTrendMetadataAll()
         {
             var schema = JsonSchema.FromType<AuditCoordinationList>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
@@ -380,7 +393,7 @@ namespace Dan.Plugin.Tilda
             };
         }
 
-        private static async Task<IEnumerable<EvidenceCode>> GetTilsynskoordineringAllMetadata()
+        private static IEnumerable<EvidenceCode> GetTilsynskoordineringAllMetadata()
         {
             var schema = JsonSchema.FromType<AuditCoordination>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
@@ -435,7 +448,7 @@ namespace Dan.Plugin.Tilda
             };
         }
 
-        private static async Task<IEnumerable<EvidenceCode>> GetNPDIDMetadata()
+        private static IEnumerable<EvidenceCode> GetNPDIDMetadata()
         {
             var schema = JsonSchema.FromType<NPDIDAuditReportList>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
@@ -509,7 +522,7 @@ namespace Dan.Plugin.Tilda
             };
         }
 
-        private static async Task<IEnumerable<EvidenceCode>> GetTilsynsTrendMetadata()
+        private static IEnumerable<EvidenceCode> GetTilsynsTrendMetadata()
         {
             var schema = JsonSchema.FromType<AuditCoordinationList>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
@@ -595,7 +608,7 @@ namespace Dan.Plugin.Tilda
             };
         }
 
-        public static async Task<List<EvidenceCode>> GetTilsynskoordineringMetadata()
+        public static List<EvidenceCode> GetTilsynskoordineringMetadata()
         {
             var schema = JsonSchema.FromType<AuditCoordination>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
@@ -663,7 +676,7 @@ namespace Dan.Plugin.Tilda
             };
         }
 
-        public static async Task<List<EvidenceCode>> GetTilsynsdataRapportAllMetadata()
+        public static List<EvidenceCode> GetTilsynsdataRapportAllMetadata()
         {
             var schema = JsonSchema.FromType<AuditReportList>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
@@ -717,7 +730,7 @@ namespace Dan.Plugin.Tilda
             return new List<EvidenceCode>(){a};
         }
 
-        public static async Task<List<EvidenceCode>> GetTilsynsdataRapportMetadata()
+        public static List<EvidenceCode> GetTilsynsdataRapportMetadata()
         {
             var schema = JsonSchema.FromType<AuditReportList>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
@@ -786,40 +799,4 @@ namespace Dan.Plugin.Tilda
             };
         }
     }
-
-    public class EvidenceSourceMetadata : IEvidenceSourceMetadata
-    {
-        public const string SourceEnhetsregisteret = "Tilsynsdata";
-
-        public const int ERROR_ORGANIZATION_NOT_FOUND = 1;
-
-        public const int ERROR_CCR_UPSTREAM_ERROR = 2;
-
-        public const int ERROR_NO_REPORT_AVAILABLE = 3;
-
-        public const int ERROR_ASYNC_REQUIRED_PARAMS_MISSING = 4;
-
-        public const int ERROR_ASYNC_ALREADY_INITIALIZED = 5;
-
-        public const int ERROR_ASYNC_NOT_INITIALIZED = 6;
-
-        public const int ERROR_AYNC_STATE_STORAGE = 7;
-
-        public const int ERROR_ASYNC_HARVEST_NOT_AVAILABLE = 8;
-
-        public const int ERROR_CERTIFICATE_OF_REGISTRATION_NOT_AVAILABLE = 9;
-
-        private Settings _settings;
-
-        public EvidenceSourceMetadata(Settings settings)
-        {
-            _settings = settings;
-        }
-
-        public List<EvidenceCode> GetEvidenceCodes()
-        {
-            return (new Metadata(_settings)).GetEvidenceCodes().Result;
-        }
-    }
-
 }

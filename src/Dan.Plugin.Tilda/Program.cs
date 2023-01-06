@@ -2,7 +2,6 @@ using Dan.Common.Extensions;
 using Dan.Common.Interfaces;
 using Dan.Common.Services;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -11,6 +10,7 @@ using Polly.Caching.Distributed;
 using Polly.Extensions.Http;
 using Polly.Registry;
 using System;
+using Dan.Plugin.Tilda;
 using Settings = Dan.Plugin.Tilda.Config.Settings;
 
 var host = new HostBuilder()
@@ -35,6 +35,7 @@ var host = new HostBuilder()
         });
 
         services.AddSingleton<IEntityRegistryService, EntityRegistryService>();
+        services.AddSingleton<IEvidenceSourceMetadata, Metadata>();
 
         var distributedCache = services.BuildServiceProvider().GetRequiredService<IDistributedCache>();
 

@@ -180,7 +180,7 @@ namespace Dan.Plugin.Tilda.Utils
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
                     throw new EvidenceSourcePermanentClientException(
-                            EvidenceSourceMetadata.ERROR_ORGANIZATION_NOT_FOUND,
+                            Metadata.ERROR_ORGANIZATION_NOT_FOUND,
                             $"{organizationNumber} was not found in the Central Coordinating Register for Legal Entities");
                 }
 
@@ -188,7 +188,7 @@ namespace Dan.Plugin.Tilda.Utils
             }
             catch (HttpRequestException e)
             {
-                throw new EvidenceSourcePermanentServerException(EvidenceSourceMetadata.ERROR_CCR_UPSTREAM_ERROR, null, e);
+                throw new EvidenceSourcePermanentServerException(Metadata.ERROR_CCR_UPSTREAM_ERROR, null, e);
             }
 
             try
@@ -197,7 +197,7 @@ namespace Dan.Plugin.Tilda.Utils
             }
             catch
             {
-                throw new EvidenceSourcePermanentServerException(EvidenceSourceMetadata.ERROR_CCR_UPSTREAM_ERROR,
+                throw new EvidenceSourcePermanentServerException(Metadata.ERROR_CCR_UPSTREAM_ERROR,
                     "Did not understand the data model returned from upstream source");
             }
 
@@ -283,7 +283,7 @@ namespace Dan.Plugin.Tilda.Utils
                         if (response.StatusCode == HttpStatusCode.NotFound)
                         {
                             throw new EvidenceSourcePermanentClientException(
-                                EvidenceSourceMetadata.ERROR_ORGANIZATION_NOT_FOUND,
+                                Metadata.ERROR_ORGANIZATION_NOT_FOUND,
                                 $"{organizationNumber} was not found in the Central Coordinating Register for Legal Entities");
                         }
                     }
@@ -294,7 +294,7 @@ namespace Dan.Plugin.Tilda.Utils
             }
             catch (HttpRequestException e)
             {
-                throw new EvidenceSourcePermanentServerException(EvidenceSourceMetadata.ERROR_CCR_UPSTREAM_ERROR, null, e);
+                throw new EvidenceSourcePermanentServerException(Metadata.ERROR_CCR_UPSTREAM_ERROR, null, e);
             }
 
             try
@@ -303,7 +303,7 @@ namespace Dan.Plugin.Tilda.Utils
             }
             catch
             {
-                throw new EvidenceSourcePermanentServerException(EvidenceSourceMetadata.ERROR_CCR_UPSTREAM_ERROR,
+                throw new EvidenceSourcePermanentServerException(Metadata.ERROR_CCR_UPSTREAM_ERROR,
                     "Did not understand the data model returned from upstream source");
             }
 
