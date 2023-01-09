@@ -187,12 +187,12 @@ namespace Dan.Plugin.Tilda
         private async Task<List<EvidenceValue>> GetEvidenceValuesTildaPdfReportV1(EvidenceHarvesterRequest req)
         {
             var taskList = new List<Task<string>>();
-            var id = req.GetParameter("internTilsynsId").ToString();
+            var id = req.GetParameter("internTilsynsId").Value.ToString();
             string filter = req.SubjectParty?.NorwegianOrganizationNumber;
             byte[] result;
 
             try
-            {
+            {;
                 //Should always only return ONE source
                 var pdfTarget = SourcesHelper.GetRelevantSources<ITildaPdfReport>(filter, _client, _logger, _settings).FirstOrDefault();
 
