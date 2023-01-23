@@ -54,6 +54,8 @@ namespace Dan.Plugin.Tilda
 
         public const int ERROR_CERTIFICATE_OF_REGISTRATION_NOT_AVAILABLE = 9;
 
+        public const int TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS = 40;
+
         public Metadata(IOptions<Settings> settings)
         {
             _settings = settings.Value;
@@ -105,6 +107,7 @@ namespace Dan.Plugin.Tilda
                 BelongsToServiceContexts = belongsToTilda,
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaPdfReport>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -144,6 +147,7 @@ namespace Dan.Plugin.Tilda
                 BelongsToServiceContexts = belongsToTilda,
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAlertMessage>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -182,6 +186,7 @@ namespace Dan.Plugin.Tilda
                 BelongsToServiceContexts = belongsToTilda,
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAlertMessage>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -213,6 +218,7 @@ namespace Dan.Plugin.Tilda
                 BelongsToServiceContexts = belongsToTilda,
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAlertMessage>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -272,6 +278,7 @@ namespace Dan.Plugin.Tilda
                 ServiceContext = "Tilda",
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAuditCoordinationAll>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -354,6 +361,7 @@ namespace Dan.Plugin.Tilda
                 ServiceContext = "Tilda",
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaTrendReportsAll>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -409,6 +417,7 @@ namespace Dan.Plugin.Tilda
                 ServiceContext = "Tilda",
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAuditCoordinationAll>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -464,6 +473,7 @@ namespace Dan.Plugin.Tilda
                 ServiceContext = "Tilda",
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaNPDIDAuditReports>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -538,6 +548,7 @@ namespace Dan.Plugin.Tilda
                 ServiceContext = "Tilda",
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaTrendReports>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -624,6 +635,7 @@ namespace Dan.Plugin.Tilda
                 ServiceContext = "Tilda",
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAuditCoordination>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -692,6 +704,7 @@ namespace Dan.Plugin.Tilda
                 ServiceContext = "Tilda",
                 AuthorizationRequirements = new List<Requirement>(),
                 MaxValidDays = 365,
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
@@ -746,6 +759,7 @@ namespace Dan.Plugin.Tilda
                 ServiceContext = "Tilda",
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAuditReports>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
                     new EvidenceValue()
