@@ -13,7 +13,7 @@ using Nadobe.Common.Models;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
-    public class Arbeidstilsynet : TildaDataSource, ITildaAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaAuditCoordinationAll
+    public class Arbeidstilsynet : TildaDataSource, ITildaAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaAuditCoordinationAll, ITildaAuditReportsAll
     {
         private const string orgNo = "974761211";
         private const string controlAgency = "Arbeidstilsynet";
