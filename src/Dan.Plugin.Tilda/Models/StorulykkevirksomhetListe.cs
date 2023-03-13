@@ -9,6 +9,6 @@ namespace Dan.Plugin.Tilda.Models
     public class StorulykkevirksomhetListe
     {
         [JsonProperty("storulykkevirksomheter")]
-        public List<string> Organizations;
+        public string[] Organizations;
     }
 }

@@ -34,8 +34,8 @@ namespace Dan.Plugin.Tilda
         private Settings _settings;
         private readonly IEntityRegistryService _entityRegistryService;
         private readonly IEvidenceSourceMetadata _metadata;
-        private List<string> P6Orgs;
-        private List<string> P9Orgs;
+        private string[] P6Orgs;
+        private string[] P9Orgs;
 
         public Tilda(IHttpClientFactory httpClientFactory, IOptions<Settings> settings, IPolicyRegistry<string> policyRegistry, IEntityRegistryService entityRegistry, IEvidenceSourceMetadata metadata)
         {

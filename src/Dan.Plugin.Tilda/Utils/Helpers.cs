@@ -450,18 +450,19 @@ namespace Dan.Plugin.Tilda.Utils
             return await File.ReadAllLinesAsync(rootDirectory + $@"\{folder}\{fileName}");           
         }
 
-        public static async Task<List<string>> GetParagraph(string paragraph)
+        public static async Task<string[]> GetParagraph(string paragraph)
         {
-            var fileContents = await GetFileContents("Storulykkedata", $"p{paragraph}.txt");
-            var result = new List<string>();
 
-            for(int i = 0; i<fileContents.Length-1;i++)
+            var assembly = Assembly.GetExecutingAssembly();
+            string resourceName = assembly.GetManifestResourceNames().Single(str => str.EndsWith($"p{paragraph}.txt"));
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (var reader = new StreamReader(stream))
             {
-                fileContents[i] = RemoveWhitespace(fileContents[i]);
-                result.Add(fileContents[i]);                
+                var list = reader.ReadToEnd();
+                return list.Split(Environment.NewLine);
             }
 
-            return result;
         }
 
         public static string RemoveWhitespace(this string input)
