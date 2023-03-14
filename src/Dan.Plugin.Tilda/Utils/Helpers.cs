@@ -450,26 +450,28 @@ namespace Dan.Plugin.Tilda.Utils
             return await File.ReadAllLinesAsync(rootDirectory + $@"\{folder}\{fileName}");           
         }
 
-        public static async Task<string[]> GetParagraph(string paragraph)
+        public static async Task<List<string>> GetParagraph(string paragraph)
         {
-
+            List<string> resultList = new List<string>();
             var assembly = Assembly.GetExecutingAssembly();
             string resourceName = assembly.GetManifestResourceNames().Single(str => str.EndsWith($"p{paragraph}.txt"));
 
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             using (var reader = new StreamReader(stream))
             {
-                var list = reader.ReadToEnd();
-                return list.Split(Environment.NewLine);
+                while (!reader.EndOfStream)
+                {
+                    var contents = await reader.ReadLineAsync();
+                    resultList.Add(FormatLine(contents));
+                }
             }
 
+            return resultList;
         }
 
-        public static string RemoveWhitespace(this string input)
+        public static string FormatLine(this string input)
         {
-            return new string(input.ToCharArray()
-                .Where(c => !Char.IsWhiteSpace(c))
-                .ToArray());
+            return input.Replace(" ", "").Replace(Environment.NewLine, "");
         }
 
         public static async Task<byte[]> GetPdfreport(string url, string sourceOrgNo, HttpClient client, ILogger logger, string mpToken, string requestor)
