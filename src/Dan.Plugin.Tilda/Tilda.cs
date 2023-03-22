@@ -755,21 +755,21 @@ namespace Dan.Plugin.Tilda
 
                 var taskList = new List<Task<TildaRegistryEntry>>();
 
-                if (result.AuditReports != null)
-                {
-                    var distinctList = result.AuditReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
-                    foreach (var item in distinctList)
-                    {
-                        taskList.Add(GetOrganizationFromBR(item.ControlObject));
-                    }
-                }
+                /* if (result.AuditReports != null)
+                 {
+                     var distinctList = result.AuditReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
+                     foreach (var item in distinctList)
+                     {
+                         taskList.Add(GetOrganizationFromBR(item.ControlObject));
+                     }
+                 } 
 
-                await Task.WhenAll(taskList);
+                 await Task.WhenAll(taskList);
 
-                foreach (var t in taskList)
-                {
-                    brResults.Add(t.Result);
-                }
+                 foreach (var t in taskList)
+                 {
+                     brResults.Add(t.Result);
+                 }*/
             }
             catch (Exception ex)
             {
