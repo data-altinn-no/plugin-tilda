@@ -10,7 +10,9 @@
     <None Remove="worker-logging.json" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="worker-logging.json" />
+    <Content Include="worker-logging.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Storulykkedata\p6.txt">
