@@ -7,6 +7,10 @@
   <ItemGroup>
     <None Remove="Storulykkedata\p6.txt" />
     <None Remove="Storulykkedata\p9.txt" />
+    <None Remove="worker-logging.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="worker-logging.json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Storulykkedata\p6.txt">
