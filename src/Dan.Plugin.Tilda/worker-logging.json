@@ -2,6 +2,7 @@
     "Logging": {
         "LogLevel": {
             "Default": "Information",
+            "Dan.Plugin.Tilda": "Information",
             "Microsoft": "Warning",
             "Function": "Warning",
             "System.Net": "Warning"
