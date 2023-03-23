@@ -11,16 +11,16 @@ using Polly.Extensions.Http;
 using Polly.Registry;
 using System;
 using Dan.Plugin.Tilda;
+using Microsoft.Extensions.Configuration;
 using Settings = Dan.Plugin.Tilda.Config.Settings;
 
 var host = new HostBuilder()
     .ConfigureDanPluginDefaults()
-   /* .ConfigureAppConfiguration((context, configuration) =>
+    .ConfigureAppConfiguration((context, configuration) =>
     {
         configuration
-            .AddConfiguration()
-
-    }) */
+            .AddJsonFile("worker-logging.json", optional:true);
+    }) 
     .ConfigureServices((context, services) =>
     {
         // This makes IOption<Settings> available in the DI container.
