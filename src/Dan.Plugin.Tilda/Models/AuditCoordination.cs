@@ -17,6 +17,9 @@ namespace Dan.Plugin.Tilda.Models
         [JsonProperty("ansvarligtilsynsmyndighet")]
         public string ResponsibleAuditor;
 
+        [JsonProperty("tilsynsstatus")]
+        public ControlState ControlPlanningStatus;
+
         [JsonProperty("storulykketilsyn", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public MajorAccidentAttributeType MajorAccidentAudit;
 
