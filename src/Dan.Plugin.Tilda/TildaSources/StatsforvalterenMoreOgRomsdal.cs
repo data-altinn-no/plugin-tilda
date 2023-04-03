@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
-    public class StatsforvalterenMoreOgRomsdal : TildaDataSource, ITildaAuditCoordination, ITildaAuditCoordinationAll
+    public class StatsforvalterenMoreOgRomsdal : TildaDataSource, ITildaAuditCoordination, ITildaAuditCoordinationAll, ITildaAuditReports
     {
         private const string orgNo = "974764067";
         public const string controlAgency = "Statsforvalteren i Møre og Romsdal";
