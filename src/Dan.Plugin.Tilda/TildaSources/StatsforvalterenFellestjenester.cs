@@ -39,15 +39,15 @@ namespace Dan.Plugin.Tilda.TildaSources
             return apiUrl;
         }
 
-        public static string GetSfUriAll(string baseUri, string dataset, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "")
+        public static string GetSfUriAll(string baseUri, string dataset, string requestor, Int64? month, Int64? year, string identifier = "", string npdid = "")
         {
             string apiUrl = $"{baseUri}/{dataset}/?requestor={requestor}";
 
-            fromDate ??= DateTime.Now.AddYears(-1);
-            toDate ??= DateTime.Now;
+            if (month != null)
+                apiUrl += $"&maaned={month}";
 
-            apiUrl += $"&fromDate={((DateTime)fromDate).ToString("yyyy'-'MM'-'dd", System.Globalization.CultureInfo.CurrentCulture)}";
-            apiUrl += $"&toDate={((DateTime)toDate).ToString("yyyy'-'MM'-'dd", System.Globalization.CultureInfo.CurrentCulture)}";
+            if (year != null)
+                apiUrl += $"&aar={year}";
 
             return apiUrl;
         }

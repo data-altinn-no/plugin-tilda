@@ -38,16 +38,16 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         }
 
-        public override async Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string filter)
+        public override async Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter)
         {
-            return await GetDataTrendAsync(req, fromDate, toDate);
+            return await GetDataTrendAsync(req, null, null);
         }
 
-        public override async Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string filter)
+        public override async Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter)
         {
-            return await GetAuditReportsAsync(req, fromDate, toDate);
+            return await GetAuditReportsAsync(req, null, null);
         }
-        public override async Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string filter)
+        public override async Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter)
         {
 
             var resultList = new AuditCoordinationList(OrganizationNumber);
@@ -76,9 +76,9 @@ namespace Dan.Plugin.Tilda.TildaSources
         }
 
 
-        public override async Task<AlertMessageList> GetAlertMessagesAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string identifier)
+        public override async Task<AlertMessageList> GetAlertMessagesAsync(EvidenceHarvesterRequest req, int? month, int? year, string identifier)
         {
-            var url = GetUriAll(BaseUri, AlertDatasetName, req.Requestor, fromDate, toDate, identifier);
+            var url = GetUriAll(BaseUri, AlertDatasetName, req.Requestor, month, year, identifier);
             var list = new AlertMessageList(OrganizationNumber);
 
             try
@@ -97,7 +97,7 @@ namespace Dan.Plugin.Tilda.TildaSources
             return list;
         }
 
-        public override async Task<AuditReportList> GetAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
+        public override async Task<AuditReportList> GetAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate) 
         {
             var resultList = new AuditReportList(OrganizationNumber);
             try

@@ -55,9 +55,9 @@ namespace Dan.Plugin.Tilda.Models
             return await Helpers.GetData<AuditReportList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual async Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string filter)
+        public virtual async Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter)
         {
-            var url = GetUriAll(BaseUri, AuditReportDatasetName, req.Requestor, fromDate, toDate);
+            var url = GetUriAll(BaseUri, AuditReportDatasetName, req.Requestor, month, year);
             return await Helpers.GetData<AuditReportList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
@@ -67,9 +67,9 @@ namespace Dan.Plugin.Tilda.Models
             return await Helpers.GetData<TrendReportList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual async Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string filter)
+        public virtual async Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter)
         {
-            var url = GetUriAll(BaseUri, TrendDatasetName, req.Requestor, fromDate, toDate);
+            var url = GetUriAll(BaseUri, TrendDatasetName, req.Requestor, month, year);
             return await Helpers.GetData<TrendReportList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
@@ -79,9 +79,9 @@ namespace Dan.Plugin.Tilda.Models
             return await Helpers.GetData<AuditCoordinationList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual async Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string filter)
+        public virtual async Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter)
         {
-            var url = GetUriAll(BaseUri, CoordinationDatasetName, req.Requestor, fromDate, toDate);
+            var url = GetUriAll(BaseUri, CoordinationDatasetName, req.Requestor, month, year);
             return await Helpers.GetData<AuditCoordinationList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
@@ -91,15 +91,15 @@ namespace Dan.Plugin.Tilda.Models
             return await Helpers.GetData<NPDIDAuditReportList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual async Task<NPDIDAuditReportList> GetNPDIDAuditReportsAllAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string npdid, string filter)
+        public virtual async Task<NPDIDAuditReportList> GetNPDIDAuditReportsAllAsync(EvidenceHarvesterRequest req, int? month, int? year, string npdid, string filter)
         {
-            var url = GetUriAll(BaseUri, NpdidDatasetName, req.Requestor, fromDate, toDate, null, npdid);
+            var url = GetUriAll(BaseUri, NpdidDatasetName, req.Requestor, month, year, null, npdid);
             return await Helpers.GetData<NPDIDAuditReportList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual async Task<AlertMessageList> GetAlertMessagesAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string identifier)
+        public virtual async Task<AlertMessageList> GetAlertMessagesAsync(EvidenceHarvesterRequest req, int? month, int? year, string identifier)
         {
-            var url = GetUriAll(BaseUri, AlertDatasetName, req.Requestor, fromDate, toDate, identifier, null);
+            var url = GetUriAll(BaseUri, AlertDatasetName, req.Requestor, month, year, identifier, null);
             return await Helpers.GetData<AlertMessageList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
@@ -114,9 +114,9 @@ namespace Dan.Plugin.Tilda.Models
             return await Helpers.GetPdfreport(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual string GetUriAll(string baseUri, string dataset, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "", string filter = "")
+        public virtual string GetUriAll(string baseUri, string dataset, string requestor, Int64? month, Int64? year, string identifier = "", string npdid = "", string filter = "")
         {
-            return Helpers.GetUriAll(baseUri, dataset, requestor, fromDate, toDate, identifier, null, filter);
+            return Helpers.GetUriAll(baseUri, dataset, requestor, month, year, identifier, null, filter);
         }
     }
 }

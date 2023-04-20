@@ -10,6 +10,6 @@ namespace Dan.Plugin.Tilda.Interfaces
 {
     public interface ITildaTrendReportsAll
     {
-        public Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string filter);
+        public Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter);
     }
 }

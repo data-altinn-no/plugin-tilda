@@ -1,7 +1,9 @@
 using Dan.Common.Extensions;
 using Dan.Common.Interfaces;
 using Dan.Common.Services;
+using Dan.Plugin.Tilda;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -10,10 +12,6 @@ using Polly.Caching.Distributed;
 using Polly.Extensions.Http;
 using Polly.Registry;
 using System;
-using System.Linq;
-using Dan.Plugin.Tilda;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Settings = Dan.Plugin.Tilda.Config.Settings;
 
 var host = new HostBuilder()
@@ -49,18 +47,7 @@ var host = new HostBuilder()
         services.AddHttpClient("ERHttpClient", client =>
         {
             client.Timeout = new TimeSpan(0, 0, 5);
-        });
-
-        services.Configure<LoggerFilterOptions>(options =>
-        {
-            LoggerFilterRule toRemove = options.Rules.FirstOrDefault(rule => rule.ProviderName
-                                                                             == "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider");
-
-            if (toRemove is not null)
-            {
-                options.Rules.Remove(toRemove);
-            }
-        });
+        });       
 
 
     })

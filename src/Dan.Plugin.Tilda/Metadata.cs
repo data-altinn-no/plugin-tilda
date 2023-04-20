@@ -134,6 +134,31 @@ namespace Dan.Plugin.Tilda
             };
         }
 
+        private static List<EvidenceParameter> GetTildaAllParameters()
+        {
+            return new List<EvidenceParameter>()
+            {
+                new EvidenceParameter()
+                {
+                    EvidenceParamName = "maaned",
+                    ParamType = EvidenceParamType.Number,
+                    Required = true
+                },
+                new EvidenceParameter()
+                {
+                    EvidenceParamName = "aar",
+                    ParamType = EvidenceParamType.Number,
+                    Required = true
+                },
+                new EvidenceParameter()
+                {
+                    EvidenceParamName = "filter",
+                    ParamType = EvidenceParamType.String,
+                    Required = false
+                }
+            };
+        }
+
         private static IEnumerable<EvidenceCode> GetTildaStorulykkeMetadataAlle()
         {
             var schema = JsonSchema.FromType<StorulykkevirksomhetListe>().ToJson(Formatting.Indented);
@@ -372,27 +397,7 @@ namespace Dan.Plugin.Tilda
                         JsonSchemaDefintion = schema
                     }
                 },
-                Parameters = new List<EvidenceParameter>()
-                {
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "startdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "sluttdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "filter",
-                        ParamType = EvidenceParamType.String,
-                        Required = false
-                    }
-                },
+                Parameters = GetTildaAllParameters(),
             };
 
             return new List<EvidenceCode>
@@ -428,27 +433,7 @@ namespace Dan.Plugin.Tilda
                         JsonSchemaDefintion = schema
                     }
                 },
-                Parameters = new List<EvidenceParameter>()
-                {
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "startdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "sluttdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "filter",
-                        ParamType = EvidenceParamType.String,
-                        Required = false
-                    }
-                },
+                Parameters = GetTildaAllParameters()
             };
 
             return new List<EvidenceCode>
@@ -715,27 +700,7 @@ namespace Dan.Plugin.Tilda
                         JsonSchemaDefintion = schema
                     }
                 },
-                Parameters = new List<EvidenceParameter>()
-                {
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "startdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "sluttdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "filter",
-                        ParamType = EvidenceParamType.String,
-                        Required = false
-                    }
-                },
+                Parameters = GetTildaAllParameters()
             };
 
             a.AuthorizationRequirements.AddRange(GetTildaAuthRequirements<ITildaAuditReportsAll>());

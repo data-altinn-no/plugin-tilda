@@ -11,6 +11,6 @@ namespace Dan.Plugin.Tilda.Interfaces
     public interface ITildaAuditReportsAll
     {
 
-        public Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string filter);
+        public Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter);
     }
 }

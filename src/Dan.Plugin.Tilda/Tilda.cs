@@ -366,11 +366,13 @@ namespace Dan.Plugin.Tilda
             var includeSubunits = req.GetOptionalParameterValue<bool?>("inkluderUnderenheter");
             var identifier = req.GetOptionalParameterValue<string>("identifikator");
             var filter = req.GetOptionalParameterValue<string>("filter");
+            var year = req.GetOptionalParameterValue<Int64?>("aar");
+            var month = req.GetOptionalParameterValue<Int64?>("maaned");
 
             if (includeSubunits.HasValue && includeSubunits.Value)
                 throw new Exception("inkluderUnderenheter er ikke støttet ennå :)");
 
-            return new TildaParameters(fromDate, toDate, npdid, false, sourceFilter, identifier, filter);
+            return new TildaParameters(fromDate, toDate, npdid, false, sourceFilter, identifier, filter, year, month);
         }
 
 
@@ -639,7 +641,7 @@ namespace Dan.Plugin.Tilda
 
             try
             {
-                result = await sourceList?.First().GetDataTrendAllAsync(req, param.fromDate, param.toDate, param.filter);
+                result = await sourceList?.First().GetDataTrendAllAsync(req, param.month, param.year, param.filter);
 
                 if (result.Status == StatusEnum.NotFound || result.Status == StatusEnum.Failed || result.Status == StatusEnum.Unknown)
                 {
@@ -694,7 +696,7 @@ namespace Dan.Plugin.Tilda
 
             try
             {
-                result = await sourceList?.First().GetAuditCoordinationAllAsync(req, param.fromDate, param.toDate, param.filter);
+                result = await sourceList?.First().GetAuditCoordinationAllAsync(req, param.month, param.year, param.filter);
 
                 if (result.Status == StatusEnum.NotFound || result.Status == StatusEnum.Failed || result.Status == StatusEnum.Unknown)
                 {
@@ -746,7 +748,7 @@ namespace Dan.Plugin.Tilda
 
             try
             {
-                result = await sourceList?.First().GetAuditReportsAllAsync(req, param.fromDate, param.toDate, param.filter);
+                result = await sourceList?.First().GetAuditReportsAllAsync(req, param.month, param.year, param.filter);
 
                 if (result.Status == StatusEnum.NotFound || result.Status == StatusEnum.Failed || result.Status == StatusEnum.Unknown)
                 {

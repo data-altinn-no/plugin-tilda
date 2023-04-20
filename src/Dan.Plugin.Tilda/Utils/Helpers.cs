@@ -85,18 +85,18 @@ namespace Dan.Plugin.Tilda.Utils
             return apiUrl;
         }
 
-        public static string GetUriAll(string baseUri, string dataset, string requestor, DateTime? fromDate, DateTime? toDate, string identifier ="",string npdid = "", string filter = "")
+        public static string GetUriAll(string baseUri, string dataset, string requestor, Int64? month, Int64? year, string identifier ="",string npdid = "", string filter = "")
         {
             string apiUrl = $"{baseUri}/{dataset}?requestor={requestor}";
 
-            if (fromDate != null)
+            if (month != null)
             {
-                apiUrl += $"&fromDate={((DateTime)fromDate).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'", System.Globalization.CultureInfo.CurrentCulture)}";
+                apiUrl += $"&maaned={month}";
             }
 
-            if (toDate != null)
+            if (year != null)
             {
-                apiUrl += $"&toDate={((DateTime)toDate).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'", System.Globalization.CultureInfo.CurrentCulture)}";
+                apiUrl += $"&aar={year}";
             }
 
             if (!string.IsNullOrEmpty(npdid))

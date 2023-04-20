@@ -33,9 +33,9 @@ namespace Dan.Plugin.Tilda.TildaSources
                 toDate, identifier, npdid);
         }
 
-        public override string GetUriAll(string baseUri, string dataset, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "", string filter = "")
+        public override string GetUriAll(string baseUri, string dataset, string requestor, Int64? month, Int64? year, string identifier = "", string npdid = "", string filter = "")
         {
-            return StatsforvalterenFellestjenester.GetSfUriAll(baseUri, dataset, requestor, fromDate, toDate, identifier, npdid);
+            return StatsforvalterenFellestjenester.GetSfUriAll(baseUri, dataset, requestor, month, year, identifier, npdid);
         }
     }
 }

@@ -16,12 +16,16 @@ namespace Dan.Plugin.Tilda.Models
 
         public string filter { get; set; }
 
+        public Int64? month { get; set; }
+
+        public Int64? year { get; set; }
+
         public TildaParameters()
         {
 
         }
 
-        public TildaParameters(DateTime? fromDate, DateTime? toDate, string npdid, bool? includeSubunits, string sourceFilter, string identifier, string filter)
+        public TildaParameters(DateTime? fromDate, DateTime? toDate, string npdid, bool? includeSubunits, string sourceFilter, string identifier, string filter, Int64? year, Int64? month)
         {
             this.fromDate = fromDate;
             this.toDate = toDate;
@@ -30,6 +34,8 @@ namespace Dan.Plugin.Tilda.Models
             this.sourceFilter = sourceFilter;
             this.identifier = identifier;
             this.filter = filter;
+            this.year = year;
+            this.month = month;
         }
     }
 }
