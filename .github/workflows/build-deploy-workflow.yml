@@ -15,6 +15,7 @@ jobs:
    with:
      artifact_name: 'dan-plugin-tilda' # Can be omitted, defaults to 'artifact'
      function_project_path: 'src/Dan.Plugin.Tilda'
+     run_e2e_tests: true
    secrets:
      function_app_name: ${{ secrets.FUNCTIONAPP_NAME }}
      publish_profile: ${{ secrets.AZURE_FUNCTION_PUBLISH_CREDS }}
