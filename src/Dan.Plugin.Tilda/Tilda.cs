@@ -283,7 +283,7 @@ namespace Dan.Plugin.Tilda
 
             var all = SourcesHelper.GetAllRegisteredSources(_settings).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
-         
+
 
             ecb.AddEvidenceValue("TildaTrendrapportv1", string.Join(",", trend), "Tilda", false);
             ecb.AddEvidenceValue("TildaTrendrapportAllev1", string.Join(",", trendAll), "Tilda", false);
@@ -359,6 +359,23 @@ namespace Dan.Plugin.Tilda
 
         private TildaParameters GetValuesFromParameters(EvidenceHarvesterRequest req)
         {
+            if (req.TryGetParameter("startdato", out DateTime fromDate))
+            {
+                fromDate = fromDate.ToUniversalTime();
+            }
+            if (req.TryGetParameter("sluttdato", out DateTime toDate))
+            {
+                toDate = fromDate.ToUniversalTime();
+            }
+            req.TryGetParameter("npdid", out string npdid);
+            req.TryGetParameter("sourceFilter", out string sourceFilter);
+            req.TryGetParameter("inkluderUnderenheter", out bool includeSubunits);
+            req.TryGetParameter("identifikator", out string identifier);
+            req.TryGetParameter("filter", out string filter);
+            req.TryGetParameter("aar", out int year);
+            req.TryGetParameter("maaned", out int month);
+
+            /*
             var fromDate = req.GetOptionalParameterValue<DateTime?>("startdato")?.ToUniversalTime();
             var toDate = req.GetOptionalParameterValue<DateTime?>("sluttdato")?.ToUniversalTime();
             var npdid = req.GetOptionalParameterValue<string>("npdid");
@@ -368,8 +385,9 @@ namespace Dan.Plugin.Tilda
             var filter = req.GetOptionalParameterValue<string>("filter");
             var year = req.GetOptionalParameterValue<Int64?>("aar");
             var month = req.GetOptionalParameterValue<Int64?>("maaned");
+            */
 
-            if (includeSubunits.HasValue && includeSubunits.Value)
+            if (includeSubunits)
                 throw new Exception("inkluderUnderenheter er ikke støttet ennå :)");
 
             return new TildaParameters(fromDate, toDate, npdid, false, sourceFilter, identifier, filter, year, month);
@@ -398,15 +416,15 @@ namespace Dan.Plugin.Tilda
             result.OrganizationNumber = evidenceHarvesterRequest.OrganizationNumber;
 
             if (P6Orgs.Contains(evidenceHarvesterRequest.OrganizationNumber))
-            {                
+            {
                 result.Paragraph6 = true;
-            } 
-            
+            }
+
             if (P9Orgs.Contains(evidenceHarvesterRequest.OrganizationNumber))
             {
                 result.Paragraph9 = true;
 
-            }    
+            }
 
             eb.AddEvidenceValue("Storulykkevirksomhet", JsonConvert.SerializeObject(result), "Tilda", false);
 
@@ -617,13 +635,13 @@ namespace Dan.Plugin.Tilda
             {
                 ecb.AddEvidenceValue("enhetsinformasjon", JsonConvert.SerializeObject(unit), "Enhetsregisteret", false);
             }
-            
+
             foreach (var a in list)
             {
                 var filtered = (TrendReportList)Helpers.Filter(a, brResult);
                 ecb.AddEvidenceValue($"tilsynstrendrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
             }
- 
+
 
             return ecb.GetEvidenceValues();
         }
@@ -764,7 +782,7 @@ namespace Dan.Plugin.Tilda
                      {
                          taskList.Add(GetOrganizationFromBR(item.ControlObject));
                      }
-                 } 
+                 }
 
                  await Task.WhenAll(taskList);
 
@@ -796,7 +814,7 @@ namespace Dan.Plugin.Tilda
             var taskList = new List<Task<AuditReportList>>();
             try
             {
-                foreach (ITildaAuditReports a in SourcesHelper.GetRelevantSources<ITildaAuditReports>(param.sourceFilter, _client, _logger, _settings)) 
+                foreach (ITildaAuditReports a in SourcesHelper.GetRelevantSources<ITildaAuditReports>(param.sourceFilter, _client, _logger, _settings))
                 {
                     taskList.Add(a.GetAuditReportsAsync(req, param.fromDate, param.toDate));
                 }
@@ -837,6 +855,6 @@ namespace Dan.Plugin.Tilda
             return ecb.GetEvidenceValues();
         }
 
-        
+
     }
 }
