@@ -372,8 +372,8 @@ namespace Dan.Plugin.Tilda
             req.TryGetParameter("inkluderUnderenheter", out bool includeSubunits);
             req.TryGetParameter("identifikator", out string identifier);
             req.TryGetParameter("filter", out string filter);
-            req.TryGetParameter("aar", out int year);
-            req.TryGetParameter("maaned", out int month);
+            req.TryGetParameter("aar", out string year);
+            req.TryGetParameter("maaned", out string month);
 
             /*
             var fromDate = req.GetOptionalParameterValue<DateTime?>("startdato")?.ToUniversalTime();

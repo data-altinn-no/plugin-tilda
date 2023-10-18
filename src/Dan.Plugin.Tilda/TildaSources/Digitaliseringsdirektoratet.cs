@@ -38,16 +38,16 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         }
 
-        public override async Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter)
+        public override async Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
             return await GetDataTrendAsync(req, null, null);
         }
 
-        public override async Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter)
+        public override async Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
             return await GetAuditReportsAsync(req, null, null);
         }
-        public override async Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter)
+        public override async Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
 
             var resultList = new AuditCoordinationList(OrganizationNumber);
@@ -76,7 +76,7 @@ namespace Dan.Plugin.Tilda.TildaSources
         }
 
 
-        public override async Task<AlertMessageList> GetAlertMessagesAsync(EvidenceHarvesterRequest req, int? month, int? year, string identifier)
+        public override async Task<AlertMessageList> GetAlertMessagesAsync(EvidenceHarvesterRequest req, string month, string year, string identifier)
         {
             var url = GetUriAll(BaseUri, AlertDatasetName, req.Requestor, month, year, identifier);
             var list = new AlertMessageList(OrganizationNumber);

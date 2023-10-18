@@ -39,7 +39,7 @@ namespace Dan.Plugin.Tilda.TildaSources
             return apiUrl;
         }
 
-        public static string GetSfUriAll(string baseUri, string dataset, string requestor, Int64? month, Int64? year, string identifier = "", string npdid = "")
+        public static string GetSfUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "", string npdid = "")
         {
             string apiUrl = $"{baseUri}/{dataset}/?requestor={requestor}";
 

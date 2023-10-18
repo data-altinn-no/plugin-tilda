@@ -16,16 +16,16 @@ namespace Dan.Plugin.Tilda.Models
 
         public string filter { get; set; }
 
-        public Int64? month { get; set; }
+        public string month { get; set; }
 
-        public Int64? year { get; set; }
+        public string year { get; set; }
 
         public TildaParameters()
         {
 
         }
 
-        public TildaParameters(DateTime? fromDate, DateTime? toDate, string npdid, bool? includeSubunits, string sourceFilter, string identifier, string filter, Int64? year, Int64? month)
+        public TildaParameters(DateTime? fromDate, DateTime? toDate, string npdid, bool? includeSubunits, string sourceFilter, string identifier, string filter, string year, string month)
         {
             this.fromDate = fromDate;
             this.toDate = toDate;

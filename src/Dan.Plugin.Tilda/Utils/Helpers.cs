@@ -85,16 +85,16 @@ namespace Dan.Plugin.Tilda.Utils
             return apiUrl;
         }
 
-        public static string GetUriAll(string baseUri, string dataset, string requestor, Int64? month, Int64? year, string identifier ="",string npdid = "", string filter = "")
+        public static string GetUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier ="",string npdid = "", string filter = "")
         {
             string apiUrl = $"{baseUri}/{dataset}?requestor={requestor}";
 
-            if (month != null)
+            if (month != string.Empty)
             {
                 apiUrl += $"&maaned={month}";
             }
 
-            if (year != null)
+            if (year != string.Empty)
             {
                 apiUrl += $"&aar={year}";
             }

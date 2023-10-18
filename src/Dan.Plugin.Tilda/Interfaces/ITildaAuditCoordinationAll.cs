@@ -10,6 +10,6 @@ namespace Dan.Plugin.Tilda.Interfaces
 {
     public interface ITildaAuditCoordinationAll
     {
-        public Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, Int64? month, Int64? year, string filter);
+        public Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter);
     }
 }

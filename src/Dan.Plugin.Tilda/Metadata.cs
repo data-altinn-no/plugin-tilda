@@ -141,13 +141,13 @@ namespace Dan.Plugin.Tilda
                 new EvidenceParameter()
                 {
                     EvidenceParamName = "maaned",
-                    ParamType = EvidenceParamType.Number,
+                    ParamType = EvidenceParamType.String,
                     Required = true
                 },
                 new EvidenceParameter()
                 {
                     EvidenceParamName = "aar",
-                    ParamType = EvidenceParamType.Number,
+                    ParamType = EvidenceParamType.String,
                     Required = true
                 },
                 new EvidenceParameter()
