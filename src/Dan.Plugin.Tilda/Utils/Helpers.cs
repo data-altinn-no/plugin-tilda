@@ -89,12 +89,12 @@ namespace Dan.Plugin.Tilda.Utils
         {
             string apiUrl = $"{baseUri}/{dataset}?requestor={requestor}";
 
-            if (month != string.Empty)
+            if (!string.IsNullOrEmpty(month))
             {
                 apiUrl += $"&maaned={month}";
             }
 
-            if (year != string.Empty)
+            if (!string.IsNullOrEmpty(year))
             {
                 apiUrl += $"&aar={year}";
             }

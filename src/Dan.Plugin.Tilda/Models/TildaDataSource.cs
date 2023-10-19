@@ -5,6 +5,7 @@ using Dan.Common.Models;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Nadobe.Common.Models;
 
@@ -81,7 +82,7 @@ namespace Dan.Plugin.Tilda.Models
 
         public virtual async Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
-            var url = GetUriAll(BaseUri, CoordinationDatasetName, req.Requestor, month, year);
+            var url = GetUriAll(BaseUri, CoordinationDatasetName, req.Requestor, month, year, string.Empty, string.Empty, filter);
             return await Helpers.GetData<AuditCoordinationList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 

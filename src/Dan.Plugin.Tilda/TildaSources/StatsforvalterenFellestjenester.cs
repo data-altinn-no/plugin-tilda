@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Web;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Models;
 using Microsoft.Extensions.Logging;
@@ -39,15 +40,18 @@ namespace Dan.Plugin.Tilda.TildaSources
             return apiUrl;
         }
 
-        public static string GetSfUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "", string npdid = "")
+        public static string GetSfUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "", string npdid = "", string filter="")
         {
             string apiUrl = $"{baseUri}/{dataset}/?requestor={requestor}";
 
-            if (month != null)
+            if (!string.IsNullOrEmpty(month))
                 apiUrl += $"&maaned={month}";
 
-            if (year != null)
+            if (!string.IsNullOrEmpty(year))
                 apiUrl += $"&aar={year}";
+
+            if (!string.IsNullOrEmpty(filter))
+                apiUrl += $"&filter={HttpUtility.UrlEncode(filter)}";
 
             return apiUrl;
         }
