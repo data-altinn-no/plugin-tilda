@@ -58,7 +58,7 @@ namespace Dan.Plugin.Tilda.Models
 
         public virtual async Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
-            var url = GetUriAll(BaseUri, AuditReportDatasetName, req.Requestor, month, year);
+            var url = GetUriAll(BaseUri, AuditReportDatasetName, req.Requestor, month, year, string.Empty, string.Empty, filter);
             return await Helpers.GetData<AuditReportList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
@@ -70,7 +70,7 @@ namespace Dan.Plugin.Tilda.Models
 
         public virtual async Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
-            var url = GetUriAll(BaseUri, TrendDatasetName, req.Requestor, month, year);
+            var url = GetUriAll(BaseUri, TrendDatasetName, req.Requestor, month, year, string.Empty, string.Empty, filter);
             return await Helpers.GetData<TrendReportList>(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
         }
 
