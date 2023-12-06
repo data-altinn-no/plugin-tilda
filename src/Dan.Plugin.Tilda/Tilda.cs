@@ -359,16 +359,21 @@ namespace Dan.Plugin.Tilda
 
         private TildaParameters GetValuesFromParameters(EvidenceHarvesterRequest req)
         {
+            DateTime? fromDateTime = null;
+            DateTime? toDateTime = null;
+
             if (req.TryGetParameter("startdato", out DateTime fromDate))
             {
-                fromDate = fromDate.ToUniversalTime();
+                fromDateTime = fromDate.ToUniversalTime();
             }
+
             if (req.TryGetParameter("sluttdato", out DateTime toDate))
             {
-                toDate = fromDate.ToUniversalTime();
+                toDateTime = toDate.ToUniversalTime();
             }
+
             req.TryGetParameter("npdid", out string npdid);
-            req.TryGetParameter("sourceFilter", out string sourceFilter);
+            req.TryGetParameter("tilsynskilder", out string sourceFilter);
             req.TryGetParameter("inkluderUnderenheter", out bool includeSubunits);
             req.TryGetParameter("identifikator", out string identifier);
             req.TryGetParameter("filter", out string filter);
@@ -390,7 +395,7 @@ namespace Dan.Plugin.Tilda
             if (includeSubunits)
                 throw new Exception("inkluderUnderenheter er ikke støttet ennå :)");
 
-            return new TildaParameters(fromDate, toDate, npdid, false, sourceFilter, identifier, filter, year, month);
+            return new TildaParameters(fromDateTime, toDateTime, npdid, false, sourceFilter, identifier, filter, year, month);
         }
 
 
