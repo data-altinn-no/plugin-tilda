@@ -4,7 +4,6 @@ using Dan.Common.Interfaces;
 using Dan.Common.Models;
 using Dan.Common.Util;
 using Dan.Plugin.Tilda.Config;
-using Dan.Plugin.Tilda.Extensions;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Models.Enums;
@@ -187,7 +186,12 @@ namespace Dan.Plugin.Tilda
         private async Task<List<EvidenceValue>> GetEvidenceValuesTildaPdfReportV1(EvidenceHarvesterRequest req)
         {
             var taskList = new List<Task<string>>();
-            var id = req.GetParameter("internTilsynsId").Value.ToString();
+
+            if (!req.TryGetParameter("internTilsynsId", out string id))
+            {
+                throw new EvidenceSourcePermanentClientException(1, $"Missing required parameter internTilsynsId");
+            }
+      
             string filter = req.SubjectParty?.NorwegianOrganizationNumber;
             byte[] result;
 
