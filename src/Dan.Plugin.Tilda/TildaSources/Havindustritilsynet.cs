@@ -9,10 +9,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
-    public class Petroleumstilsynet : TildaDataSource, ITildaNPDIDAuditReports
+    public class Havindustritilsynet : TildaDataSource, ITildaAuditCoordination
     {
         private const string orgNo = "986174613";
-        public const string controlAgency = "Petroleumstilsynet";
+        public const string controlAgency = "Havindustritilsynet";
 
         public override string ControlAgency
         {
@@ -24,13 +24,13 @@ namespace Dan.Plugin.Tilda.TildaSources
             get => orgNo;
         }
 
-        public Petroleumstilsynet(Settings settings, HttpClient client, ILogger logger) : base(settings,
+        public Havindustritilsynet(Settings settings, HttpClient client, ILogger logger) : base(settings,
             client, logger)
         {
 
         }
 
-        public Petroleumstilsynet() : base()
+        public Havindustritilsynet() : base()
         {
 
         }
