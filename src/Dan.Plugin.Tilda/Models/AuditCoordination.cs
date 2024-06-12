@@ -20,6 +20,9 @@ namespace Dan.Plugin.Tilda.Models
         [JsonProperty("tilsynsstatus")]
         public ControlState ControlPlanningStatus;
 
+        [JsonProperty("uanmeldttilsyn", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+        public SurpriseControlAttributeType NotNotified;
+
         [JsonProperty("storulykketilsyn", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public MajorAccidentAttributeType MajorAccidentAudit;
 
