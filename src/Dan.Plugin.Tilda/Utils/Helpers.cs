@@ -387,7 +387,7 @@ namespace Dan.Plugin.Tilda.Utils
             }
 
             var firstOrg = orgs.First();
-            // If first organization is a specifict test organization, disable filtering
+            // If first organization is a specific test organization, disable filtering
             if (firstOrg.OrganizationNumber == "111111111") 
             {
                 return resultList;
@@ -398,36 +398,49 @@ namespace Dan.Plugin.Tilda.Utils
                 return orgs.Any(x => x.OrganizationNumber == orgNo && x.OrganisationForm == "ENK");
             }
 
-
             switch (resultList) 
             {
                 case AuditReportList filteredResultList:
-                    filteredResultList.AuditReports = filteredResultList.AuditReports?.Where(x => !IsEnk(x.ControlObject)).ToList();
                     filteredResultList.AuditReports?.ForEach(x =>
                     {
                         x.AuditNotes = null;
-                        x.ControlActivities?.ForEach(y => y.AlertMessages?.Clear());
-                        x.ControlContacts?.ForEach(y => y.ResponsibleName = null);
+
+                        if (IsEnk(x.ControlObject))
+                        {
+                            x.NotesAndRemarks.Clear();
+                            x.ControlAttributes = null;
+                        }
                     });
                     return filteredResultList;
 
                 case AuditCoordinationList filteredResultList:
-                    filteredResultList.AuditCoordinations = filteredResultList.AuditCoordinations?.Where(x => !IsEnk(x.ControlObject)).ToList();
                     filteredResultList.AuditCoordinations?.ForEach(x =>
                     {
-                        x.Alerts?.Clear();
-                        x.PlannedControlContact?.ForEach(y => y.ResponsibleName = null);
+                        if (IsEnk(x.ControlObject))
+                        {
+                            x.Alerts?.Clear();
+                        }
                     });
                     return filteredResultList;
 
                 case NPDIDAuditReportList filteredResultList:
-                    filteredResultList.AuditReports = filteredResultList.AuditReports?.Where(x => !IsEnk(x.ControlObject)).ToList();
                     filteredResultList.AuditReports?.ForEach(x =>
                     {
                         x.AuditNotes = null;
-                        x.ControlActivities?.ForEach(y => y.AlertMessages?.Clear());
-                        x.ControlContacts?.ForEach(y => y.ResponsibleName = null);
+
+                        if (IsEnk(x.ControlObject))
+                        {
+                            x.NotesAndRemarks.Clear();
+                            x.ControlAttributes = null;
+                        }
                     });
+                    return filteredResultList;
+
+                case TrendReportList filteredResultList:
+
+                    //Remove all ENKs from trendreport list
+                    filteredResultList.TrendReports = filteredResultList.TrendReports?.Where(x => !IsEnk(x.ControlObject)).ToList();
+
                     return filteredResultList;
             }
 

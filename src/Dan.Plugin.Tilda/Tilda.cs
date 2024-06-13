@@ -446,7 +446,6 @@ namespace Dan.Plugin.Tilda
 
             var entityServiceTask = _entityRegistryService.GetFull(organizationNumber, true, false, false);
 
-
             var accountsInformationTask = Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
             var result = new List<TildaRegistryEntry>();
 
@@ -545,7 +544,7 @@ namespace Dan.Plugin.Tilda
                 };
             }
 
-            if (brResult.Organisasjonsform.Kode == "ENK" || brResult.Organisasjonsform.Kode == "TEST")
+            if (brResult.Organisasjonsform.Kode == "TEST")
             {
                 return new TildaRegistryEntry()
                 {
@@ -553,6 +552,12 @@ namespace Dan.Plugin.Tilda
                     OperationalStatus = GetOperationStatus(brResult),
                     OrganizationNumber = brResult.Organisasjonsnummer.ToString()
                 };
+            }
+
+            //remove financial information from ENKs - GDPR
+            if (brResult.Organisasjonsform.Kode == "ENK")
+            {
+                accountsInformation = null;
             }
 
             var item =  new TildaRegistryEntry()
