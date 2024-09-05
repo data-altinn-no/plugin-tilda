@@ -9,7 +9,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 {
 
 
-    public class Helsetilsynet : TildaDataSource, ITildaAuditReports, ITildaAuditCoordination, ITildaTrendReports
+    public class Helsetilsynet : TildaDataSource
     {
 
         private const string orgNo = "974761394";
