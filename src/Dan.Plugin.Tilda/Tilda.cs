@@ -444,12 +444,12 @@ namespace Dan.Plugin.Tilda
         {
             var brResultTask = Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
 
-            var entityServiceTask = _entityRegistryService.GetFull(organizationNumber, true, false, false);
+            //var entityServiceTask = _entityRegistryService.GetFull(organizationNumber, true, false, false);
 
             var accountsInformationTask = Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
             var result = new List<TildaRegistryEntry>();
 
-            await Task.WhenAll(entityServiceTask, accountsInformationTask);
+            await Task.WhenAll(accountsInformationTask);
             if (brResultTask.Result.Count > 1)
             {
                 // TODO! Does RR return data for subunits or should this just be null?
