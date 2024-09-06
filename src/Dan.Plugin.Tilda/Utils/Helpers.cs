@@ -250,9 +250,14 @@ namespace Dan.Plugin.Tilda.Utils
                     new Context(cacheKey));
 
                 dynamic tmp = JsonConvert.DeserializeObject(rawResult);
+                if (tmp is null)
+                {
+                    return result;
+                }
+
                 result.ToDate = tmp[0]["regnskapsperiode"]["tilDato"];
-                result.FromDate = tmp[0]["regnskapsperiode"]["fraDato"];   
-                result.AnnualTurnover = tmp[0]["resultatregnskapResultat"]["driftsresultat"]["driftsinntekter"]["sumDriftsinntekter"];           
+                result.FromDate = tmp[0]["regnskapsperiode"]["fraDato"];
+                result.AnnualTurnover = tmp[0]["resultatregnskapResultat"]["driftsresultat"]["driftsinntekter"]["sumDriftsinntekter"];
             }
             catch
             {
@@ -378,7 +383,7 @@ namespace Dan.Plugin.Tilda.Utils
             // *** TEMPORARY TILDA FILTERING ***
             // We need to temporarily remove _all_ data from the result list if orgForm is ENK
             // For all other orgforms
-            // - remove meldingTilAnnenMyndighet 
+            // - remove meldingTilAnnenMyndighet
             // - remove tilsynsnotater
             // - remove kontaktperson name
             if (orgs == null || orgs.Count == 0)
@@ -388,7 +393,7 @@ namespace Dan.Plugin.Tilda.Utils
 
             var firstOrg = orgs.First();
             // If first organization is a specific test organization, disable filtering
-            if (firstOrg.OrganizationNumber == "111111111") 
+            if (firstOrg.OrganizationNumber == "111111111")
             {
                 return resultList;
             }
@@ -398,16 +403,21 @@ namespace Dan.Plugin.Tilda.Utils
                 return orgs.Any(x => x.OrganizationNumber == orgNo && x.OrganisationForm == "ENK");
             }
 
-            switch (resultList) 
+            switch (resultList)
             {
                 case AuditReportList filteredResultList:
                     filteredResultList.AuditReports?.ForEach(x =>
                     {
+                        if (x is null)
+                        {
+                            return;
+                        }
+
                         x.AuditNotes = null;
 
                         if (IsEnk(x.ControlObject))
                         {
-                            x.NotesAndRemarks.Clear();
+                            x.NotesAndRemarks?.Clear();
                             x.ControlAttributes = null;
                         }
                     });
@@ -416,6 +426,11 @@ namespace Dan.Plugin.Tilda.Utils
                 case AuditCoordinationList filteredResultList:
                     filteredResultList.AuditCoordinations?.ForEach(x =>
                     {
+                        if (x is null)
+                        {
+                            return;
+                        }
+
                         if (IsEnk(x.ControlObject))
                         {
                             x.Alerts?.Clear();
@@ -426,11 +441,16 @@ namespace Dan.Plugin.Tilda.Utils
                 case NPDIDAuditReportList filteredResultList:
                     filteredResultList.AuditReports?.ForEach(x =>
                     {
+                        if (x is null)
+                        {
+                            return;
+                        }
+
                         x.AuditNotes = null;
 
                         if (IsEnk(x.ControlObject))
                         {
-                            x.NotesAndRemarks.Clear();
+                            x.NotesAndRemarks?.Clear();
                             x.ControlAttributes = null;
                         }
                     });
@@ -460,7 +480,7 @@ namespace Dan.Plugin.Tilda.Utils
         {
             var binDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var rootDirectory = Path.GetFullPath(Path.Combine(binDirectory, ".."));
-            return await File.ReadAllLinesAsync(rootDirectory + $@"\{folder}\{fileName}");           
+            return await File.ReadAllLinesAsync(rootDirectory + $@"\{folder}\{fileName}");
         }
 
         public static async Task<List<string>> GetParagraph(string paragraph)
