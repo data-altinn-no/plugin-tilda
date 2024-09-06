@@ -6,6 +6,8 @@
 # Azure Functions localsettings file
 local.settings.json
 
+/.idea
+
 # User-specific files
 *.rsuser
 *.suo
