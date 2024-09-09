@@ -191,7 +191,7 @@ namespace Dan.Plugin.Tilda
             {
                 throw new EvidenceSourcePermanentClientException(1, $"Missing required parameter internTilsynsId");
             }
-      
+
             string filter = req.SubjectParty?.NorwegianOrganizationNumber;
             byte[] result;
 
@@ -449,7 +449,7 @@ namespace Dan.Plugin.Tilda
             var accountsInformationTask = Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
             var result = new List<TildaRegistryEntry>();
 
-            await Task.WhenAll(accountsInformationTask);
+            await Task.WhenAll(accountsInformationTask, brResultTask);
             if (brResultTask.Result.Count > 1)
             {
                 // TODO! Does RR return data for subunits or should this just be null?
