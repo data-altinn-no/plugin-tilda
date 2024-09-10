@@ -275,8 +275,8 @@ namespace Dan.Plugin.Tilda.Utils
             try
             {
                 var cachePolicy = policyRegistry.Get<AsyncPolicy<string>>("ERCachePolicy");
-                var mainUnitUrl = $"http://data.brreg.no/enhetsregisteret/api/enheter/{organizationNumber}";
-                var subUnitUrl = $"http://data.brreg.no/enhetsregisteret/api/underenheter/{organizationNumber}";
+                var mainUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/enheter/{organizationNumber}";
+                var subUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/underenheter/{organizationNumber}";
                 var cacheKey = $"Cache_Absolute_GET_{mainUnitUrl}";
 
                 rawResult = await cachePolicy.ExecuteAsync(async context =>

@@ -442,35 +442,15 @@ namespace Dan.Plugin.Tilda
 
         private async Task<List<TildaRegistryEntry>> GetOrganizationsFromBR(string organizationNumber, TildaParameters param)
         {
-            var brResultTask = Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
-
-            //var entityServiceTask = _entityRegistryService.GetFull(organizationNumber, true, false, false);
-
-            var accountsInformationTask = Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
             var result = new List<TildaRegistryEntry>();
+            var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
+            AccountsInformation accountsInformation = null;
+            if (string.IsNullOrEmpty(brResult.First().OverordnetEnhet))
+            {
+                accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
+            }
 
-            await Task.WhenAll(accountsInformationTask, brResultTask);
-            if (brResultTask.Result.Count > 1)
-            {
-                // TODO! Does RR return data for subunits or should this just be null?
-                var isMainUnit = true;
-                foreach (var brResult in brResultTask.Result)
-                {
-                    if (isMainUnit)
-                    {
-                        result.Add(await ConvertBRtoTilda(brResult, accountsInformationTask.Result));
-                        isMainUnit = false;
-                    }
-                    else
-                    {
-                        result.Add(await ConvertBRtoTilda(brResult, null));
-                    }
-                }
-            }
-            else
-            {
-                result.Add(await ConvertBRtoTilda(brResultTask.Result.First(), accountsInformationTask.Result));
-            }
+            result.Add(await ConvertBRtoTilda(brResult.First(), accountsInformation));
 
             return result;
         }
