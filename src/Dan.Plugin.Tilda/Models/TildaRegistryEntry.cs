@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Newtonsoft.Json;
 
 namespace Dan.Plugin.Tilda.Models
@@ -13,6 +12,9 @@ namespace Dan.Plugin.Tilda.Models
 
         [JsonProperty("tildaenhetNavn", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string Name;
+
+        [JsonProperty("epostaddresser", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public List<string> Emails;
 
         [JsonProperty("tildaenhetHovedenhet", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string ControlObjectParent;
@@ -31,7 +33,6 @@ namespace Dan.Plugin.Tilda.Models
 
         [JsonProperty("driftsstatus", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public OperationStatus OperationalStatus;
-
     }
 
     public class AccountsInformation

@@ -30,6 +30,7 @@ namespace Dan.Plugin.Tilda
         private ILogger _logger;
         private HttpClient _client;
         private HttpClient _erClient;
+        private HttpClient _kofuviClient;
         private Settings _settings;
         private readonly IEntityRegistryService _entityRegistryService;
         private readonly IEvidenceSourceMetadata _metadata;
@@ -41,6 +42,7 @@ namespace Dan.Plugin.Tilda
             _policyRegistry = policyRegistry;
             _client = httpClientFactory.CreateClient("SafeHttpClient");
             _erClient = httpClientFactory.CreateClient("ERHttpClient");
+            _kofuviClient = httpClientFactory.CreateClient("KofuviClient");
             _settings = settings.Value;
             _entityRegistryService = entityRegistry;
             _entityRegistryService.AllowTestCcrLookup = _settings.IsLocalDevelopment || _settings.IsLocalDevelopment;
@@ -440,6 +442,7 @@ namespace Dan.Plugin.Tilda
             return eb.GetEvidenceValues();
         }
 
+        // TODO: use IncludeSubunits-param in Tildaparameters? And then we can reduce duplicate code between the overloads
         private async Task<List<TildaRegistryEntry>> GetOrganizationsFromBR(string organizationNumber, TildaParameters param)
         {
             var result = new List<TildaRegistryEntry>();
@@ -450,19 +453,32 @@ namespace Dan.Plugin.Tilda
                 accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
             }
 
-            result.Add(await ConvertBRtoTilda(brResult.First(), accountsInformation));
+            var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger);
+
+            var organization = await ConvertBRtoTilda(brResult.First(), accountsInformation);
+            if (kofuviAddresses.Count > 0)
+            {
+                organization.Emails = kofuviAddresses;
+            }
+            result.Add(organization);
 
             return result;
         }
 
         private async Task<TildaRegistryEntry> GetOrganizationFromBR(string organizationNumber)
         {
-            var brResultTask = Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
-            var accountsInformationTask = Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
+            var brResultTask = await Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
+            var accountsInformationTask = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
 
-            await Task.WhenAll(brResultTask, accountsInformationTask);
+            var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger);
 
-            return await ConvertBRtoTilda(brResultTask.Result.First(), accountsInformationTask.Result);
+            var organization = await ConvertBRtoTilda(brResultTask.First(), accountsInformationTask);
+            if (kofuviAddresses.Count > 0)
+            {
+                organization.Emails = kofuviAddresses;
+            }
+
+            return organization;
         }
 
         private async Task<List<EvidenceValue>> GetEvidenceValuesTilsynskoordinering(EvidenceHarvesterRequest req, TildaParameters param)
