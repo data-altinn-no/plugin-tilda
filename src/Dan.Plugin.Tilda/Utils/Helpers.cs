@@ -176,7 +176,7 @@ namespace Dan.Plugin.Tilda.Utils
             string rawResult;
             try
             {
-                var response = await client.GetAsync($"http://data.brreg.no/enhetsregisteret/api/enheter/?overordnetEnhet={organizationNumber}");
+                var response = await client.GetAsync($"https://data.brreg.no/enhetsregisteret/api/enheter/?overordnetEnhet={organizationNumber}");
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
                     throw new EvidenceSourcePermanentClientException(
@@ -208,7 +208,7 @@ namespace Dan.Plugin.Tilda.Utils
         {
             List<BREntityRegisterEntry> result = new List<BREntityRegisterEntry>();
 
-            if (organization == "111111111")
+            if (organization is "111111111" or "811105562")
             {
                 result.Add(new BREntityRegisterEntry()
                 {
@@ -559,6 +559,57 @@ namespace Dan.Plugin.Tilda.Utils
             }
 
             return result;
+        }
+
+        // Returns empty list on any error
+        public static async Task<List<string>> GetKofuviAddresses(string baseEndpoint, string organizationNumber, HttpClient client, ILogger logger)
+        {
+            var targetUrl = $"{baseEndpoint}/api/varslingsadresser/{organizationNumber}";
+            string responseString;
+            try
+            {
+                var response = await client.GetAsync(targetUrl);
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogError(
+                        "Failed to get kofuvi addresses for org={organizationNumber} on url={targetUrl} with unsuccessful response status={statusCode}",
+                        organizationNumber, targetUrl, response.StatusCode
+                    );
+                    return new List<string>();
+                }
+                responseString = await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(
+                    "Failed to get kofuvi addresses for org={organizationNumber} on url={targetUrl} with exception ex={ex} message={message} status={status}",
+                    organizationNumber, targetUrl, ex.GetType().Name, ex.Message, "hardfail"
+                );
+                return new List<string>();
+            }
+
+            try
+            {
+                var kofuviResponse = JsonConvert.DeserializeObject<KofuviResponse>(responseString);
+                var addresses = kofuviResponse.Embedded.Notification.NotificationAddresses;
+                if (addresses is null || addresses.Count == 0)
+                {
+                    return new List<string>();
+                }
+
+                return addresses
+                    .Select(a => a.ContactInformation?.DigitalNotificationInformation?.NotificationEmail?.CompleteEmail)
+                    .Where(a => a is not null)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(
+                    "Failed to deserialize kofuvi response for org={organizationNumber} with exception ex={ex} message={message} status={status}",
+                    organizationNumber, ex.GetType().Name, ex.Message, "hardfail"
+                );
+                return new List<string>();
+            }
         }
     }
 }

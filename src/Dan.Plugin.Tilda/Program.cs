@@ -12,6 +12,7 @@ using Polly.Caching.Distributed;
 using Polly.Extensions.Http;
 using Polly.Registry;
 using System;
+using System.Net.Http;
 using Settings = Dan.Plugin.Tilda.Config.Settings;
 
 var host = new HostBuilder()
@@ -20,7 +21,7 @@ var host = new HostBuilder()
     {
         configuration
             .AddJsonFile("worker-logging.json", optional:true);
-    }) 
+    })
     .ConfigureServices((context, services) =>
     {
         // This makes IOption<Settings> available in the DI container.
@@ -47,8 +48,18 @@ var host = new HostBuilder()
         services.AddHttpClient("ERHttpClient", client =>
         {
             client.Timeout = new TimeSpan(0, 0, 5);
-        });       
+        });
 
+        services.AddHttpClient("KofuviClient", _ =>
+        {
+
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            var handler = new HttpClientHandler();
+            handler.ClientCertificates.Add(Settings.Certificate);
+            return handler;
+        });;
 
     })
     .Build();
