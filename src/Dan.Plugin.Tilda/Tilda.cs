@@ -561,7 +561,7 @@ namespace Dan.Plugin.Tilda
                 OrganisationForm = brResult.Organisasjonsform.Kode,
                 Name = brResult.Navn,
                 Accounts = accountsInformation,
-                BusinessCode = brResult.Naeringskode1.Kode,
+                BusinessCode = brResult.Naeringskode1?.Kode,
                 OperationalStatus = GetOperationStatus(brResult),
                 OrganizationNumber = brResult.Organisasjonsnummer.ToString()
             };
