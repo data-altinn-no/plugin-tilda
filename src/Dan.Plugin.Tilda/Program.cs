@@ -12,12 +12,16 @@ using Polly.Caching.Distributed;
 using Polly.Extensions.Http;
 using Polly.Registry;
 using System;
+using System.Linq;
 using System.Net.Http;
+using System.Reflection;
+using Dan.Plugin.Tilda.Interfaces;
+using Dan.Plugin.Tilda.Utils;
 using Settings = Dan.Plugin.Tilda.Config.Settings;
 
 var host = new HostBuilder()
     .ConfigureDanPluginDefaults()
-    .ConfigureAppConfiguration((context, configuration) =>
+    .ConfigureAppConfiguration((_, configuration) =>
     {
         configuration
             .AddJsonFile("worker-logging.json", optional:true);
@@ -37,6 +41,16 @@ var host = new HostBuilder()
 
         services.AddSingleton<IEntityRegistryService, EntityRegistryService>();
         services.AddSingleton<IEvidenceSourceMetadata, Metadata>();
+
+        // Registers all implementations of ITildaDataSources under that interface, making it accessible with
+        // dependcy injection by injecting IEnumerable<ITildaDataSource> in constructor
+        Assembly.GetAssembly(typeof(Program))!
+            .ExportedTypes
+            .Where(type => type is { IsClass: true, Namespace: "Dan.Plugin.Tilda.TildaSources", IsNestedPrivate: false } && typeof(ITildaDataSource).IsAssignableFrom(type))
+            .ToList()
+            .ForEach(type => services.AddTransient(typeof(ITildaDataSource), type));
+
+        services.AddSingleton<ISourceProvider, SourceProvider>();
 
         var distributedCache = services.BuildServiceProvider().GetRequiredService<IDistributedCache>();
 
@@ -59,7 +73,7 @@ var host = new HostBuilder()
             var handler = new HttpClientHandler();
             handler.ClientCertificates.Add(Settings.Certificate);
             return handler;
-        });;
+        });
 
     })
     .Build();

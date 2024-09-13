@@ -3,15 +3,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Dan.Common.Models;
 using Dan.Plugin.Tilda.Config;
+using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using Nadobe.Common.Models;
 
 namespace Dan.Plugin.Tilda.Models
 {
-    public abstract class TildaDataSource
+    public abstract class TildaDataSource : ITildaDataSource
     {
         public abstract string OrganizationNumber { get; }
 
