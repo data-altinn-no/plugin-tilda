@@ -36,7 +36,7 @@ public class TildaSourceProvider : ITildaSourceProvider
     public IEnumerable<TildaDataSource> GetRelevantSources<T>(string sourceFilter) where T : ITildaEvidenceType
     {
         return GetAllSources<T>()
-            .Where(t => sourceFilter.Contains(t.OrganizationNumber))
+            .Where(t => sourceFilter is null || sourceFilter.Contains(t.OrganizationNumber))
             .ToList();
     }
 
