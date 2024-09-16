@@ -9,11 +9,12 @@ using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Utils;
 using Dan.Plugin.Tilda.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Nadobe.Common.Models;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
- 
+
 
     public class Digitaliseringsdirektoratet : TildaDataSource, ITildaPdfReport//, ITildaAuditReports, ITildaNPDIDAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaTrendReportsAll, ITildaAuditCoordinationAll, ITildaAuditReportsAll, ITildaAlertMessage
     {
@@ -27,8 +28,8 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public override bool TestOnly => true;
 
-        public Digitaliseringsdirektoratet(Settings settings, HttpClient client, ILogger logger) : base(settings,
-            client, logger)
+        public Digitaliseringsdirektoratet(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
+            base(settings, httpClientFactory, loggerFactory)
         {
 
         }
@@ -97,7 +98,7 @@ namespace Dan.Plugin.Tilda.TildaSources
             return list;
         }
 
-        public override async Task<AuditReportList> GetAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate) 
+        public override async Task<AuditReportList> GetAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
             var resultList = new AuditReportList(OrganizationNumber);
             try
@@ -187,7 +188,7 @@ namespace Dan.Plugin.Tilda.TildaSources
                 var mock = new Mock();
 
                 resultList.AuditReports.AddRange(await mock.GetMockNPDIDAuditReports(req.OrganizationNumber, OrganizationNumber, ControlAgency, "342342"));
-              
+
                 if (resultList.AuditReports.Count == 0)
                 {
                     resultList = Helpers.GetEmptyResponseNPDIDAuditReportList(OrganizationNumber);

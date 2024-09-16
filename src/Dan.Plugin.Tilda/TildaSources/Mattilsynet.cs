@@ -2,6 +2,7 @@ using Dan.Plugin.Tilda.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using Dan.Plugin.Tilda.Config;
+using Microsoft.Extensions.Options;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
@@ -21,8 +22,8 @@ namespace Dan.Plugin.Tilda.TildaSources
             get => controlAgency;
         }
 
-        public Mattilsynet(Settings settings, HttpClient client, ILogger logger) : base(settings,
-            client, logger)
+        public Mattilsynet(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
+            base(settings, httpClientFactory, loggerFactory)
         {
 
         }

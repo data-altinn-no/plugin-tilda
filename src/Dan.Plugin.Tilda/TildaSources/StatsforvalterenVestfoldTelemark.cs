@@ -4,6 +4,7 @@ using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
@@ -16,8 +17,8 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public override string OrganizationNumber => orgNo;
 
-        public StatsforvalterenVestfoldTelemark(Settings settings, HttpClient client, ILogger logger) : base(settings,
-            client, logger)
+        public StatsforvalterenVestfoldTelemark(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
+            base(settings, httpClientFactory, loggerFactory)
         {
 
         }
@@ -34,7 +35,7 @@ namespace Dan.Plugin.Tilda.TildaSources
         }
 
         public override string GetUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "", string npdid = "", string filter = "")
-        {   
+        {
             return StatsforvalterenFellestjenester.GetSfUriAll(baseUri, dataset, requestor, month, year, identifier, npdid, filter);
         }
     }

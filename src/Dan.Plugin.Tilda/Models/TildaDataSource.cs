@@ -6,6 +6,7 @@ using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Dan.Plugin.Tilda.Models
 {
@@ -35,11 +36,11 @@ namespace Dan.Plugin.Tilda.Models
         protected ILogger _logger;
         protected HttpClient _client;
 
-        public TildaDataSource(Settings settings, HttpClient client, ILogger logger)
+        public TildaDataSource(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory)
         {
-            _settings = settings;
-            _logger = logger;
-            _client = client;
+            _settings = settings.Value;
+            _logger = loggerFactory.CreateLogger<TildaDataSource>();
+            _client = httpClientFactory.CreateClient("SafeHttpClient");
             BaseUri = _settings.GetClassBaseUri(GetType().Name);
         }
 

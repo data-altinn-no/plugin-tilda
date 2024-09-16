@@ -8,6 +8,7 @@ using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Nadobe.Common.Models;
 
 namespace Dan.Plugin.Tilda.TildaSources
@@ -28,8 +29,8 @@ namespace Dan.Plugin.Tilda.TildaSources
             get => controlAgency;
         }
 
-        public Miljodirektoratet(Settings settings, HttpClient client, ILogger logger) : base(settings,
-            client, logger)
+        public Miljodirektoratet(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
+            base(settings, httpClientFactory, loggerFactory)
         {
 
         }

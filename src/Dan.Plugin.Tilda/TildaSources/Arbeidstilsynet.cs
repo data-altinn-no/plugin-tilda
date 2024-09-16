@@ -28,8 +28,8 @@ namespace Dan.Plugin.Tilda.TildaSources
             get => controlAgency;
         }
 
-        public Arbeidstilsynet(Settings settings, HttpClient client, ILogger logger) : base(settings,
-            client, logger)
+        public Arbeidstilsynet(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
+            base(settings, httpClientFactory, loggerFactory)
         {
         }
 

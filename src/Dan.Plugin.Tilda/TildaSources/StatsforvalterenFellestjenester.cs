@@ -4,6 +4,7 @@ using System.Web;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
@@ -16,8 +17,8 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public override string OrganizationNumber => orgNo;
 
-        public StatsforvalterenFellestjenester(Settings settings, HttpClient client, ILogger logger) : base(settings,
-            client, logger)
+        public StatsforvalterenFellestjenester(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
+            base(settings, httpClientFactory, loggerFactory)
         {
 
         }

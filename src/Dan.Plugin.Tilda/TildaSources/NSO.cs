@@ -6,6 +6,7 @@ using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
@@ -24,8 +25,8 @@ namespace Dan.Plugin.Tilda.TildaSources
             get => orgNo;
         }
 
-        public NSO(Settings settings, HttpClient client, ILogger logger) : base(settings,
-            client, logger)
+        public NSO(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
+            base(settings, httpClientFactory, loggerFactory)
         {
 
         }
