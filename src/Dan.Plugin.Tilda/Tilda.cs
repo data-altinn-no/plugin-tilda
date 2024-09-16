@@ -37,7 +37,9 @@ namespace Dan.Plugin.Tilda
         private List<string> P6Orgs;
         private List<string> P9Orgs;
 
-        public Tilda(IHttpClientFactory httpClientFactory, IOptions<Settings> settings, IPolicyRegistry<string> policyRegistry, IEntityRegistryService entityRegistry, IEvidenceSourceMetadata metadata)
+        private readonly ITildaSourceProvider _tildaSourceProvider;
+
+        public Tilda(IHttpClientFactory httpClientFactory, IOptions<Settings> settings, IPolicyRegistry<string> policyRegistry, IEntityRegistryService entityRegistry, IEvidenceSourceMetadata metadata, ITildaSourceProvider tildaSourceProvider)
         {
             _policyRegistry = policyRegistry;
             _client = httpClientFactory.CreateClient("SafeHttpClient");
@@ -47,6 +49,7 @@ namespace Dan.Plugin.Tilda
             _entityRegistryService = entityRegistry;
             _entityRegistryService.AllowTestCcrLookup = _settings.IsLocalDevelopment || _settings.IsLocalDevelopment;
             _metadata = metadata;
+            _tildaSourceProvider = tildaSourceProvider;
         }
 
         [Function("TildaMeldingTilAnnenMyndighetv1")]
@@ -200,7 +203,7 @@ namespace Dan.Plugin.Tilda
             try
             {;
                 //Should always only return ONE source
-                var pdfTarget = SourcesHelper.GetRelevantSources<ITildaPdfReport>(filter, _client, _logger, _settings).FirstOrDefault();
+                var pdfTarget = _tildaSourceProvider.GetRelevantSources<ITildaPdfReport>(filter).FirstOrDefault();
 
                 if (pdfTarget == null)
                 {
@@ -226,7 +229,7 @@ namespace Dan.Plugin.Tilda
             var taskList = new List<Task<AlertMessageList>>();
             try
             {
-                foreach (ITildaAlertMessage a in SourcesHelper.GetRelevantSources<ITildaAlertMessage>(param.sourceFilter, _client, _logger, _settings))
+                foreach (ITildaAlertMessage a in _tildaSourceProvider.GetRelevantSources<ITildaAlertMessage>(param.sourceFilter))
                 {
                     taskList.Add(a.GetAlertMessagesAsync(req, param.fromDate, param.toDate, param.identifier));
                 }
@@ -274,20 +277,20 @@ namespace Dan.Plugin.Tilda
         {
             var ecb = new EvidenceBuilder(_metadata, "TildaMetadatav1");
 
-            var trend = SourcesHelper.GetAllSources<ITildaTrendReports>(_settings, _client, _logger, false).Select(x=>x.OrganizationNumber + ":" + x.ControlAgency);
-            var trendAll = SourcesHelper.GetAllSources<ITildaTrendReportsAll>(_settings, _client, _logger, false).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+            var trend = _tildaSourceProvider.GetAllSources<ITildaTrendReports>().Select(x=>x.OrganizationNumber + ":" + x.ControlAgency);
+            var trendAll = _tildaSourceProvider.GetAllSources<ITildaTrendReportsAll>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
-            var audit = SourcesHelper.GetAllSources<ITildaAuditReports>(_settings, _client, _logger, false).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
-            var auditAll = SourcesHelper.GetAllSources<ITildaAuditReportsAll>(_settings, _client, _logger, false).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+            var audit = _tildaSourceProvider.GetAllSources<ITildaAuditReports>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+            var auditAll = _tildaSourceProvider.GetAllSources<ITildaAuditReportsAll>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
-            var coordination = SourcesHelper.GetAllSources<ITildaAuditCoordination>(_settings, _client, _logger, false).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
-            var coordinationAll = SourcesHelper.GetAllSources<ITildaAuditCoordinationAll>(_settings, _client, _logger, false).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+            var coordination = _tildaSourceProvider.GetAllSources<ITildaAuditCoordination>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+            var coordinationAll = _tildaSourceProvider.GetAllSources<ITildaAuditCoordinationAll>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
-            var npdid = SourcesHelper.GetAllSources<ITildaNPDIDAuditReports>(_settings, _client, _logger, false).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+            var npdid = _tildaSourceProvider.GetAllSources<ITildaNPDIDAuditReports>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
-            var pdfReport = SourcesHelper.GetAllSources<ITildaPdfReport>(_settings, _client, _logger, false).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+            var pdfReport = _tildaSourceProvider.GetAllSources<ITildaPdfReport>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
-            var all = SourcesHelper.GetAllRegisteredSources(_settings).Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+            var all = _tildaSourceProvider.GetAllRegisteredSources().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
 
 
@@ -316,7 +319,7 @@ namespace Dan.Plugin.Tilda
             var taskList = new List<Task<NPDIDAuditReportList>>();
             try
             {
-                foreach (ITildaNPDIDAuditReports a in SourcesHelper.GetRelevantSources<ITildaNPDIDAuditReports>(param.sourceFilter, _client, _logger, _settings))
+                foreach (ITildaNPDIDAuditReports a in _tildaSourceProvider.GetRelevantSources<ITildaNPDIDAuditReports>(param.sourceFilter))
                 {
                     taskList.Add(a.GetNPDIDAuditReportsAsync(req, param.fromDate, param.toDate, param.npdid));
                 }
@@ -494,7 +497,7 @@ namespace Dan.Plugin.Tilda
             var taskList = new List<Task<AuditCoordinationList>>();
             try
             {
-                foreach (ITildaAuditCoordination a in SourcesHelper.GetRelevantSources<ITildaAuditCoordination>(param.sourceFilter, _client, _logger, _settings))
+                foreach (ITildaAuditCoordination a in _tildaSourceProvider.GetRelevantSources<ITildaAuditCoordination>(param.sourceFilter))
                 {
                     taskList.Add(a.GetAuditCoordinationAsync(req, param.fromDate, param.toDate));
                 }
@@ -619,7 +622,7 @@ namespace Dan.Plugin.Tilda
             var taskList = new List<Task<TrendReportList>>();
             try
             {
-                foreach (ITildaTrendReports a in SourcesHelper.GetRelevantSources<ITildaTrendReports>(param.sourceFilter, _client, _logger, _settings))
+                foreach (ITildaTrendReports a in _tildaSourceProvider.GetRelevantSources<ITildaTrendReports>(param.sourceFilter))
                 {
                     taskList.Add( a.GetDataTrendAsync(req, param.fromDate, param.toDate));
                 }
@@ -664,7 +667,7 @@ namespace Dan.Plugin.Tilda
 
         private async Task<List<EvidenceValue>> GetEvidenceValuesTrendAll(EvidenceHarvesterRequest req, TildaParameters param)
         {
-            var sourceList = SourcesHelper.GetRelevantSources<ITildaTrendReportsAll>(req.OrganizationNumber, _client, _logger, _settings);
+            var sourceList = _tildaSourceProvider.GetRelevantSources<ITildaTrendReportsAll>(req.OrganizationNumber);
             TrendReportList result = null;
             var brResults = new List<TildaRegistryEntry>();
             var ecb = new EvidenceBuilder(_metadata, "TildaTrendrapportAllev1");
@@ -719,7 +722,7 @@ namespace Dan.Plugin.Tilda
 
         private async Task<List<EvidenceValue>> GetEvidenceValuesTilsynskoordingeringAllASync(EvidenceHarvesterRequest req, TildaParameters param)
         {
-            var sourceList = SourcesHelper.GetRelevantSources<ITildaAuditCoordinationAll>(req.OrganizationNumber, _client, _logger, _settings);
+            var sourceList = _tildaSourceProvider.GetRelevantSources<ITildaAuditCoordinationAll>(req.OrganizationNumber);
             AuditCoordinationList result = null;
             var brResults = new List<TildaRegistryEntry>();
             var ecb = new EvidenceBuilder(_metadata, "TildaTilsynskoordineringAllev1");
@@ -771,7 +774,7 @@ namespace Dan.Plugin.Tilda
         }
         private async Task<List<EvidenceValue>> GetEvidenceValuesTilsynsRapportAllAsync(EvidenceHarvesterRequest req, TildaParameters param)
         {
-            var sourceList = SourcesHelper.GetRelevantSources<ITildaAuditReportsAll>(req.OrganizationNumber, _client, _logger, _settings);
+            var sourceList = _tildaSourceProvider.GetRelevantSources<ITildaAuditReportsAll>(req.OrganizationNumber);
             AuditReportList result = null;
             var brResults = new List<TildaRegistryEntry>();
             var ecb = new EvidenceBuilder(_metadata, "TildaTilsynsrapportAllev1");
@@ -830,7 +833,7 @@ namespace Dan.Plugin.Tilda
             var taskList = new List<Task<AuditReportList>>();
             try
             {
-                foreach (ITildaAuditReports a in SourcesHelper.GetRelevantSources<ITildaAuditReports>(param.sourceFilter, _client, _logger, _settings))
+                foreach (ITildaAuditReports a in _tildaSourceProvider.GetRelevantSources<ITildaAuditReports>(param.sourceFilter))
                 {
                     taskList.Add(a.GetAuditReportsAsync(req, param.fromDate, param.toDate));
                 }
