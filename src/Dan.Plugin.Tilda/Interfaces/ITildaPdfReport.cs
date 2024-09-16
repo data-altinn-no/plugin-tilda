@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Dan.Plugin.Tilda.Interfaces
 {
-    internal interface ITildaPdfReport : ITildaSource
+    internal interface ITildaPdfReport : ITildaEvidenceType
     {
         public Task<byte[]> GetPdfReport(EvidenceHarvesterRequest req, string reportIdentifier);
     }

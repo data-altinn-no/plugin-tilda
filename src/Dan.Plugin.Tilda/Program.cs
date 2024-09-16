@@ -43,14 +43,16 @@ var host = new HostBuilder()
         services.AddSingleton<IEvidenceSourceMetadata, Metadata>();
 
         // Registers all implementations of ITildaDataSources under that interface, making it accessible with
-        // dependcy injection by injecting IEnumerable<ITildaDataSource> in constructor
+        // dependency injection by injecting IEnumerable<ITildaDataSource> in constructor
         Assembly.GetAssembly(typeof(Program))!
             .ExportedTypes
-            .Where(type => type is { IsClass: true, Namespace: "Dan.Plugin.Tilda.TildaSources", IsNestedPrivate: false } && typeof(ITildaDataSource).IsAssignableFrom(type))
+            .Where(type =>
+                type is { IsClass: true, Namespace: "Dan.Plugin.Tilda.TildaSources", IsNestedPrivate: false } &&
+                typeof(ITildaDataSource).IsAssignableFrom(type))
             .ToList()
             .ForEach(type => services.AddTransient(typeof(ITildaDataSource), type));
 
-        services.AddSingleton<ISourceProvider, SourceProvider>();
+        services.AddSingleton<ITildaSourceProvider, TildaSourceProvider>();
 
         var distributedCache = services.BuildServiceProvider().GetRequiredService<IDistributedCache>();
 

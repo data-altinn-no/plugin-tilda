@@ -7,25 +7,25 @@ using Microsoft.Extensions.Options;
 
 namespace Dan.Plugin.Tilda.Utils;
 
-public interface ISourceProvider
+public interface ITildaSourceProvider
 {
-    IEnumerable<TildaDataSource> GetAllSources<T>() where T : ITildaSource;
-    IEnumerable<TildaDataSource> GetRelevantSources<T>(string sourceFilter) where T : ITildaSource;
+    IEnumerable<TildaDataSource> GetAllSources<T>() where T : ITildaEvidenceType;
+    IEnumerable<TildaDataSource> GetRelevantSources<T>(string sourceFilter) where T : ITildaEvidenceType;
     IEnumerable<TildaDataSource> GetAllRegisteredSources();
 }
 
-public class SourceProvider : ISourceProvider
+public class TildaSourceProvider : ITildaSourceProvider
 {
     private readonly IEnumerable<ITildaDataSource> _dataSources;
     private readonly Settings _settings;
 
-    public SourceProvider(IEnumerable<ITildaDataSource> dataSources, IOptions<Settings> settings)
+    public TildaSourceProvider(IEnumerable<ITildaDataSource> dataSources, IOptions<Settings> settings)
     {
         _dataSources = dataSources;
         _settings = settings.Value;
     }
 
-    public IEnumerable<TildaDataSource> GetAllSources<T>() where T : ITildaSource
+    public IEnumerable<TildaDataSource> GetAllSources<T>() where T : ITildaEvidenceType
     {
         return _dataSources
             .Where(ds => (_settings.IsTest || !ds.TestOnly) && ds is T)
@@ -33,7 +33,7 @@ public class SourceProvider : ISourceProvider
             .ToList();
     }
 
-    public IEnumerable<TildaDataSource> GetRelevantSources<T>(string sourceFilter) where T : ITildaSource
+    public IEnumerable<TildaDataSource> GetRelevantSources<T>(string sourceFilter) where T : ITildaEvidenceType
     {
         return GetAllSources<T>()
             .Where(t => sourceFilter.Contains(t.OrganizationNumber))

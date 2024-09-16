@@ -1,5 +1,5 @@
 ﻿namespace Dan.Plugin.Tilda.Interfaces;
 
-public interface ITildaSource
+public interface ITildaEvidenceType
 {
 }
