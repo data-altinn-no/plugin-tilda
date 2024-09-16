@@ -447,15 +447,16 @@ namespace Dan.Plugin.Tilda
         {
             var result = new List<TildaRegistryEntry>();
             var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
+            var brEntity = brResult.First();
             AccountsInformation accountsInformation = null;
-            if (string.IsNullOrEmpty(brResult.First().OverordnetEnhet))
+            if (string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform.Kode != "ENK")
             {
                 accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
             }
 
             var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger);
 
-            var organization = await ConvertBRtoTilda(brResult.First(), accountsInformation);
+            var organization = await ConvertBRtoTilda(brEntity, accountsInformation);
             if (kofuviAddresses.Count > 0)
             {
                 organization.Emails = kofuviAddresses;
@@ -467,12 +468,17 @@ namespace Dan.Plugin.Tilda
 
         private async Task<TildaRegistryEntry> GetOrganizationFromBR(string organizationNumber)
         {
-            var brResultTask = await Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
-            var accountsInformationTask = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
+            var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
+            var brEntity = brResult.First();
+            AccountsInformation accountsInformation = null;
+            if (brEntity.Organisasjonsform.Kode != "ENK")
+            {
+                accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
+            }
 
             var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger);
 
-            var organization = await ConvertBRtoTilda(brResultTask.First(), accountsInformationTask);
+            var organization = await ConvertBRtoTilda(brEntity, accountsInformation);
             if (kofuviAddresses.Count > 0)
             {
                 organization.Emails = kofuviAddresses;
