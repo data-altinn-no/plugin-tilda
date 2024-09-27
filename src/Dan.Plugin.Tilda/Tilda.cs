@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Dan.Plugin.Tilda.Extensions;
 
 
 namespace Dan.Plugin.Tilda
@@ -388,23 +389,14 @@ namespace Dan.Plugin.Tilda
             req.TryGetParameter("filter", out string filter);
             req.TryGetParameter("aar", out string year);
             req.TryGetParameter("maaned", out string month);
-
-            /*
-            var fromDate = req.GetOptionalParameterValue<DateTime?>("startdato")?.ToUniversalTime();
-            var toDate = req.GetOptionalParameterValue<DateTime?>("sluttdato")?.ToUniversalTime();
-            var npdid = req.GetOptionalParameterValue<string>("npdid");
-            var sourceFilter = req.GetOptionalParameterValue<string>("tilsynskilder");
-            var includeSubunits = req.GetOptionalParameterValue<bool?>("inkluderUnderenheter");
-            var identifier = req.GetOptionalParameterValue<string>("identifikator");
-            var filter = req.GetOptionalParameterValue<string>("filter");
-            var year = req.GetOptionalParameterValue<Int64?>("aar");
-            var month = req.GetOptionalParameterValue<Int64?>("maaned");
-            */
+            req.TryGetParameter("postnummer", out string postcode);
+            req.TryGetParameter("kommunenummer", out string municipalityNumber);
+            req.TryGetParameter("naeringskode", out string nace);
 
             if (includeSubunits)
                 throw new Exception("inkluderUnderenheter er ikke støttet ennå :)");
 
-            return new TildaParameters(fromDateTime, toDateTime, npdid, false, sourceFilter, identifier, filter, year, month);
+            return new TildaParameters(fromDateTime, toDateTime, npdid, false, sourceFilter, identifier, filter, year, month, postcode, municipalityNumber, nace);
         }
 
 
@@ -469,11 +461,18 @@ namespace Dan.Plugin.Tilda
             return result;
         }
 
-        private async Task<TildaRegistryEntry> GetOrganizationFromBR(string organizationNumber)
+        private async Task<TildaRegistryEntry> GetOrganizationFromBR(string organizationNumber, TildaParameters tildaParameters = null)
         {
             var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
             var brEntity = brResult.First();
             AccountsInformation accountsInformation = null;
+
+            // Filters out on parameters, currently only on "geo search" params
+            if (!brEntity.MatchesFilterParameters(tildaParameters))
+            {
+                return null;
+            }
+
             if (brEntity.Organisasjonsform.Kode != "ENK")
             {
                 accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
@@ -692,7 +691,7 @@ namespace Dan.Plugin.Tilda
                     var distinctList = result.TrendReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
                     foreach (var item in distinctList)
                     {
-                        taskList.Add(GetOrganizationFromBR(item.ControlObject));
+                        taskList.Add(GetOrganizationFromBR(item.ControlObject, param));
                     }
                 }
 
@@ -722,7 +721,7 @@ namespace Dan.Plugin.Tilda
 
         private async Task<List<EvidenceValue>> GetEvidenceValuesTilsynskoordingeringAllASync(EvidenceHarvesterRequest req, TildaParameters param)
         {
-            var sourceList = _tildaSourceProvider.GetRelevantSources<ITildaAuditCoordinationAll>(req.OrganizationNumber);
+            var sourceList = _tildaSourceProvider.GetRelevantSources<ITildaAuditCoordinationAll>(req.OrganizationNumber).ToList();
             AuditCoordinationList result = null;
             var brResults = new List<TildaRegistryEntry>();
             var ecb = new EvidenceBuilder(_metadata, "TildaTilsynskoordineringAllev1");
@@ -748,12 +747,17 @@ namespace Dan.Plugin.Tilda
                     var distinctList = result.AuditCoordinations.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
                     foreach (var item in distinctList)
                     {
-                        taskList.Add(GetOrganizationFromBR(item.ControlObject));
+                        taskList.Add(GetOrganizationFromBR(item.ControlObject, param));
                     }
                 }
 
                 await Task.WhenAll(taskList);
-                taskList = taskList.GroupBy(x => x.Result.OrganizationNumber).Select(y => y.FirstOrDefault()).ToList();
+                taskList = taskList
+                    .Where(task => task.Result is not null)
+                    .GroupBy(x => x.Result.OrganizationNumber)
+                    .Select(y => y.FirstOrDefault())
+                    .ToList();
+
                 foreach (var t in taskList)
                 {
                     brResults.Add(t.Result);
@@ -794,21 +798,24 @@ namespace Dan.Plugin.Tilda
 
                 var taskList = new List<Task<TildaRegistryEntry>>();
 
-                /* if (result.AuditReports != null)
-                 {
-                     var distinctList = result.AuditReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
-                     foreach (var item in distinctList)
-                     {
-                         taskList.Add(GetOrganizationFromBR(item.ControlObject));
-                     }
-                 }
+                if (result.AuditReports != null)
+                {
+                    var distinctList = result.AuditReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
+                    foreach (var item in distinctList)
+                    {
+                        taskList.Add(GetOrganizationFromBR(item.ControlObject, param));
+                    }
+                }
 
-                 await Task.WhenAll(taskList);
+                await Task.WhenAll(taskList);
 
-                 foreach (var t in taskList)
-                 {
-                     brResults.Add(t.Result);
-                 }*/
+                taskList = taskList
+                    .Where(task => task.Result is not null)
+                    .ToList();
+                foreach (var t in taskList)
+                {
+                    brResults.Add(t.Result);
+                }
             }
             catch (Exception ex)
             {
@@ -873,7 +880,5 @@ namespace Dan.Plugin.Tilda
 
             return ecb.GetEvidenceValues();
         }
-
-
     }
 }
