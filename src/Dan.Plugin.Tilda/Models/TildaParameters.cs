@@ -20,12 +20,13 @@ namespace Dan.Plugin.Tilda.Models
 
         public string year { get; set; }
 
-        public TildaParameters()
-        {
+        public string postcode { get; set; }
 
-        }
+        public string municipalityNumber { get; set; }
 
-        public TildaParameters(DateTime? fromDate, DateTime? toDate, string npdid, bool? includeSubunits, string sourceFilter, string identifier, string filter, string year, string month)
+        public string nace { get; set; }
+
+        public TildaParameters(DateTime? fromDate, DateTime? toDate, string npdid, bool? includeSubunits, string sourceFilter, string identifier, string filter, string year, string month, string postcode, string municipalityNumber, string nace)
         {
             this.fromDate = fromDate;
             this.toDate = toDate;
@@ -36,6 +37,9 @@ namespace Dan.Plugin.Tilda.Models
             this.filter = filter;
             this.year = year;
             this.month = month;
+            this.postcode = postcode;
+            this.municipalityNumber = municipalityNumber;
+            this.nace = nace;
         }
     }
 }

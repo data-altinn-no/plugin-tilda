@@ -35,6 +35,12 @@ namespace Dan.Plugin.Tilda.Models
         [JsonProperty("naeringskode1")]
         public InstitusjonellSektorkode Naeringskode1 { get; set; }
 
+        [JsonProperty("naeringskode2")]
+        public InstitusjonellSektorkode Naeringskode2 { get; set; }
+
+        [JsonProperty("naeringskode3")]
+        public InstitusjonellSektorkode Naeringskode3 { get; set; }
+
         [JsonProperty("antallAnsatte")]
         public long AntallAnsatte { get; set; }
 

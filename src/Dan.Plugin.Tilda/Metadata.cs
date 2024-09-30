@@ -159,6 +159,34 @@ namespace Dan.Plugin.Tilda
             };
         }
 
+        private static List<EvidenceParameter> GetTildaAllParametersWithGeoSearch()
+        {
+            var parameters = GetTildaAllParameters();
+            var geoSearchParameters = new List<EvidenceParameter>
+            {
+                new()
+                {
+                    EvidenceParamName = "postnummer",
+                    ParamType = EvidenceParamType.Number,
+                    Required = false
+                },
+                new()
+                {
+                    EvidenceParamName = "kommunenummer",
+                    ParamType = EvidenceParamType.Number,
+                    Required = false
+                },
+                new()
+                {
+                    EvidenceParamName = "naeringskode",
+                    ParamType = EvidenceParamType.String,
+                    Required = false
+                }
+            };
+            parameters.AddRange(geoSearchParameters);
+            return parameters;
+        }
+
         private static IEnumerable<EvidenceCode> GetTildaStorulykkeMetadataAlle()
         {
             var schema = JsonSchema.FromType<StorulykkevirksomhetListe>().ToJson(Formatting.Indented);
@@ -168,7 +196,7 @@ namespace Dan.Plugin.Tilda
                 Description = "TildaStorulykkevirksomhetAlle",
                 EvidenceCodeName = "TildaStorulykkevirksomhetAlle",
                 EvidenceSource = "Tilda",
-                IsAsynchronous = false,                
+                IsAsynchronous = false,
                 BelongsToServiceContexts = belongsToTilda,
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAlertMessage>(),
@@ -207,7 +235,7 @@ namespace Dan.Plugin.Tilda
                 Description = "TildaStorulykkevirksomhet",
                 EvidenceCodeName = "TildaStorulykkevirksomhet",
                 EvidenceSource = "Tilda",
-                IsAsynchronous = false,               
+                IsAsynchronous = false,
                 BelongsToServiceContexts = belongsToTilda,
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAlertMessage>(),
@@ -234,7 +262,7 @@ namespace Dan.Plugin.Tilda
         {
             var schema = JsonSchema.FromType<AlertMessageList>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var a = new EvidenceCode()
-            {               
+            {
                 Description = "TildaMeldingTilAnnenMyndighet v1",
                 EvidenceCodeName = "TildaMeldingTilAnnenMyndighetv1",
                 EvidenceSource = "Tilda",
@@ -397,7 +425,7 @@ namespace Dan.Plugin.Tilda
                         JsonSchemaDefintion = schema
                     }
                 },
-                Parameters = GetTildaAllParameters(),
+                Parameters = GetTildaAllParametersWithGeoSearch(),
             };
 
             return new List<EvidenceCode>
@@ -433,7 +461,7 @@ namespace Dan.Plugin.Tilda
                         JsonSchemaDefintion = schema
                     }
                 },
-                Parameters = GetTildaAllParameters()
+                Parameters = GetTildaAllParametersWithGeoSearch()
             };
 
             return new List<EvidenceCode>
@@ -700,7 +728,7 @@ namespace Dan.Plugin.Tilda
                         JsonSchemaDefintion = schema
                     }
                 },
-                Parameters = GetTildaAllParameters()
+                Parameters = GetTildaAllParametersWithGeoSearch()
             };
 
             a.AuthorizationRequirements.AddRange(GetTildaAuthRequirements<ITildaAuditReportsAll>());
