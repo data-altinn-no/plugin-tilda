@@ -42,7 +42,6 @@ public class AlertMessageMapper : IAlertMessageMapper
 
     private string GetDatasetUrl(string messageType, string subject, string source, string id)
     {
-        // TODO: use enum?
         var datasetType = messageType switch
         {
             "varsel-om-rapport" => "TildaTilsynsrapportv1",

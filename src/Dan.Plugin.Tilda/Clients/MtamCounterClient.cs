@@ -15,17 +15,12 @@ public interface IMtamCounterClient
     Task UpsertMtamCounter(MtamCounter mtamCounter);
 }
 
-public class MtamCounterClient : IMtamCounterClient
+public class MtamCounterClient(
+    CosmosClient cosmosClient,
+    IOptions<Settings> settings) : IMtamCounterClient
 {
-    private readonly Container _container;
+    private readonly Container _container = cosmosClient.GetContainer(settings.Value.CosmosDbDatabase, MtamCounterContainerName);
     private const string MtamCounterContainerName = "MtamCounter";
-
-    public MtamCounterClient(
-        CosmosClient cosmosClient,
-        IOptions<Settings> settings)
-    {
-        _container = cosmosClient.GetContainer(settings.Value.CosmosDbDatabase, MtamCounterContainerName);
-    }
 
     public async Task<MtamCounter> GetMtamCounter(string organizationNumber)
     {

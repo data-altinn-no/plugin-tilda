@@ -49,7 +49,6 @@ var host = new HostBuilder()
         services.AddSingleton<IEvidenceSourceMetadata, Metadata>();
         services.AddTransient<IMtamCounterClient, MtamCounterClient>();
         services.AddTransient<IAlertMessageSender, AlertMessageSender>();
-        services.AddTransient<IAltinnEventClient, AltinnEventClient>();
         services.AddTransient<IAlertMessageMapper, AlertMessageMapper>();
         services.AddTransient<IEvidenceService, EvidenceService>();
 
@@ -88,18 +87,18 @@ var host = new HostBuilder()
             return handler;
         });
 
-        // services.AddResiliencePipeline("alert-pipeline", builder =>
-        // {
-        //     builder
-        //         .AddRetry(new RetryStrategyOptions
-        //         {
-        //             BackoffType = DelayBackoffType.Exponential,
-        //             UseJitter = true,  // Adds a random factor to the delay
-        //             MaxRetryAttempts = 5,
-        //             Delay = TimeSpan.FromSeconds(3),
-        //         })
-        //         .AddTimeout(TimeSpan.FromSeconds(10));
-        // });
+        services.AddResiliencePipeline("alert-pipeline", builder =>
+        {
+            builder
+                .AddRetry(new RetryStrategyOptions
+                {
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true,  // Adds a random factor to the delay
+                    MaxRetryAttempts = 6,
+                    Delay = TimeSpan.FromSeconds(5),
+                })
+                .AddTimeout(TimeSpan.FromSeconds(120));
+        });
     })
     .Build();
 

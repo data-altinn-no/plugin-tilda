@@ -7,6 +7,7 @@ using CloudNative.CloudEvents.Http;
 using CloudNative.CloudEvents.NewtonsoftJson;
 using Dan.Common.Models;
 using Dan.Plugin.Tilda.Config;
+using Dan.Plugin.Tilda.Exceptions;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models.AlertMessages;
 using Dan.Plugin.Tilda.Utils;
@@ -136,9 +137,6 @@ namespace Dan.Plugin.Tilda.Models
             return Helpers.GetUriAll(baseUri, dataset, requestor, month, year, identifier, null, filter);
         }
 
-        // TODO: Shouldn't return empty list on error. Need to ensure that we don't break the flow, but also don't update
-        // counter on failures
-        // TODO: Rename to alert
         public virtual async Task<List<AlertSourceMessage>> GetAlertMessagesAsync(string from)
         {
             var targetUrl = $"{BaseUri}/{MtamDatasetName}?fraDato={from}";
@@ -152,7 +150,8 @@ namespace Dan.Plugin.Tilda.Models
                         "Failed to get mtam messages from org={organizationNumber} on url={targetUrl} with unsuccessful response status={statusCode}",
                         OrganizationNumber, targetUrl, response.StatusCode
                     );
-                    return new List<AlertSourceMessage>();
+                    throw new FailedToFetchDataException(
+                        $"Failed to get mtam messages from org={OrganizationNumber} on url={targetUrl} with unsuccessful response status={response.StatusCode}");
                 }
                 responseString = await response.Content.ReadAsStringAsync();
             }
@@ -162,7 +161,8 @@ namespace Dan.Plugin.Tilda.Models
                     "Failed to get mtam messages from org={organizationNumber} on url={targetUrl} with exception ex={ex} message={message} status={status}",
                     OrganizationNumber, targetUrl, ex.GetType().Name, ex.Message, "hardfail"
                 );
-                return new List<AlertSourceMessage>();
+                throw new FailedToFetchDataException(
+                    $"Failed to get mtam messages from org={OrganizationNumber} on url={targetUrl}", ex);
             }
 
             try
@@ -176,7 +176,8 @@ namespace Dan.Plugin.Tilda.Models
                     "Failed to deserialize mtam messages from org={organizationNumber} with exception ex={ex} message={message} status={status}",
                     OrganizationNumber, ex.GetType().Name, ex.Message, "hardfail"
                 );
-                return new List<AlertSourceMessage>();
+                throw new FailedToFetchDataException(
+                    $"Failed to deserialize mtam messages from org={OrganizationNumber} on url={targetUrl}", ex);
             }
         }
 
@@ -194,8 +195,8 @@ namespace Dan.Plugin.Tilda.Models
                         "Failed to get mtam messages from org={organizationNumber} on url={targetUrl} with unsuccessful response status={statusCode}",
                         OrganizationNumber, targetUrl, response.StatusCode
                     );
-                    // TODO: consider if null is appropriate?
-                    return null;
+                    throw new FailedToFetchDataException(
+                        $"Failed to get mtam messages from org={OrganizationNumber} on url={targetUrl} with unsuccessful response status={response.StatusCode}");
                 }
                 responseString = await response.Content.ReadAsStringAsync();
             }
@@ -205,7 +206,8 @@ namespace Dan.Plugin.Tilda.Models
                     "Failed to get mtam messages from org={organizationNumber} on url={targetUrl} with exception ex={ex} message={message} status={status}",
                     OrganizationNumber, targetUrl, ex.GetType().Name, ex.Message, "hardfail"
                 );
-                return null;
+                throw new FailedToFetchDataException(
+                    $"Failed to get mtam messages from org={OrganizationNumber} on url={targetUrl}", ex);
             }
 
             try
@@ -219,7 +221,8 @@ namespace Dan.Plugin.Tilda.Models
                     "Failed to deserialize mtam messages from org={organizationNumber} with exception ex={ex} message={message} status={status}",
                     OrganizationNumber, ex.GetType().Name, ex.Message, "hardfail"
                 );
-                return null;
+                throw new FailedToFetchDataException(
+                    $"Failed to deserialize mtam messages from org={OrganizationNumber} on url={targetUrl}", ex);
             }
         }
 
