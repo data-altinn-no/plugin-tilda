@@ -9,8 +9,8 @@ namespace Dan.Plugin.Tilda.Utils;
 
 public interface ITildaSourceProvider
 {
-    IEnumerable<TildaDataSource> GetAllSources<T>() where T : ITildaEvidenceType;
-    IEnumerable<TildaDataSource> GetRelevantSources<T>(string sourceFilter) where T : ITildaEvidenceType;
+    IEnumerable<T> GetAllSources<T>() where T : ITildaEvidenceType;
+    IEnumerable<T> GetRelevantSources<T>(string sourceFilter) where T : ITildaEvidenceType;
     IEnumerable<TildaDataSource> GetAllRegisteredSources();
 }
 
@@ -25,15 +25,15 @@ public class TildaSourceProvider : ITildaSourceProvider
         _settings = settings.Value;
     }
 
-    public IEnumerable<TildaDataSource> GetAllSources<T>() where T : ITildaEvidenceType
+    public IEnumerable<T> GetAllSources<T>() where T : ITildaEvidenceType
     {
         return _dataSources
             .Where(ds => (_settings.IsTest || !ds.TestOnly) && ds is T)
-            .Select(ds => ds as TildaDataSource)
+            .Select(ds => (T)ds)
             .ToList();
     }
 
-    public IEnumerable<TildaDataSource> GetRelevantSources<T>(string sourceFilter) where T : ITildaEvidenceType
+    public IEnumerable<T> GetRelevantSources<T>(string sourceFilter) where T : ITildaEvidenceType
     {
         return GetAllSources<T>()
             .Where(t => sourceFilter is null || sourceFilter.Contains(t.OrganizationNumber))

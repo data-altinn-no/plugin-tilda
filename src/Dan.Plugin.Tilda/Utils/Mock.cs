@@ -79,7 +79,7 @@ namespace Dan.Plugin.Tilda.Utils
                             KnownAudit = true,
                             Auditor = this._mockActor,
                             LocationOrg = locationOrg
-                    });                
+                    });
             }
 
             mockedList.Add(new EvidenceValue() { EvidenceValueName = "Audit", Value = audit });
@@ -93,7 +93,7 @@ namespace Dan.Plugin.Tilda.Utils
         {
             var list = new List<AlertMessage>();
             list.Add(CreateMockAlertMessage(agency, orgno, Guid.NewGuid().ToString(), DummyData.GenerateDummyString(Digest())));
-           
+
             list.Add(CreateMockAlertMessage(agency, orgno, Guid.NewGuid().ToString(), DummyData.GenerateDummyString(Digest())));
             list.Add(CreateMockAlertMessage(agency, orgno, Guid.NewGuid().ToString(), DummyData.GenerateDummyString(Digest())));
             list.Add(CreateMockAlertMessage(agency, orgno, Guid.NewGuid().ToString(), DummyData.GenerateDummyString(Digest())));
@@ -105,11 +105,7 @@ namespace Dan.Plugin.Tilda.Utils
         {
             var a = new AlertMessage()
             {
-                AlertDate = DummyData.GenerateDummyDateTime(_digest),
-                AuditingAgency = agency,
-                ControlObject = controlObject,
                 Id = identifier,
-                Message = message
             };
 
             return a;
@@ -189,7 +185,7 @@ namespace Dan.Plugin.Tilda.Utils
                 OperationalStatus = OperationStatus.OK,
                 OrganizationNumber = "123456789",
                 PublicLocationAddress = GetMockERAddress(),
-                ControlObjectParent = "222222222"                
+                ControlObjectParent = "222222222"
             };
 
             return await Task.FromResult(a);
@@ -219,8 +215,8 @@ namespace Dan.Plugin.Tilda.Utils
             var a = new TrendReport()
             {
                 ControlObject = "974720760",
-                ResponsibleAuditor = agencyorgno,               
-                AnnualTotals = GetMockAnnuals()                
+                ResponsibleAuditor = agencyorgno,
+                AnnualTotals = GetMockAnnuals()
             };
 
             return a;
@@ -350,8 +346,8 @@ namespace Dan.Plugin.Tilda.Utils
                 ControlObject = orgno,
                 ControlAgency = agencyorgno,
                 ResponsibleAuditor = "223344556",
-                ControlLocations = CreateMockControlLocations(), 
-                PlannedControlContact = CreateMockControlContacts(),               
+                ControlLocations = CreateMockControlLocations(),
+                PlannedControlContact = CreateMockControlContacts(),
                 PlannedControlActivities = new List<PlannedControlActivity>()
                 {
                     new PlannedControlActivity()
@@ -370,7 +366,7 @@ namespace Dan.Plugin.Tilda.Utils
                             }
                         },
                         Topic = "tema"
-             
+
                     }
                 },
                 ControlCampaigns = new List<Campaign>()
@@ -385,7 +381,7 @@ namespace Dan.Plugin.Tilda.Utils
                 },
                 Alerts = CreateMockAlertFullMessages("12345678"),
                 CurrentControls = 12
-                
+
             };
 
             return a;
@@ -433,7 +429,7 @@ namespace Dan.Plugin.Tilda.Utils
                 ViolationReactions = CreateMockReactions(),
                 NotesAndRemarks = new List<Remark>() { new Remark() { RemarkMessage = "blabla", Remarkreference = 1 } }
             };
-           
+
 
             return a;
         }
@@ -459,7 +455,7 @@ namespace Dan.Plugin.Tilda.Utils
                 NumberOfEffectuatedReactions = (int)DummyData.GenerateDummyNumber(_digest),
                 ReactionReference = 1
             };
-        }       
+        }
 
         private ControlReactionDetails CreateMockReactionDetail()
         {
@@ -533,7 +529,7 @@ namespace Dan.Plugin.Tilda.Utils
                 ControlKeywords = "key, word",
                 ControlStatus = ControlState.Aapen,
                 InternalControlId = Guid.NewGuid().ToString(),
-                Major = MajorAccidentAttributeType.Nei,                
+                Major = MajorAccidentAttributeType.Nei,
                 NotNotified = SurpriseControlAttributeType.Ja,
                 ControlTopic = "Fem tema om dagen gjør godt for magen",
                 SelectionCriteria = "Veldig suspekte folk",
@@ -550,7 +546,7 @@ namespace Dan.Plugin.Tilda.Utils
                 Activity = "aktivitet",
                 ActivityExecutionType = "fysisk",
                 ActivityReference = 1,
-                Date = DateTime.Now, 
+                Date = DateTime.Now,
                 Days = 1,
                 InternalControlId = Guid.NewGuid().ToString(),
                 Observation = "Vi kikket på en god stund",

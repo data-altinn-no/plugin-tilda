@@ -223,7 +223,7 @@ namespace Dan.Plugin.Tilda.Models
 
         [JsonProperty("meldingsinnholdTilAnnenMyndighet", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string Message;
-        
+
         [JsonProperty("datoForMeldingTilAnnenMyndighet", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public DateTime Date;
     }

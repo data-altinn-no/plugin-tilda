@@ -1,13 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using CloudNative.CloudEvents;
 using Dan.Common.Models;
-using Dan.Plugin.Tilda.Models;
+using Dan.Plugin.Tilda.Models.AlertMessages;
 
 namespace Dan.Plugin.Tilda.Interfaces
 {
     public interface ITildaAlertMessage : ITildaEvidenceType
     {
-        public Task<AlertMessageList> GetAlertMessagesAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string identifier);
+        public Task<AlertSourceMessage> GetAlertMessageAsync(EvidenceHarvesterRequest req, string identifier);
+        public Task<List<AlertSourceMessage>> GetAlertMessagesAsync(string from);
+        public Task SendAlertMessageAsync(CloudEvent cloudEvent);
     }
 }
 

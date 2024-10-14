@@ -21,6 +21,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Options;
 using JsonSchema = NJsonSchema.JsonSchema;
 using Azure.Core.Serialization;
+using Dan.Plugin.Tilda.Models.AlertMessages;
 
 namespace Dan.Plugin.Tilda
 {
@@ -168,7 +169,7 @@ namespace Dan.Plugin.Tilda
                 Description = "TildaStorulykkevirksomhetAlle",
                 EvidenceCodeName = "TildaStorulykkevirksomhetAlle",
                 EvidenceSource = "Tilda",
-                IsAsynchronous = false,                
+                IsAsynchronous = false,
                 BelongsToServiceContexts = belongsToTilda,
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAlertMessage>(),
@@ -207,7 +208,7 @@ namespace Dan.Plugin.Tilda
                 Description = "TildaStorulykkevirksomhet",
                 EvidenceCodeName = "TildaStorulykkevirksomhet",
                 EvidenceSource = "Tilda",
-                IsAsynchronous = false,               
+                IsAsynchronous = false,
                 BelongsToServiceContexts = belongsToTilda,
                 MaxValidDays = 365,
                 AuthorizationRequirements = GetTildaAuthRequirements<ITildaAlertMessage>(),
@@ -234,7 +235,7 @@ namespace Dan.Plugin.Tilda
         {
             var schema = JsonSchema.FromType<AlertMessageList>().ToJson(Newtonsoft.Json.Formatting.Indented);
             var a = new EvidenceCode()
-            {               
+            {
                 Description = "TildaMeldingTilAnnenMyndighet v1",
                 EvidenceCodeName = "TildaMeldingTilAnnenMyndighetv1",
                 EvidenceSource = "Tilda",
@@ -258,21 +259,9 @@ namespace Dan.Plugin.Tilda
                 {
                     new EvidenceParameter()
                     {
-                        EvidenceParamName = "startdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "sluttdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
                         EvidenceParamName = "identifikator",
                         ParamType = EvidenceParamType.String,
-                        Required = false
+                        Required = true
                     },
                     new EvidenceParameter()
                     {
