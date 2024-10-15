@@ -290,6 +290,8 @@ namespace Dan.Plugin.Tilda
 
             var pdfReport = _tildaSourceProvider.GetAllSources<ITildaPdfReport>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
+            var alertMessages = _tildaSourceProvider.GetAllSources<ITildaAlertMessage>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+
             var all = _tildaSourceProvider.GetAllRegisteredSources().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
 
@@ -306,6 +308,8 @@ namespace Dan.Plugin.Tilda
             ecb.AddEvidenceValue("TildaNPDIDv1", string.Join(",", npdid), "Tilda", false);
 
             ecb.AddEvidenceValue("TildaTilsynsrapportpdfv1", string.Join(",", pdfReport), "Tilda", false);
+
+            ecb.AddEvidenceValue("TildaMeldingTilAnnenMyndighetv1", string.Join(",", alertMessages), "Tilda", false);
 
             ecb.AddEvidenceValue("AlleKilder", string.Join(",", all), "Tilda", false);
 

@@ -348,6 +348,12 @@ namespace Dan.Plugin.Tilda
                         EvidenceValueName = "TildaNPDIDv1",
                         Source = "Tilda",
                         ValueType = EvidenceValueType.String
+                    },
+                    new EvidenceValue()
+                    {
+                        EvidenceValueName = "TildaMeldingTilAnnenMyndighetv1",
+                        Source = "Tilda",
+                        ValueType = EvidenceValueType.String
                     }
                 }
             };
