@@ -184,7 +184,7 @@ namespace Dan.Plugin.Tilda.Models
         public virtual async Task<AlertSourceMessage> GetAlertMessageAsync(EvidenceHarvesterRequest req,
             string identifier)
         {
-            var targetUrl = $"{BaseUri}/{MtamDatasetName}/{identifier}";
+            var targetUrl = $"{BaseUri}/{MtamDatasetName}/{identifier}?requestor={req.Requestor}";
             string responseString;
             try
             {
@@ -213,7 +213,31 @@ namespace Dan.Plugin.Tilda.Models
             try
             {
                 var mtamMessage = JsonConvert.DeserializeObject<AlertSourceMessage>(responseString);
+                if (mtamMessage == null)
+                {
+                    _logger.LogError(
+                        "Deserialized mtam message was null from org={organizationNumber} id = {id} status={status}",
+                        OrganizationNumber, identifier, "hardfail"
+                    );
+                    throw new FailedToFetchDataException(
+                        $"Deserialized mtam message was null from org={OrganizationNumber} id = {identifier}");
+                }
+
+                if (mtamMessage.Recipient != req.Requestor)
+                {
+                    _logger.LogError(
+                        "Invalid requestor for message={organizationNumber} id = {id} intendedRecipient = {recipient} requestor = {requestor} status={status}",
+                        OrganizationNumber, identifier, mtamMessage.Recipient, req.Requestor, "hardfail"
+                    );
+                    throw new FailedToFetchDataException(
+                        $"Invalid requestor for message={OrganizationNumber} id = {identifier} intendedRecipient = {mtamMessage.Recipient} requestor = {req.Requestor}");
+                }
+
                 return mtamMessage;
+            }
+            catch (FailedToFetchDataException ex)
+            {
+                throw;
             }
             catch (Exception ex)
             {
