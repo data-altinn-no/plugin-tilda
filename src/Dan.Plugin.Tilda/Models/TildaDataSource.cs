@@ -139,7 +139,7 @@ namespace Dan.Plugin.Tilda.Models
 
         public virtual async Task<List<AlertSourceMessage>> GetAlertMessagesAsync(string from)
         {
-            var targetUrl = $"{BaseUri}/{MtamDatasetName}?fraDato={from}";
+            var targetUrl = $"{BaseUri}/{MtamDatasetName}?fromDate={from}";
             string responseString;
             try
             {

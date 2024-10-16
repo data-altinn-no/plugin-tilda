@@ -30,13 +30,14 @@ namespace Dan.Plugin.Tilda.Extensions
             req.TryGetParameter("filter", out string filter);
             req.TryGetParameter("aar", out string year);
             req.TryGetParameter("maaned", out string month);
+            req.TryGetParameter("postnummer", out string postcode);
+            req.TryGetParameter("kommunenummer", out string municipalityNumber);
+            req.TryGetParameter("naeringskode", out string nace);
 
             if (includeSubunits)
-            {
                 throw new Exception("inkluderUnderenheter er ikke støttet ennå :)");
-            }
 
-            return new TildaParameters(fromDateTime, toDateTime, npdid, false, sourceFilter, identifier, filter, year, month);
+            return new TildaParameters(fromDateTime, toDateTime, npdid, false, sourceFilter, identifier, filter, year, month, postcode, municipalityNumber, nace);
         }
     }
 }
