@@ -21,6 +21,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Options;
 using JsonSchema = NJsonSchema.JsonSchema;
 using Azure.Core.Serialization;
+using Dan.Plugin.Tilda.Models.AlertMessages;
 
 namespace Dan.Plugin.Tilda
 {
@@ -286,21 +287,9 @@ namespace Dan.Plugin.Tilda
                 {
                     new EvidenceParameter()
                     {
-                        EvidenceParamName = "startdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
-                        EvidenceParamName = "sluttdato",
-                        ParamType = EvidenceParamType.DateTime,
-                        Required = false
-                    },
-                    new EvidenceParameter()
-                    {
                         EvidenceParamName = "identifikator",
                         ParamType = EvidenceParamType.String,
-                        Required = false
+                        Required = true
                     },
                     new EvidenceParameter()
                     {
@@ -385,6 +374,12 @@ namespace Dan.Plugin.Tilda
                     new EvidenceValue()
                     {
                         EvidenceValueName = "TildaNPDIDv1",
+                        Source = "Tilda",
+                        ValueType = EvidenceValueType.String
+                    },
+                    new EvidenceValue()
+                    {
+                        EvidenceValueName = "TildaMeldingTilAnnenMyndighetv1",
                         Source = "Tilda",
                         ValueType = EvidenceValueType.String
                     }

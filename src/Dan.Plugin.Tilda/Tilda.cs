@@ -53,15 +53,15 @@ namespace Dan.Plugin.Tilda
             _tildaSourceProvider = tildaSourceProvider;
         }
 
-        [Function("TildaMeldingTilAnnenMyndighetv1")]
-        public async Task<HttpResponseData> TildaMeldingTilAnnenMyndighet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaMeldingTilAnnenMyndighetv1")] HttpRequestData req, FunctionContext context)
-        {
-            _logger = context.GetLogger(context.FunctionDefinition.Name);
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
-
-            return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesMeldingTilAnnenMyndighet(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
-        }
+        // [Function("TildaMeldingTilAnnenMyndighetv1")]
+        // public async Task<HttpResponseData> TildaMeldingTilAnnenMyndighet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaMeldingTilAnnenMyndighetv1")] HttpRequestData req, FunctionContext context)
+        // {
+        //     _logger = context.GetLogger(context.FunctionDefinition.Name);
+        //     string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        //     var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
+        //
+        //     return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesMeldingTilAnnenMyndighet(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
+        // }
 
         [Function("TildaStorulykkevirksomhet")]
         public async Task<HttpResponseData> TildaStorulykkevirksomhet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhet")] HttpRequestData req, FunctionContext context)
@@ -225,39 +225,39 @@ namespace Dan.Plugin.Tilda
             }
         }
 
-        private async Task<List<EvidenceValue>> GetEvidenceValuesMeldingTilAnnenMyndighet(EvidenceHarvesterRequest req, TildaParameters param)
-        {
-            var taskList = new List<Task<AlertMessageList>>();
-            try
-            {
-                foreach (ITildaAlertMessage a in _tildaSourceProvider.GetRelevantSources<ITildaAlertMessage>(param.sourceFilter))
-                {
-                    taskList.Add(a.GetAlertMessagesAsync(req, param.fromDate, param.toDate, param.identifier));
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw new EvidenceSourcePermanentClientException(1, $"Could not create requests for specified sources ({ex.Message}");
-            }
-
-            await Task.WhenAll(taskList);
-            var list = new List<IAuditList>();
-
-            foreach (var task in taskList)
-            {
-                var values = task.Result;
-
-                if (values.Status == StatusEnum.NotFound || values.Status == StatusEnum.Failed || values.Status == StatusEnum.Unknown)
-                {
-                    values.AlertMessages = null;
-                }
-
-                list.Add(values);
-            }
-
-            return BuildEvidenceValueList("TildaMeldingTilAnnenMyndighetv1", "meldingTilAnnenMyndighet", list);
-        }
+        // private async Task<List<EvidenceValue>> GetEvidenceValuesMeldingTilAnnenMyndighet(EvidenceHarvesterRequest req, TildaParameters param)
+        // {
+        //     var taskList = new List<Task<AlertMessageList>>();
+        //     try
+        //     {
+        //         foreach (ITildaAlertMessage a in _tildaSourceProvider.GetRelevantSources<ITildaAlertMessage>(param.sourceFilter))
+        //         {
+        //             taskList.Add(a.GetAlertMessagesAsync(req, param.fromDate, param.toDate, param.identifier));
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError(ex.Message);
+        //         throw new EvidenceSourcePermanentClientException(1, $"Could not create requests for specified sources ({ex.Message}");
+        //     }
+        //
+        //     await Task.WhenAll(taskList);
+        //     var list = new List<IAuditList>();
+        //
+        //     foreach (var task in taskList)
+        //     {
+        //         var values = task.Result;
+        //
+        //         if (values.Status == StatusEnum.NotFound || values.Status == StatusEnum.Failed || values.Status == StatusEnum.Unknown)
+        //         {
+        //             values.AlertMessages = null;
+        //         }
+        //
+        //         list.Add(values);
+        //     }
+        //
+        //     return BuildEvidenceValueList("TildaMeldingTilAnnenMyndighetv1", "meldingTilAnnenMyndighet", list);
+        // }
 
 
         private List<EvidenceValue> BuildEvidenceValueList(string evidenceCodeName, string evidenceValueName, List<IAuditList> input)
@@ -291,6 +291,8 @@ namespace Dan.Plugin.Tilda
 
             var pdfReport = _tildaSourceProvider.GetAllSources<ITildaPdfReport>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
+            var alertMessages = _tildaSourceProvider.GetAllSources<ITildaAlertMessage>().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
+
             var all = _tildaSourceProvider.GetAllRegisteredSources().Select(x => x.OrganizationNumber + ":" + x.ControlAgency);
 
 
@@ -307,6 +309,8 @@ namespace Dan.Plugin.Tilda
             ecb.AddEvidenceValue("TildaNPDIDv1", string.Join(",", npdid), "Tilda", false);
 
             ecb.AddEvidenceValue("TildaTilsynsrapportpdfv1", string.Join(",", pdfReport), "Tilda", false);
+
+            ecb.AddEvidenceValue("TildaMeldingTilAnnenMyndighetv1", string.Join(",", alertMessages), "Tilda", false);
 
             ecb.AddEvidenceValue("AlleKilder", string.Join(",", all), "Tilda", false);
 

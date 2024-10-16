@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using Dan.Plugin.Tilda.Config;
 using Microsoft.Extensions.Options;
+using Polly.Registry;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
@@ -23,8 +24,11 @@ namespace Dan.Plugin.Tilda.TildaSources
             get => controlAgency;
         }
 
-        public Justervesenet(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
-            base(settings, httpClientFactory, loggerFactory)
+        public Justervesenet(IOptions<Settings> settings,
+            IHttpClientFactory httpClientFactory,
+            ILoggerFactory loggerFactory,
+            ResiliencePipelineProvider<string> pipelineProvider) :
+            base(settings, httpClientFactory, loggerFactory, pipelineProvider)
         {
 
         }

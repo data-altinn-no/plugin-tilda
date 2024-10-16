@@ -3,6 +3,7 @@ using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Polly.Registry;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
@@ -15,8 +16,11 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public override string OrganizationNumber => orgNo;
 
-        public DSB(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
-            base(settings, httpClientFactory, loggerFactory)
+        public DSB(IOptions<Settings> settings,
+            IHttpClientFactory httpClientFactory,
+            ILoggerFactory loggerFactory,
+            ResiliencePipelineProvider<string> pipelineProvider) :
+            base(settings, httpClientFactory, loggerFactory, pipelineProvider)
         {
 
         }

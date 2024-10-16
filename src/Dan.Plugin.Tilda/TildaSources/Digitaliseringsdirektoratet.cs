@@ -8,9 +8,11 @@ using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Utils;
 using Dan.Plugin.Tilda.Interfaces;
+using Dan.Plugin.Tilda.Models.AlertMessages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nadobe.Common.Models;
+using Polly.Registry;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
@@ -28,8 +30,11 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public override bool TestOnly => true;
 
-        public Digitaliseringsdirektoratet(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
-            base(settings, httpClientFactory, loggerFactory)
+        public Digitaliseringsdirektoratet(IOptions<Settings> settings,
+            IHttpClientFactory httpClientFactory,
+            ILoggerFactory loggerFactory,
+            ResiliencePipelineProvider<string> pipelineProvider) :
+            base(settings, httpClientFactory, loggerFactory, pipelineProvider)
         {
 
         }

@@ -15,8 +15,13 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using Dan.Plugin.Tilda.Clients;
 using Dan.Plugin.Tilda.Interfaces;
+using Dan.Plugin.Tilda.Mappers;
+using Dan.Plugin.Tilda.Services;
 using Dan.Plugin.Tilda.Utils;
+using Microsoft.Azure.Cosmos.Fluent;
+using Polly.Retry;
 using Settings = Dan.Plugin.Tilda.Config.Settings;
 
 var host = new HostBuilder()
@@ -39,8 +44,13 @@ var host = new HostBuilder()
             option.Configuration = settings.RedisConnectionString;
         });
 
+        services.AddSingleton(_ => new CosmosClientBuilder(Settings.CosmosDbConnection).Build());
         services.AddSingleton<IEntityRegistryService, EntityRegistryService>();
         services.AddSingleton<IEvidenceSourceMetadata, Metadata>();
+        services.AddTransient<IMtamCounterClient, MtamCounterClient>();
+        services.AddTransient<IAlertMessageSender, AlertMessageSender>();
+        services.AddTransient<IAlertMessageMapper, AlertMessageMapper>();
+        services.AddTransient<IEvidenceService, EvidenceService>();
 
         // Registers all implementations of ITildaDataSources under that interface, making it accessible with
         // dependency injection by injecting IEnumerable<ITildaDataSource> in constructor
@@ -77,6 +87,18 @@ var host = new HostBuilder()
             return handler;
         });
 
+        services.AddResiliencePipeline("alert-pipeline", builder =>
+        {
+            builder
+                .AddRetry(new RetryStrategyOptions
+                {
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true,  // Adds a random factor to the delay
+                    MaxRetryAttempts = 6,
+                    Delay = TimeSpan.FromSeconds(5),
+                })
+                .AddTimeout(TimeSpan.FromSeconds(120));
+        });
     })
     .Build();
 

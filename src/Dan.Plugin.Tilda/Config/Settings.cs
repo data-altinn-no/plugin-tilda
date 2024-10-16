@@ -23,6 +23,12 @@ namespace Dan.Plugin.Tilda.Config
         public string KvName { get; set; }
         public string KvKofuviCertificateName { get; set; }
 
+        public string DataAltinnNoBaseUrl { get; set; }
+        public string AltinnEventsBaseUrl { get; set; }
+
+        public static string CosmosDbConnection => Environment.GetEnvironmentVariable("CosmosDbConnection");
+        public string CosmosDbDatabase { get; set; }
+
         private static string KeyVaultName => Environment.GetEnvironmentVariable("KvName");
         private static string KofuviCertificateName => Environment.GetEnvironmentVariable("KvKofuviCertificateName");
 

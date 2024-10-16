@@ -10,6 +10,7 @@ using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Extensions.Options;
 using Nadobe.Common.Models;
+using Polly.Registry;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
@@ -28,8 +29,11 @@ namespace Dan.Plugin.Tilda.TildaSources
             get => controlAgency;
         }
 
-        public Arbeidstilsynet(IOptions<Settings> settings, IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) :
-            base(settings, httpClientFactory, loggerFactory)
+        public Arbeidstilsynet(IOptions<Settings> settings,
+            IHttpClientFactory httpClientFactory,
+            ILoggerFactory loggerFactory,
+            ResiliencePipelineProvider<string> pipelineProvider) :
+            base(settings, httpClientFactory, loggerFactory, pipelineProvider)
         {
         }
 
