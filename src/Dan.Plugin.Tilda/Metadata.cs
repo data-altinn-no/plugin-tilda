@@ -21,7 +21,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Options;
 using JsonSchema = NJsonSchema.JsonSchema;
 using Azure.Core.Serialization;
-using Dan.Plugin.Tilda.Models.AlertMessages;
+using AlertMessage = Dan.Plugin.Tilda.Models.AlertMessages.AlertMessage;
 
 namespace Dan.Plugin.Tilda
 {
@@ -261,7 +261,7 @@ namespace Dan.Plugin.Tilda
 
         private static List<EvidenceCode> GetTildaMeldingTilAnnenMyndighetMetadata()
         {
-            var schema = JsonSchema.FromType<AlertMessageList>().ToJson(Newtonsoft.Json.Formatting.Indented);
+            var schema = JsonSchema.FromType<AlertMessage>().ToJson(Formatting.Indented);
             var a = new EvidenceCode()
             {
                 Description = "TildaMeldingTilAnnenMyndighet v1",
@@ -277,7 +277,7 @@ namespace Dan.Plugin.Tilda
                 {
                     new EvidenceValue()
                     {
-                        EvidenceValueName = "meldingTilAnnenMyndighet",
+                        EvidenceValueName = "default",
                         Source = "Tilda",
                         ValueType = EvidenceValueType.JsonSchema,
                         JsonSchemaDefintion = schema

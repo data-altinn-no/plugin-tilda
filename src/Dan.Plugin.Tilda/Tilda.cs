@@ -711,9 +711,6 @@ namespace Dan.Plugin.Tilda
                 _logger.LogError(ex.Message);
             }
 
-            foreach (var unit in brResults)
-                ecb.AddEvidenceValue("enhetsinformasjon", JsonConvert.SerializeObject(unit), "Enhetsregisteret", false);
-
             if (result != null)
             {
                 var filtered = (TrendReportList)Helpers.Filter(result, brResults);
@@ -825,9 +822,6 @@ namespace Dan.Plugin.Tilda
             {
                 _logger.LogError(ex.Message);
             }
-
-            foreach (var unit in brResults)
-                ecb.AddEvidenceValue("enhetsinformasjon", JsonConvert.SerializeObject(unit), "Enhetsregisteret", false);
 
             if (result != null)
             {
