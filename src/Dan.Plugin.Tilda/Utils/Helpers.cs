@@ -332,7 +332,8 @@ namespace Dan.Plugin.Tilda.Utils
                 request.Headers.TryAddWithoutValidation("Accept", "application/json");
                 request.Headers.TryAddWithoutValidation("Authorization", "bearer " + mpToken);
 
-                logger.LogInformation("Data retrieval started from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor}",
+                logger.LogInformation(
+                    "Data retrieval started from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor}",
                     sourceOrgNo, url, requestor);
                 var result = await client.SendAsync(request);
                 logger.LogInformation(
@@ -346,22 +347,33 @@ namespace Dan.Plugin.Tilda.Utils
                     if (resultList == null)
                     {
                         resultList = new T();
-                        resultList.SetStatusAndTextAndOwner($"OK (empty response with 200). ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.OK, sourceOrgNo);
+                        resultList.SetStatusAndTextAndOwner(
+                            $"OK (empty response with 200). ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.OK,
+                            sourceOrgNo);
                         logger.LogWarning(
                             "Data retrieval completed from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} status={status}",
                             sourceOrgNo, url, requestor, t.ElapsedMilliseconds, "okwarn");
                     }
-                    else resultList.SetStatusAndTextAndOwner($"OK. ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.OK, sourceOrgNo);
+                    else
+                        resultList.SetStatusAndTextAndOwner($"OK. ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.OK,
+                            sourceOrgNo);
                 }
                 else
                 {
-                    resultList.SetStatusAndTextAndOwner($"Failed: {result.ReasonPhrase}. ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.Failed,
+                    resultList.SetStatusAndTextAndOwner(
+                        $"Failed: {result.ReasonPhrase}. ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.Failed,
                         sourceOrgNo);
                     logger.LogWarning(
                         "Data retrieval failed gracefully sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} statusCode={statusCode} reasonPhrase={reasonPhrase} status={status}",
-                        sourceOrgNo, url, requestor, t.ElapsedMilliseconds, result.StatusCode.ToString(), result.ReasonPhrase, "softfail"
+                        sourceOrgNo, url, requestor, t.ElapsedMilliseconds, result.StatusCode.ToString(),
+                        result.ReasonPhrase, "softfail"
                     );
                 }
+            }
+            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+            {
+                logger.LogError("Timeout when fetching data sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} ex={ex} message={message} status={status}",
+                    sourceOrgNo, url, requestor, t.ElapsedMilliseconds, ex.GetType().Name, ex.Message, "hardfail");
             }
             catch (Exception ex)
             {
