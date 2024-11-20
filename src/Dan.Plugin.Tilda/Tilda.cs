@@ -713,6 +713,12 @@ namespace Dan.Plugin.Tilda
 
             if (result != null)
             {
+                if (param.HasGeoSearchParams())
+                {
+                    var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
+                    result.TrendReports =
+                        result.TrendReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
+                }
                 var filtered = (TrendReportList)Helpers.Filter(result, brResults);
                 ecb.AddEvidenceValue($"tilsynstrendrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
             }
@@ -771,6 +777,12 @@ namespace Dan.Plugin.Tilda
 
             if (result != null)
             {
+                if (param.HasGeoSearchParams())
+                {
+                    var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
+                    result.AuditCoordinations =
+                        result.AuditCoordinations?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
+                }
                 var filtered = (AuditCoordinationList)Helpers.Filter(result, brResults);
                 ecb.AddEvidenceValue($"tilsynskoordineringer", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
             }
@@ -825,6 +837,12 @@ namespace Dan.Plugin.Tilda
 
             if (result != null)
             {
+                if (param.HasGeoSearchParams())
+                {
+                    var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
+                    result.AuditReports =
+                        result.AuditReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
+                }
                 var filtered = (AuditReportList)Helpers.Filter(result, brResults);
                 ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
             }
