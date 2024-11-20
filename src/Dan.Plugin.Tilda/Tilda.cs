@@ -820,7 +820,24 @@ namespace Dan.Plugin.Tilda
                     }
                 }
 
-                await Task.WhenAll(taskList);
+                var taskResult = Task.WhenAll(taskList);
+                try
+                {
+                    await taskResult;
+                }
+                catch (Exception e)
+                {
+                    // Don't want one failed fetch to break the listing of the rest of the orgs
+                    if (taskResult.IsFaulted)
+                    {
+                        var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
+                        foreach (var task in failedTasks)
+                        {
+                            _logger.LogError(task.Exception, task.Exception?.Message);
+                        }
+                        taskList = taskList.Where(task => !task.IsFaulted).ToList();
+                    }
+                }
 
                 taskList = taskList
                     .Where(task => task.Result is not null)
