@@ -139,7 +139,7 @@ namespace Dan.Plugin.Tilda.Models
 
         public virtual async Task<List<AlertSourceMessage>> GetAlertMessagesAsync(string from)
         {
-            var targetUrl = $"{BaseUri}/{MtamDatasetName}?fromDate={from}";
+            var targetUrl = GetAlertUri(from);
             string responseString;
             try
             {
@@ -184,7 +184,7 @@ namespace Dan.Plugin.Tilda.Models
         public virtual async Task<AlertSourceMessage> GetAlertMessageAsync(EvidenceHarvesterRequest req,
             string identifier)
         {
-            var targetUrl = $"{BaseUri}/{MtamDatasetName}/{identifier}?requestor={req.Requestor}";
+            var targetUrl = GetSingleAlertUri(identifier, req.Requestor);
             string responseString;
             try
             {
@@ -252,7 +252,7 @@ namespace Dan.Plugin.Tilda.Models
 
         public async Task SendAlertMessageAsync(CloudEvent cloudEvent)
         {
-            var targetUrl = $"{BaseUri}/{MtamDatasetName}";
+            var targetUrl = PostAlertUri();
             var resiliencePipeline = _pipelineProvider.GetPipeline("alert-pipeline");
             CloudEventFormatter formatter = new JsonEventFormatter();
             var cloudEventContent = cloudEvent.ToHttpContent(ContentMode.Structured, formatter);
@@ -266,5 +266,12 @@ namespace Dan.Plugin.Tilda.Models
                 }
             });
         }
+
+        protected virtual string GetAlertUri(string from) => $"{BaseUri}/{MtamDatasetName}?fromDate={from}";
+
+        protected virtual string GetSingleAlertUri(string id, string requestor) =>
+            $"{BaseUri}/{MtamDatasetName}/{id}?requestor={requestor}";
+
+        protected virtual string PostAlertUri() => $"{BaseUri}/{MtamDatasetName}";
     }
 }

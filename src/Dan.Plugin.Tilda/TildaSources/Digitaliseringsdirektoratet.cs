@@ -1,24 +1,20 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Dan.Common.Models;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Utils;
 using Dan.Plugin.Tilda.Interfaces;
-using Dan.Plugin.Tilda.Models.AlertMessages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Nadobe.Common.Models;
 using Polly.Registry;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
 
 
-    public class Digitaliseringsdirektoratet : TildaDataSource, ITildaPdfReport//, ITildaAuditReports, ITildaNPDIDAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaTrendReportsAll, ITildaAuditCoordinationAll, ITildaAuditReportsAll, ITildaAlertMessage
+    public class Digitaliseringsdirektoratet : TildaDataSource, ITildaAlertMessage, ITildaPdfReport//, ITildaAuditReports, ITildaNPDIDAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaTrendReportsAll, ITildaAuditCoordinationAll, ITildaAuditReportsAll, ITildaAlertMessage
     {
 
         private const string orgNo = "991825827";
@@ -30,13 +26,15 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public override bool TestOnly => true;
 
+        private readonly string _code;
+
         public Digitaliseringsdirektoratet(IOptions<Settings> settings,
             IHttpClientFactory httpClientFactory,
             ILoggerFactory loggerFactory,
             ResiliencePipelineProvider<string> pipelineProvider) :
             base(settings, httpClientFactory, loggerFactory, pipelineProvider)
         {
-
+            _code = _settings.GetClassBaseCode(GetType().Name);
         }
 
         public Digitaliseringsdirektoratet() : base()
@@ -206,6 +204,12 @@ namespace Dan.Plugin.Tilda.TildaSources
 
             return resultList;
         }
+
+        protected override string GetAlertUri(string from) => $"{BaseUri}/{MtamDatasetName}?fromDate={from}&code={_code}";
+        protected override string GetSingleAlertUri(string id, string requestor) =>
+            $"{BaseUri}/{MtamDatasetName}/{id}?requestor={requestor}&code={_code}";
+
+        protected override string PostAlertUri() => $"{BaseUri}/{MtamDatasetName}?code={_code}";
     }
 
 }

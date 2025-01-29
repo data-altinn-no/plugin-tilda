@@ -10,6 +10,11 @@ namespace Dan.Plugin.Tilda.Config
             return Environment.GetEnvironmentVariable(className + ".uri");
         }
 
+        public string GetClassBaseCode(string className)
+        {
+            return Environment.GetEnvironmentVariable(className + ".code");
+        }
+
         public string RedisConnectionString { get; set; }
 
         public bool IsTest { get; set; }
@@ -24,7 +29,6 @@ namespace Dan.Plugin.Tilda.Config
         public string KvKofuviCertificateName { get; set; }
 
         public string DataAltinnNoBaseUrl { get; set; }
-        public string AltinnEventsBaseUrl { get; set; }
 
         public static string CosmosDbConnection => Environment.GetEnvironmentVariable("CosmosDbConnection");
         public string CosmosDbDatabase { get; set; }

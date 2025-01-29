@@ -22,7 +22,7 @@ public class Timers(
     [Function("MtamTimer")]
     public async Task MessageToOtherAuditorsTimer(
         // [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req, // easier to test locally using http trigger
-        [TimerTrigger("0 */5 * * * *")] TimerInfo timerInfo,
+        [TimerTrigger("%MtamTriggerCron%")] TimerInfo timerInfo,
         FunctionContext context)
     {
         var mtamSources = tildaSourceProvider.GetAllSources<ITildaAlertMessage>().ToList();
