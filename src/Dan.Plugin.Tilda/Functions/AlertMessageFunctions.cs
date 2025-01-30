@@ -62,6 +62,6 @@ public class AlertMessageFunctions(
 
         var mappedMessage = alertMessageMapper.Map(message, param.sourceFilter);
 
-        return evidenceService.BuildEvidenceValue("TildaMeldingTilAnnenMyndighetv1", "meldingTilAnnenMyndighet", mappedMessage, param.sourceFilter);
+        return evidenceService.BuildEvidenceValue("TildaMeldingTilAnnenMyndighetv1", "default", mappedMessage, param.sourceFilter);
     }
 }
