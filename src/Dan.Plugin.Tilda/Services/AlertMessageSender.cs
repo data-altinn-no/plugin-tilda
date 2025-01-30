@@ -71,7 +71,7 @@ public class AlertMessageSender : IAlertMessageSender
             Port = -1
         };
         var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-        query["subject"] = sourceOrganisation;
+        query["tilsynskilder"] = sourceOrganisation;
         query["identifikator"] = messageId;
         query["envelope"] = false.ToString();
         uriBuilder.Query = query.ToString()!;
