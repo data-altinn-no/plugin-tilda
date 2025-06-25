@@ -584,11 +584,15 @@ namespace Dan.Plugin.Tilda.Utils
                 var response = await client.GetAsync(targetUrl);
                 if (!response.IsSuccessStatusCode)
                 {
-                    logger.LogError(
-                        "Failed to get kofuvi addresses for org={organizationNumber} on url={targetUrl} with unsuccessful response status={statusCode}",
-                        organizationNumber, targetUrl, response.StatusCode
-                    );
-                    return new List<string>();
+                    //skip logging 404 - just means there are no addresses for this organization and clutters logs
+                    if (response.StatusCode != HttpStatusCode.NotFound)
+                    {
+                        logger.LogError(
+                            "Failed to get kofuvi addresses for org={organizationNumber} on url={targetUrl} with unsuccessful response status={statusCode}",
+                            organizationNumber, targetUrl, response.StatusCode
+                        );
+                        return new List<string>();
+                    }
                 }
                 responseString = await response.Content.ReadAsStringAsync();
             }

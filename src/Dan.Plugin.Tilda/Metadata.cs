@@ -189,9 +189,8 @@ namespace Dan.Plugin.Tilda
         }
 
         private static IEnumerable<EvidenceCode> GetTildaStorulykkeMetadataAlle()
-        {
-            var schema = JsonSchema.FromType<StorulykkevirksomhetListe>().ToJson(Formatting.Indented);
-
+        {            
+            var schema = EvidenceValue.SchemaFromObject<StorulykkevirksomhetListe>(Formatting.Indented);
             var a = new EvidenceCode()
             {
                 Description = "TildaStorulykkevirksomhetAlle",
@@ -229,7 +228,7 @@ namespace Dan.Plugin.Tilda
 
         private static IEnumerable<EvidenceCode> GetTildaStorulykkeMetadata()
         {
-            var schema = JsonSchema.FromType<StorulykkevirksomhetKontroll>().ToJson(Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<StorulykkevirksomhetKontroll>(Formatting.Indented);
 
             var a = new EvidenceCode()
             {
@@ -261,7 +260,7 @@ namespace Dan.Plugin.Tilda
 
         private static List<EvidenceCode> GetTildaMeldingTilAnnenMyndighetMetadata()
         {
-            var schema = JsonSchema.FromType<AlertMessage>().ToJson(Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<AlertMessage>(Formatting.Indented);
             var a = new EvidenceCode()
             {
                 Description = "TildaMeldingTilAnnenMyndighet v1",
@@ -395,8 +394,8 @@ namespace Dan.Plugin.Tilda
 
         private static IEnumerable<EvidenceCode> GetTilsynsTrendMetadataAll()
         {
-            var schema = JsonSchema.FromType<AuditCoordinationList>().ToJson(Newtonsoft.Json.Formatting.Indented);
-            var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<AuditCoordinationList>(Formatting.Indented);
+            var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
 
             var a = new EvidenceCode()
             {
@@ -431,8 +430,8 @@ namespace Dan.Plugin.Tilda
 
         private static IEnumerable<EvidenceCode> GetTilsynskoordineringAllMetadata()
         {
-            var schema = JsonSchema.FromType<AuditCoordination>().ToJson(Newtonsoft.Json.Formatting.Indented);
-            var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<AuditCoordination>(Formatting.Indented);
+            var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
 
             var a = new EvidenceCode()
             {
@@ -467,8 +466,8 @@ namespace Dan.Plugin.Tilda
 
         private static IEnumerable<EvidenceCode> GetNPDIDMetadata()
         {
-            var schema = JsonSchema.FromType<NPDIDAuditReportList>().ToJson(Newtonsoft.Json.Formatting.Indented);
-            var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<NPDIDAuditReportList>(Formatting.Indented);
+            var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
 
             var a = new EvidenceCode()
             {
@@ -542,8 +541,8 @@ namespace Dan.Plugin.Tilda
 
         private static IEnumerable<EvidenceCode> GetTilsynsTrendMetadata()
         {
-            var schema = JsonSchema.FromType<AuditCoordinationList>().ToJson(Newtonsoft.Json.Formatting.Indented);
-            var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<AuditCoordinationList>(Formatting.Indented);
+            var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
 
             var a = new EvidenceCode()
             {
@@ -629,8 +628,8 @@ namespace Dan.Plugin.Tilda
 
         public static List<EvidenceCode> GetTilsynskoordineringMetadata()
         {
-            var schema = JsonSchema.FromType<AuditCoordination>().ToJson(Newtonsoft.Json.Formatting.Indented);
-            var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<AuditCoordination>(Formatting.Indented);
+            var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
 
             var a = new EvidenceCode()
             {
@@ -698,8 +697,8 @@ namespace Dan.Plugin.Tilda
 
         public static List<EvidenceCode> GetTilsynsdataRapportAllMetadata()
         {
-            var schema = JsonSchema.FromType<AuditReportList>().ToJson(Newtonsoft.Json.Formatting.Indented);
-            var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<AuditReportList>(Formatting.Indented);
+            var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
 
             var a = new EvidenceCode()
             {
@@ -733,8 +732,8 @@ namespace Dan.Plugin.Tilda
 
         public static List<EvidenceCode> GetTilsynsdataRapportMetadata()
         {
-            var schema = JsonSchema.FromType<AuditReportList>().ToJson(Newtonsoft.Json.Formatting.Indented);
-            var schemaER = JsonSchema.FromType<TildaRegistryEntry>().ToJson(Newtonsoft.Json.Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<AuditReportList>(Formatting.Indented);
+            var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
 
             var a = new EvidenceCode()
             {
