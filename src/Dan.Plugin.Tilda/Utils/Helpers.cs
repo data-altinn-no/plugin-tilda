@@ -591,8 +591,8 @@ namespace Dan.Plugin.Tilda.Utils
                             "Failed to get kofuvi addresses for org={organizationNumber} on url={targetUrl} with unsuccessful response status={statusCode}",
                             organizationNumber, targetUrl, response.StatusCode
                         );
-                        return new List<string>();
                     }
+                    return new List<string>();
                 }
                 responseString = await response.Content.ReadAsStringAsync();
             }
