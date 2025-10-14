@@ -15,6 +15,8 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using Azure.Core;
+using Azure.Identity;
 using Dan.Plugin.Tilda.Clients;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Mappers;
@@ -44,7 +46,16 @@ var host = new HostBuilder()
             option.Configuration = settings.RedisConnectionString;
         });
 
-        services.AddSingleton(_ => new CosmosClientBuilder(Settings.CosmosDbConnection).Build());
+        if (Settings.CosmosDbConnection.StartsWith("AccountEndpoint="))
+        {
+            services.AddSingleton(_ => new CosmosClientBuilder(Settings.CosmosDbConnection).Build());
+        }
+        else
+        {
+            TokenCredential credential = new DefaultAzureCredential();
+            services.AddSingleton(_ => new CosmosClientBuilder(Settings.CosmosDbConnection, credential).Build());
+
+        }
         services.AddSingleton<IEntityRegistryService, EntityRegistryService>();
         services.AddSingleton<IEvidenceSourceMetadata, Metadata>();
         services.AddTransient<IMtamCounterClient, MtamCounterClient>();
