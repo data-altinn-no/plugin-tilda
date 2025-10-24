@@ -14,7 +14,6 @@ jobs:
   permissions:
     actions: read
     contents: read
-    security-events: write
   uses: data-altinn-no/deploy-actions/.github/workflows/dan-deploy-flow.yml@d08132e
   with:
     artifact_name: 'dan-plugin-tilda' # Can be omitted, defaults to 'artifact'
