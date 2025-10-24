@@ -24,6 +24,7 @@ using Dan.Plugin.Tilda.Services;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Azure.Cosmos.Fluent;
 using Polly.Retry;
+using StackExchange.Redis;
 using Settings = Dan.Plugin.Tilda.Config.Settings;
 
 var host = new HostBuilder()
@@ -41,10 +42,33 @@ var host = new HostBuilder()
 
         var settings = services.BuildServiceProvider().GetRequiredService<IOptions<Settings>>().Value;
 
-        services.AddStackExchangeRedisCache(option =>
+        DefaultAzureCredential credentials = new();
+        services.AddSingleton(credentials);
+        // In case of still using access key (or local redis),
+        if (settings.RedisConnectionString.Contains("password=") ||
+            settings.RedisConnectionString.Contains("127.0.0.1"))
         {
-            option.Configuration = settings.RedisConnectionString;
-        });
+            services.AddStackExchangeRedisCache(option =>
+            {
+                option.Configuration = settings.RedisConnectionString;
+            });
+        }
+        else
+        {
+            services.AddStackExchangeRedisCache(option =>
+            {
+                option.ConnectionMultiplexerFactory = async () =>
+                {
+                    var configurationOptions = await ConfigurationOptions
+                        .Parse(settings.RedisConnectionString)
+                        .ConfigureForAzureWithTokenCredentialAsync(credentials);
+
+                    var connectionMultiplexer = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
+
+                    return connectionMultiplexer;
+                };
+            });
+        }
 
         if (Settings.CosmosDbConnection.StartsWith("AccountEndpoint="))
         {
@@ -75,11 +99,8 @@ var host = new HostBuilder()
 
         services.AddSingleton<ITildaSourceProvider, TildaSourceProvider>();
 
-        var distributedCache = services.BuildServiceProvider().GetRequiredService<IDistributedCache>();
-
         var policyRegistry = services.BuildServiceProvider().GetRequiredService<IPolicyRegistry<string>>();
         policyRegistry.Add("defaultCircuitBreaker", HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(4, TimeSpan.Parse(settings.Breaker_RetryWaitTime)));
-        policyRegistry.Add("ERCachePolicy", Policy.CacheAsync(distributedCache.AsAsyncCacheProvider<string>(), TimeSpan.FromHours(12)));
 
         // Client configured without circuit breaker policies. shorter timeout
         services.AddHttpClient("ERHttpClient", client =>
@@ -87,10 +108,10 @@ var host = new HostBuilder()
             client.Timeout = new TimeSpan(0, 0, 5);
         });
 
-        services.AddHttpClient("KofuviClient", _ =>
-        {
-
-        })
+        services.AddHttpClient("KofuviClient", client =>
+            {
+                client.Timeout = new TimeSpan(0, 0, 5);
+            })
         .ConfigurePrimaryHttpMessageHandler(() =>
         {
             var handler = new HttpClientHandler();
