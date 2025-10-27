@@ -13,7 +13,6 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Polly.Registry;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,13 +20,14 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dan.Plugin.Tilda.Extensions;
+using Microsoft.Extensions.Caching.Distributed;
 
 
 namespace Dan.Plugin.Tilda
 {
     public class Tilda
     {
-        private readonly IPolicyRegistry<string> _policyRegistry;
+        private readonly IDistributedCache _cache;
         private ILogger _logger;
         private HttpClient _client;
         private HttpClient _erClient;
@@ -40,9 +40,15 @@ namespace Dan.Plugin.Tilda
 
         private readonly ITildaSourceProvider _tildaSourceProvider;
 
-        public Tilda(IHttpClientFactory httpClientFactory, IOptions<Settings> settings, IPolicyRegistry<string> policyRegistry, IEntityRegistryService entityRegistry, IEvidenceSourceMetadata metadata, ITildaSourceProvider tildaSourceProvider)
+        public Tilda(
+            IHttpClientFactory httpClientFactory,
+            IOptions<Settings> settings,
+            IDistributedCache cache,
+            IEntityRegistryService entityRegistry,
+            IEvidenceSourceMetadata metadata,
+            ITildaSourceProvider tildaSourceProvider)
         {
-            _policyRegistry = policyRegistry;
+            _cache = cache;
             _client = httpClientFactory.CreateClient("SafeHttpClient");
             _erClient = httpClientFactory.CreateClient("ERHttpClient");
             _kofuviClient = httpClientFactory.CreateClient("KofuviClient");
@@ -52,16 +58,6 @@ namespace Dan.Plugin.Tilda
             _metadata = metadata;
             _tildaSourceProvider = tildaSourceProvider;
         }
-
-        // [Function("TildaMeldingTilAnnenMyndighetv1")]
-        // public async Task<HttpResponseData> TildaMeldingTilAnnenMyndighet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaMeldingTilAnnenMyndighetv1")] HttpRequestData req, FunctionContext context)
-        // {
-        //     _logger = context.GetLogger(context.FunctionDefinition.Name);
-        //     string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-        //     var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
-        //
-        //     return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesMeldingTilAnnenMyndighet(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
-        // }
 
         [Function("TildaStorulykkevirksomhet")]
         public async Task<HttpResponseData> TildaStorulykkevirksomhet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhet")] HttpRequestData req, FunctionContext context)
@@ -224,41 +220,6 @@ namespace Dan.Plugin.Tilda
                 throw new EvidenceSourcePermanentClientException(1, $"Source {filter} does not support pdf reports");
             }
         }
-
-        // private async Task<List<EvidenceValue>> GetEvidenceValuesMeldingTilAnnenMyndighet(EvidenceHarvesterRequest req, TildaParameters param)
-        // {
-        //     var taskList = new List<Task<AlertMessageList>>();
-        //     try
-        //     {
-        //         foreach (ITildaAlertMessage a in _tildaSourceProvider.GetRelevantSources<ITildaAlertMessage>(param.sourceFilter))
-        //         {
-        //             taskList.Add(a.GetAlertMessagesAsync(req, param.fromDate, param.toDate, param.identifier));
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         _logger.LogError(ex.Message);
-        //         throw new EvidenceSourcePermanentClientException(1, $"Could not create requests for specified sources ({ex.Message}");
-        //     }
-        //
-        //     await Task.WhenAll(taskList);
-        //     var list = new List<IAuditList>();
-        //
-        //     foreach (var task in taskList)
-        //     {
-        //         var values = task.Result;
-        //
-        //         if (values.Status == StatusEnum.NotFound || values.Status == StatusEnum.Failed || values.Status == StatusEnum.Unknown)
-        //         {
-        //             values.AlertMessages = null;
-        //         }
-        //
-        //         list.Add(values);
-        //     }
-        //
-        //     return BuildEvidenceValueList("TildaMeldingTilAnnenMyndighetv1", "meldingTilAnnenMyndighet", list);
-        // }
-
 
         private List<EvidenceValue> BuildEvidenceValueList(string evidenceCodeName, string evidenceValueName, List<IAuditList> input)
         {
@@ -445,15 +406,15 @@ namespace Dan.Plugin.Tilda
         private async Task<List<TildaRegistryEntry>> GetOrganizationsFromBR(string organizationNumber, TildaParameters param)
         {
             var result = new List<TildaRegistryEntry>();
-            var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
+            var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _cache);
             var brEntity = brResult.First();
             AccountsInformation accountsInformation = null;
             if (string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform.Kode != "ENK")
             {
-                accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
+                accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _cache);
             }
 
-            var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger);
+            var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger, _cache);
 
             var organization = await ConvertBRtoTilda(brEntity, accountsInformation);
             if (kofuviAddresses.Count > 0)
@@ -461,13 +422,12 @@ namespace Dan.Plugin.Tilda
                 organization.Emails = kofuviAddresses;
             }
             result.Add(organization);
-
             return result;
         }
 
         private async Task<TildaRegistryEntry> GetOrganizationFromBR(string organizationNumber, TildaParameters tildaParameters = null)
         {
-            var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _policyRegistry);
+            var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _cache);
             var brEntity = brResult.First();
             AccountsInformation accountsInformation = null;
 
@@ -479,10 +439,10 @@ namespace Dan.Plugin.Tilda
 
             if (brEntity.Organisasjonsform.Kode != "ENK")
             {
-                accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _policyRegistry);
+                accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _cache);
             }
 
-            var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger);
+            var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger, _cache);
 
             var organization = await ConvertBRtoTilda(brEntity, accountsInformation);
             if (kofuviAddresses.Count > 0)
@@ -945,7 +905,9 @@ namespace Dan.Plugin.Tilda
                 ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
             }
 
-            return ecb.GetEvidenceValues();
+            var result = ecb.GetEvidenceValues();
+
+            return result;
         }
     }
 }

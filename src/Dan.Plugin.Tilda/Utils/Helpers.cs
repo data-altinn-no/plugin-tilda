@@ -4,8 +4,6 @@ using Dan.Plugin.Tilda.Models.Enums;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema;
-using Polly;
-using Polly.Registry;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,14 +16,15 @@ using System.Web;
 using Dan.Common.Exceptions;
 using Dan.Common.Extensions;
 using Dan.Plugin.Tilda.Extensions;
-using Dan.Plugin.Tilda.Models.AlertMessages;
-using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Caching.Distributed;
 
 
 namespace Dan.Plugin.Tilda.Utils
 {
     public static class Helpers
     {
+        private static TimeSpan DefaultCacheDuration = TimeSpan.FromMinutes(60);
+
         private static OperationStatus GetOperationalStatus(BREntityRegisterEntry brData)
         {
             if (brData.Konkurs)
@@ -171,13 +170,25 @@ namespace Dan.Plugin.Tilda.Utils
             };
         }
 
-        private static async Task<List<BREntityRegisterEntry>> GetAllUnitsFromBR(string organizationNumber, HttpClient client, IPolicyRegistry<string> policyRegistry)
+        private static async Task<List<BREntityRegisterEntry>> GetAllUnitsFromBR(
+            string organizationNumber,
+            HttpClient client,
+            IDistributedCache cache)
         {
-            var result = new List<BREntityRegisterEntry>();
+            List<BREntityRegisterEntry> result;
             string rawResult;
+            var url = $"https://data.brreg.no/enhetsregisteret/api/enheter/?overordnetEnhet={organizationNumber}";
+            var cacheKey = $"Tilda-Cache_Absolute_GET_{url}";
+
             try
             {
-                var response = await client.GetAsync($"https://data.brreg.no/enhetsregisteret/api/enheter/?overordnetEnhet={organizationNumber}");
+                result = await cache.GetValueAsync<List<BREntityRegisterEntry>>(cacheKey);
+                if (result is not null)
+                {
+                    return result;
+                }
+                result = [];
+                var response = await client.GetAsync(url);
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
                     throw new EvidenceSourcePermanentClientException(
@@ -194,7 +205,14 @@ namespace Dan.Plugin.Tilda.Utils
 
             try
             {
-                result.AddRange(JsonConvert.DeserializeObject<List<BREntityRegisterEntry>>(rawResult));
+                var parsed = JsonConvert.DeserializeObject<List<BREntityRegisterEntry>>(rawResult);
+                result.AddRange(parsed);
+
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = DefaultCacheDuration
+                };
+                await cache.SetValueAsync(cacheKey, result, cacheOptions);
             }
             catch
             {
@@ -205,7 +223,7 @@ namespace Dan.Plugin.Tilda.Utils
             return result;
         }
 
-        public static async Task<List<BREntityRegisterEntry>> GetFromBR(string organization, HttpClient client, bool? includeSubunits, IPolicyRegistry<string> policyRegistry)
+        public static async Task<List<BREntityRegisterEntry>> GetFromBR(string organization, HttpClient client, bool? includeSubunits, IDistributedCache cache)
         {
             List<BREntityRegisterEntry> result = new List<BREntityRegisterEntry>();
 
@@ -223,32 +241,36 @@ namespace Dan.Plugin.Tilda.Utils
 
             if (includeSubunits == true)
             {
-                result.AddRange(await GetAllUnitsFromBR(organization, client, policyRegistry));
+                result.AddRange(await GetAllUnitsFromBR(organization, client, cache));
             }
             else
             {
-                result.Add(await GetOrganizationInfoFromBR(organization, client, policyRegistry));
+                result.Add(await GetOrganizationInfoFromBR(organization, client, cache));
             }
 
             return result;
         }
 
-        public static async Task<AccountsInformation> GetAnnualTurnoverFromBR(string organizationNumber, HttpClient client, IPolicyRegistry<string> policyRegistry)
+        public static async Task<AccountsInformation> GetAnnualTurnoverFromBR(
+            string organizationNumber,
+            HttpClient client,
+            IDistributedCache cache)
         {
             AccountsInformation result = new AccountsInformation();
             try
             {
-                var cachePolicy = policyRegistry.Get<AsyncPolicy<string>>("ERCachePolicy");
                 var accountsUrl = $"http://data.brreg.no/regnskapsregisteret/regnskap/{organizationNumber}";
+                var cacheKey = $"Tilda-Cache_Absolute_GET_{accountsUrl}";
 
-                var cacheKey = $"Cache_Absolute_GET_{accountsUrl}";
+                result = await cache.GetValueAsync<AccountsInformation>(cacheKey);
+                if (result is not null)
+                {
+                    return result;
+                }
 
-                var rawResult = await cachePolicy.ExecuteAsync(async context =>
-                    {
-                        var response = await client.GetAsync(accountsUrl);
-                        return await response.Content.ReadAsStringAsync();
-                    },
-                    new Context(cacheKey));
+                result = new AccountsInformation();
+                var response = await client.GetAsync(accountsUrl);
+                var rawResult = await response.Content.ReadAsStringAsync();
 
                 dynamic tmp = JsonConvert.DeserializeObject(rawResult);
                 if (tmp is null)
@@ -256,9 +278,16 @@ namespace Dan.Plugin.Tilda.Utils
                     return result;
                 }
 
+
                 result.ToDate = tmp[0]["regnskapsperiode"]["tilDato"];
                 result.FromDate = tmp[0]["regnskapsperiode"]["fraDato"];
                 result.AnnualTurnover = tmp[0]["resultatregnskapResultat"]["driftsresultat"]["driftsinntekter"]["sumDriftsinntekter"];
+
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = DefaultCacheDuration
+                };
+                await cache.SetValueAsync(cacheKey, result, cacheOptions);
             }
             catch
             {
@@ -269,34 +298,39 @@ namespace Dan.Plugin.Tilda.Utils
             return result;
         }
 
-        public static async Task<BREntityRegisterEntry> GetOrganizationInfoFromBR(string organizationNumber, HttpClient client, IPolicyRegistry<string> policyRegistry)
+        // We really need to rewrite this class, passing in things that should be injected is getting overboard
+        public static async Task<BREntityRegisterEntry> GetOrganizationInfoFromBR(
+            string organizationNumber,
+            HttpClient client,
+            IDistributedCache cache)
         {
-            string rawResult;
+            var mainUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/enheter/{organizationNumber}";
+            var subUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/underenheter/{organizationNumber}";
+            var cacheKey = $"Tilda-Cache_Absolute_GET_{mainUnitUrl}";
             BREntityRegisterEntry result;
+
+            string rawResult;
             try
             {
-                var cachePolicy = policyRegistry.Get<AsyncPolicy<string>>("ERCachePolicy");
-                var mainUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/enheter/{organizationNumber}";
-                var subUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/underenheter/{organizationNumber}";
-                var cacheKey = $"Cache_Absolute_GET_{mainUnitUrl}";
-
-                rawResult = await cachePolicy.ExecuteAsync(async context =>
+                result = await cache.GetValueAsync<BREntityRegisterEntry>(cacheKey);
+                if (result is not null)
                 {
-                    var response = await client.GetAsync(mainUnitUrl);
+                    return result;
+                }
+
+                var response = await client.GetAsync(mainUnitUrl);
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    response = await client.GetAsync(subUnitUrl);
                     if (response.StatusCode == HttpStatusCode.NotFound)
                     {
-                        response = await client.GetAsync(subUnitUrl);
-                        if (response.StatusCode == HttpStatusCode.NotFound)
-                        {
-                            throw new EvidenceSourcePermanentClientException(
-                                Metadata.ERROR_ORGANIZATION_NOT_FOUND,
-                                $"{organizationNumber} was not found in the Central Coordinating Register for Legal Entities");
-                        }
+                        throw new EvidenceSourcePermanentClientException(
+                            Metadata.ERROR_ORGANIZATION_NOT_FOUND,
+                            $"{organizationNumber} was not found in the Central Coordinating Register for Legal Entities");
                     }
+                }
 
-                    return await response.Content.ReadAsStringAsync();
-                },
-                new Context(cacheKey));
+                rawResult = await response.Content.ReadAsStringAsync();
             }
             catch (HttpRequestException e)
             {
@@ -306,6 +340,12 @@ namespace Dan.Plugin.Tilda.Utils
             try
             {
                 result = JsonConvert.DeserializeObject<BREntityRegisterEntry>(rawResult);
+
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = DefaultCacheDuration
+                };
+                await cache.SetValueAsync(cacheKey, result, cacheOptions);
             }
             catch
             {
@@ -575,9 +615,21 @@ namespace Dan.Plugin.Tilda.Utils
         }
 
         // Returns empty list on any error
-        public static async Task<List<string>> GetKofuviAddresses(string baseEndpoint, string organizationNumber, HttpClient client, ILogger logger)
+        public static async Task<List<string>> GetKofuviAddresses(
+            string baseEndpoint,
+            string organizationNumber,
+            HttpClient client,
+            ILogger logger,
+            IDistributedCache cache)
         {
             var targetUrl = $"{baseEndpoint}/api/varslingsadresser/{organizationNumber}";
+            var cacheKey = $"Tilda-Cache_Absolute_GET_{targetUrl}";
+            var result = await cache.GetValueAsync<List<string>>(cacheKey);
+            if (result is not null)
+            {
+                return result;
+            }
+
             string responseString;
             try
             {
@@ -592,7 +644,13 @@ namespace Dan.Plugin.Tilda.Utils
                             organizationNumber, targetUrl, response.StatusCode
                         );
                     }
-                    return new List<string>();
+                    result = [];
+                    var errorCacheOptions = new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1)
+                    };
+                    await cache.SetValueAsync(cacheKey, result, errorCacheOptions);
+                    return result;
                 }
                 responseString = await response.Content.ReadAsStringAsync();
             }
@@ -602,22 +660,36 @@ namespace Dan.Plugin.Tilda.Utils
                     "Failed to get kofuvi addresses for org={organizationNumber} on url={targetUrl} with exception ex={ex} message={message} status={status}",
                     organizationNumber, targetUrl, ex.GetType().Name, ex.Message, "hardfail"
                 );
-                return new List<string>();
+                result = [];
+                var errorCacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1)
+                };
+                await cache.SetValueAsync(cacheKey, result, errorCacheOptions);
+                return result;
             }
 
             try
             {
+                var cacheOptions = new DistributedCacheEntryOptions()
+                {
+                    AbsoluteExpirationRelativeToNow = DefaultCacheDuration
+                };
                 var kofuviResponse = JsonConvert.DeserializeObject<KofuviResponse>(responseString);
                 var addresses = kofuviResponse.Embedded.Notification.NotificationAddresses;
                 if (addresses is null || addresses.Count == 0)
                 {
-                    return new List<string>();
+                    result = [];
+                    await cache.SetValueAsync(cacheKey, result, cacheOptions);
+                    return result;
                 }
 
-                return addresses
+                result = addresses
                     .Select(a => a.ContactInformation?.DigitalNotificationInformation?.NotificationEmail?.CompleteEmail)
                     .Where(a => a is not null)
                     .ToList();
+                await cache.SetValueAsync(cacheKey, result, cacheOptions);
+                return result;
             }
             catch (Exception ex)
             {
@@ -625,7 +697,13 @@ namespace Dan.Plugin.Tilda.Utils
                     "Failed to deserialize kofuvi response for org={organizationNumber} with exception ex={ex} message={message} status={status}",
                     organizationNumber, ex.GetType().Name, ex.Message, "hardfail"
                 );
-                return new List<string>();
+                result = [];
+                var errorCacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1)
+                };
+                await cache.SetValueAsync(cacheKey, result, errorCacheOptions);
+                return result;
             }
         }
     }
