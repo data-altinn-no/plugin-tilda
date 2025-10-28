@@ -182,11 +182,20 @@ namespace Dan.Plugin.Tilda.Utils
 
             try
             {
-                result = await cache.GetValueAsync<List<BREntityRegisterEntry>>(cacheKey);
-                if (result is not null)
+                try
                 {
-                    return result;
+                    result = await cache.GetValueAsync<List<BREntityRegisterEntry>>(cacheKey);
+                    if (result is not null)
+                    {
+                        return result;
+                    }
                 }
+                catch (Exception)
+                {
+                    // Failing to get from cache, continue to get from source
+                    // When split into non-static class, do proper warning logging or something for these catches
+                }
+
                 result = [];
                 var response = await client.GetAsync(url);
                 if (response.StatusCode == HttpStatusCode.NotFound)
@@ -262,10 +271,17 @@ namespace Dan.Plugin.Tilda.Utils
                 var accountsUrl = $"http://data.brreg.no/regnskapsregisteret/regnskap/{organizationNumber}";
                 var cacheKey = $"Tilda-Cache_Absolute_GET_{accountsUrl}";
 
-                result = await cache.GetValueAsync<AccountsInformation>(cacheKey);
-                if (result is not null)
+                try
                 {
-                    return result;
+                    result = await cache.GetValueAsync<AccountsInformation>(cacheKey);
+                    if (result is not null)
+                    {
+                        return result;
+                    }
+                }
+                catch (Exception)
+                {
+                    // Failing to get from cache, continue to get from source
                 }
 
                 result = new AccountsInformation();
@@ -312,10 +328,17 @@ namespace Dan.Plugin.Tilda.Utils
             string rawResult;
             try
             {
-                result = await cache.GetValueAsync<BREntityRegisterEntry>(cacheKey);
-                if (result is not null)
+                try
                 {
-                    return result;
+                    result = await cache.GetValueAsync<BREntityRegisterEntry>(cacheKey);
+                    if (result is not null)
+                    {
+                        return result;
+                    }
+                }
+                catch (Exception)
+                {
+                    // Failing to get from cache, continue to get from source
                 }
 
                 var response = await client.GetAsync(mainUnitUrl);
