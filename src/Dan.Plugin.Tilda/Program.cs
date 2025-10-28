@@ -76,8 +76,7 @@ var host = new HostBuilder()
         }
         else
         {
-            TokenCredential credential = new DefaultAzureCredential();
-            services.AddSingleton(_ => new CosmosClientBuilder(Settings.CosmosDbConnection, credential).Build());
+            services.AddSingleton(_ => new CosmosClientBuilder(Settings.CosmosDbConnection, credentials).Build());
 
         }
         services.AddSingleton<IEntityRegistryService, EntityRegistryService>();
