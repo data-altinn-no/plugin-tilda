@@ -3,17 +3,17 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Dan.Common.Models;
 using Dan.Plugin.Tilda.Config;
+using Dan.Plugin.Tilda.Extensions;
 using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Utils;
 using Dan.Plugin.Tilda.Interfaces;
+using Dan.Plugin.Tilda.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly.Registry;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
-
-
     public class Digitaliseringsdirektoratet : TildaDataSource, ITildaAlertMessage, ITildaPdfReport//, ITildaAuditReports, ITildaNPDIDAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaTrendReportsAll, ITildaAuditCoordinationAll, ITildaAuditReportsAll, ITildaAlertMessage
     {
 
@@ -31,8 +31,9 @@ namespace Dan.Plugin.Tilda.TildaSources
         public Digitaliseringsdirektoratet(IOptions<Settings> settings,
             IHttpClientFactory httpClientFactory,
             ILoggerFactory loggerFactory,
-            ResiliencePipelineProvider<string> pipelineProvider) :
-            base(settings, httpClientFactory, loggerFactory, pipelineProvider)
+            ResiliencePipelineProvider<string> pipelineProvider,
+            IUriFormatter uriFormatter) :
+            base(settings, httpClientFactory, loggerFactory, pipelineProvider, uriFormatter)
         {
             _code = _settings.GetClassBaseCode(GetType().Name);
         }
@@ -153,7 +154,7 @@ namespace Dan.Plugin.Tilda.TildaSources
         {
             var url = "https://www.orimi.com/pdf-test.pdf";
 
-            return await Helpers.GetPdfreport(url, OrganizationNumber, _client, _logger, req.MPToken, req.Requestor);
+            return await _client.GetPdfreport(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
         public override async Task<AuditCoordinationList> GetAuditCoordinationAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)

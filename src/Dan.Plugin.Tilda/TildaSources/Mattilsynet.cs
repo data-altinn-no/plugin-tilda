@@ -2,6 +2,8 @@ using Dan.Plugin.Tilda.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using Dan.Plugin.Tilda.Config;
+using Dan.Plugin.Tilda.Services;
+using Dan.Plugin.Tilda.Utils;
 using Microsoft.Extensions.Options;
 using Polly.Registry;
 
@@ -26,8 +28,9 @@ namespace Dan.Plugin.Tilda.TildaSources
         public Mattilsynet(IOptions<Settings> settings,
             IHttpClientFactory httpClientFactory,
             ILoggerFactory loggerFactory,
-            ResiliencePipelineProvider<string> pipelineProvider) :
-            base(settings, httpClientFactory, loggerFactory, pipelineProvider)
+            ResiliencePipelineProvider<string> pipelineProvider,
+            IUriFormatter uriFormatter) :
+            base(settings, httpClientFactory, loggerFactory, pipelineProvider, uriFormatter)
         {
 
         }

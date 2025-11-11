@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models;
+using Dan.Plugin.Tilda.Services;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -33,8 +34,9 @@ namespace Dan.Plugin.Tilda.TildaSources
         public Miljodirektoratet(IOptions<Settings> settings,
             IHttpClientFactory httpClientFactory,
             ILoggerFactory loggerFactory,
-            ResiliencePipelineProvider<string> pipelineProvider) :
-            base(settings, httpClientFactory, loggerFactory, pipelineProvider)
+            ResiliencePipelineProvider<string> pipelineProvider,
+            IUriFormatter uriFormatter) :
+            base(settings, httpClientFactory, loggerFactory, pipelineProvider, uriFormatter)
         {
 
         }

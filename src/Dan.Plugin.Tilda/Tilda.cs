@@ -20,6 +20,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dan.Plugin.Tilda.Extensions;
+using Dan.Plugin.Tilda.Services;
 using Microsoft.Extensions.Caching.Distributed;
 
 
@@ -35,6 +36,8 @@ namespace Dan.Plugin.Tilda
         private Settings _settings;
         private readonly IEntityRegistryService _entityRegistryService;
         private readonly IEvidenceSourceMetadata _metadata;
+        private readonly IBrregService _brregService;
+        private readonly IFilterService _filterService;
         private List<string> P6Orgs;
         private List<string> P9Orgs;
 
@@ -46,7 +49,9 @@ namespace Dan.Plugin.Tilda
             IDistributedCache cache,
             IEntityRegistryService entityRegistry,
             IEvidenceSourceMetadata metadata,
-            ITildaSourceProvider tildaSourceProvider)
+            ITildaSourceProvider tildaSourceProvider,
+            IBrregService brregService,
+            IFilterService filterService)
         {
             _cache = cache;
             _client = httpClientFactory.CreateClient("SafeHttpClient");
@@ -57,6 +62,8 @@ namespace Dan.Plugin.Tilda
             _entityRegistryService.AllowTestCcrLookup = _settings.IsLocalDevelopment || _settings.IsLocalDevelopment;
             _metadata = metadata;
             _tildaSourceProvider = tildaSourceProvider;
+            _brregService = brregService;
+            _filterService = filterService;
         }
 
         [Function("TildaStorulykkevirksomhet")]
@@ -320,7 +327,7 @@ namespace Dan.Plugin.Tilda
             {
                 foreach (var a in list)
                 {
-                    var filtered = (NPDIDAuditReportList)Helpers.Filter(a, brResult);
+                    var filtered = (NPDIDAuditReportList)_filterService.FilterAuditList(a, brResult);
                     ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
                 }
             }
@@ -375,8 +382,8 @@ namespace Dan.Plugin.Tilda
 
         private async Task GetStorulykkeProps()
         {
-            P6Orgs = await Helpers.GetParagraph("6");
-            P9Orgs = await Helpers.GetParagraph("9");
+            P6Orgs = await ResourceManager.GetParagraph("6");
+            P9Orgs = await ResourceManager.GetParagraph("9");
         }
 
         private async Task<List<EvidenceValue>> GetEvidenceValuesStorulykkevirksomhet(EvidenceHarvesterRequest evidenceHarvesterRequest, TildaParameters tildaParameters)
@@ -406,15 +413,15 @@ namespace Dan.Plugin.Tilda
         private async Task<List<TildaRegistryEntry>> GetOrganizationsFromBR(string organizationNumber, TildaParameters param)
         {
             var result = new List<TildaRegistryEntry>();
-            var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _cache);
+            var brResult = await _brregService.GetFromBr(organizationNumber, false);
             var brEntity = brResult.First();
             AccountsInformation accountsInformation = null;
             if (string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform.Kode != "ENK")
             {
-                accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _cache);
+                accountsInformation = await _brregService.GetAnnualTurnoverFromBr(organizationNumber);
             }
 
-            var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger, _cache);
+            var kofuviAddresses = await _brregService.GetKofuviAddresses(organizationNumber);
 
             var organization = await ConvertBRtoTilda(brEntity, accountsInformation);
             if (kofuviAddresses.Count > 0)
@@ -427,7 +434,7 @@ namespace Dan.Plugin.Tilda
 
         private async Task<TildaRegistryEntry> GetOrganizationFromBR(string organizationNumber, TildaParameters tildaParameters = null)
         {
-            var brResult = await Helpers.GetFromBR(organizationNumber, _erClient, false, _cache);
+            var brResult = await _brregService.GetFromBr(organizationNumber, false);
             var brEntity = brResult.First();
             AccountsInformation accountsInformation = null;
 
@@ -439,10 +446,10 @@ namespace Dan.Plugin.Tilda
 
             if (brEntity.Organisasjonsform.Kode != "ENK")
             {
-                accountsInformation = await Helpers.GetAnnualTurnoverFromBR(organizationNumber, _client, _cache);
+                accountsInformation = await _brregService.GetAnnualTurnoverFromBr(organizationNumber);
             }
 
-            var kofuviAddresses = await Helpers.GetKofuviAddresses(_settings.KofuviEndpoint, organizationNumber, _kofuviClient, _logger, _cache);
+            var kofuviAddresses = await _brregService.GetKofuviAddresses(organizationNumber);
 
             var organization = await ConvertBRtoTilda(brEntity, accountsInformation);
             if (kofuviAddresses.Count > 0)
@@ -492,7 +499,7 @@ namespace Dan.Plugin.Tilda
 
             foreach (var a in list)
             {
-                var filtered = (AuditCoordinationList)Helpers.Filter(a, brResult);
+                var filtered = (AuditCoordinationList)_filterService.FilterAuditList(a, brResult);
                 ecb.AddEvidenceValue($"tilsynskoordineringer", JsonConvert.SerializeObject(filtered, Formatting.None), filtered.ControlAgency, false);
             }
 
@@ -620,7 +627,7 @@ namespace Dan.Plugin.Tilda
 
             foreach (var a in list)
             {
-                var filtered = (TrendReportList)Helpers.Filter(a, brResult);
+                var filtered = (TrendReportList)_filterService.FilterAuditList(a, brResult);
                 ecb.AddEvidenceValue($"tilsynstrendrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
             }
 
@@ -696,7 +703,7 @@ namespace Dan.Plugin.Tilda
                     result.TrendReports =
                         result.TrendReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
                 }
-                var filtered = (TrendReportList)Helpers.Filter(result, brResults);
+                var filtered = (TrendReportList)_filterService.FilterAuditList(result, brResults);
                 ecb.AddEvidenceValue($"tilsynstrendrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
             }
 
@@ -777,7 +784,7 @@ namespace Dan.Plugin.Tilda
                     result.AuditCoordinations =
                         result.AuditCoordinations?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
                 }
-                var filtered = (AuditCoordinationList)Helpers.Filter(result, brResults);
+                var filtered = (AuditCoordinationList)_filterService.FilterAuditList(result, brResults);
                 ecb.AddEvidenceValue($"tilsynskoordineringer", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
             }
 
@@ -854,7 +861,7 @@ namespace Dan.Plugin.Tilda
                     result.AuditReports =
                         result.AuditReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
                 }
-                var filtered = (AuditReportList)Helpers.Filter(result, brResults);
+                var filtered = (AuditReportList)_filterService.FilterAuditList(result, brResults);
                 ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
             }
 
@@ -901,7 +908,7 @@ namespace Dan.Plugin.Tilda
 
             foreach (var a in list)
             {
-                var filtered = (AuditReportList)Helpers.Filter(a, brResult);
+                var filtered = (AuditReportList)_filterService.FilterAuditList(a, brResult);
                 ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
             }
 

@@ -81,10 +81,14 @@ var host = new HostBuilder()
         }
         services.AddSingleton<IEntityRegistryService, EntityRegistryService>();
         services.AddSingleton<IEvidenceSourceMetadata, Metadata>();
+
         services.AddTransient<IMtamCounterClient, MtamCounterClient>();
         services.AddTransient<IAlertMessageSender, AlertMessageSender>();
         services.AddTransient<IAlertMessageMapper, AlertMessageMapper>();
         services.AddTransient<IEvidenceService, EvidenceService>();
+        services.AddTransient<IBrregService, BrregService>();
+        services.AddTransient<IFilterService, FilterService>();
+        services.AddTransient<IUriFormatter, UriFormatter>();
 
         // Registers all implementations of ITildaDataSources under that interface, making it accessible with
         // dependency injection by injecting IEnumerable<ITildaDataSource> in constructor
