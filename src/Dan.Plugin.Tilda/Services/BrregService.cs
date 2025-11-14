@@ -84,11 +84,10 @@ public class BrregService(
         catch (Exception e)
         {
             //Ignore
-            logger.LogWarning("Failed to get AnnualTurnover from cache for {orgNumber}. Exception message: {message}",
+            logger.LogDebug("Failed to get AnnualTurnover for {orgNumber}. Exception message: {message}",
                 organizationNumber,
                 e.Message);
         }
-
 
         return result;
     }
