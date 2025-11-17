@@ -1,26 +1,18 @@
-using Dan.Plugin.Tilda.Config;
-using Dan.Plugin.Tilda.Interfaces;
-using Dan.Plugin.Tilda.Models;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Schema.Generation;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Threading.Tasks;
+using Azure.Core.Serialization;
 using Dan.Common;
 using Dan.Common.Enums;
 using Dan.Common.Interfaces;
 using Dan.Common.Models;
+using Dan.Plugin.Tilda.Config;
+using Dan.Plugin.Tilda.Interfaces;
+using Dan.Plugin.Tilda.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Options;
-using JsonSchema = NJsonSchema.JsonSchema;
-using Azure.Core.Serialization;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 using AlertMessage = Dan.Plugin.Tilda.Models.AlertMessages.AlertMessage;
 
 namespace Dan.Plugin.Tilda
