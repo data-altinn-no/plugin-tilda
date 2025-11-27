@@ -43,6 +43,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Dan.Tilda.Models\Dan.Tilda.Models.csproj" />
-    <ProjectReference Include="..\src\Dan.Plugin.Tilda\Dan.Tilda.Models.csproj" />
   </ItemGroup>
 </Project>
