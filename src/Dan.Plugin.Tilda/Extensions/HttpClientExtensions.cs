@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Dan.Plugin.Tilda.Interfaces;
-using Dan.Plugin.Tilda.Models.Enums;
+using Dan.Tilda.Models.Audits;
+using Dan.Tilda.Models.Enums;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -44,14 +44,14 @@ public static class HttpClientExtensions
                 {
                     resultList = new T();
                     resultList.SetStatusAndTextAndOwner(
-                        $"OK (empty response with 200). ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.OK,
+                        $"OK (empty response with 200). ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.Ok,
                         sourceOrgNo);
                     logger.LogWarning(
                         "Data retrieval completed from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} status={status}",
                         sourceOrgNo, url, requestor, t.ElapsedMilliseconds, "okwarn");
                 }
                 else
-                    resultList.SetStatusAndTextAndOwner($"OK. ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.OK,
+                    resultList.SetStatusAndTextAndOwner($"OK. ElapsedMs: {t.ElapsedMilliseconds}", StatusEnum.Ok,
                         sourceOrgNo);
             }
             else

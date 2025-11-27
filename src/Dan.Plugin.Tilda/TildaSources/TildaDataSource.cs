@@ -10,15 +10,19 @@ using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Exceptions;
 using Dan.Plugin.Tilda.Extensions;
 using Dan.Plugin.Tilda.Interfaces;
-using Dan.Plugin.Tilda.Models.AlertMessages;
-using Dan.Plugin.Tilda.Services;
 using Dan.Plugin.Tilda.Utils;
+using Dan.Tilda.Models.Alerts;
+using Dan.Tilda.Models.Audits.Alerts;
+using Dan.Tilda.Models.Audits.Coordination;
+using Dan.Tilda.Models.Audits.NPDID;
+using Dan.Tilda.Models.Audits.Report;
+using Dan.Tilda.Models.Audits.Trend;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Polly.Registry;
 
-namespace Dan.Plugin.Tilda.Models
+namespace Dan.Plugin.Tilda.TildaSources
 {
     public abstract class TildaDataSource : ITildaDataSource
     {
@@ -109,16 +113,16 @@ namespace Dan.Plugin.Tilda.Models
             return await _client.GetData<AuditCoordinationList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual async Task<NPDIDAuditReportList> GetNPDIDAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string npdid)
+        public virtual async Task<NpdidAuditReportList> GetNPDIDAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string npdid)
         {
             var url = GetUri(BaseUri, NpdidDatasetName, req.OrganizationNumber, req.Requestor, fromDate, toDate, null, npdid);
-            return await _client.GetData<NPDIDAuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
+            return await _client.GetData<NpdidAuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual async Task<NPDIDAuditReportList> GetNPDIDAuditReportsAllAsync(EvidenceHarvesterRequest req, string month, string year, string npdid, string filter)
+        public virtual async Task<NpdidAuditReportList> GetNPDIDAuditReportsAllAsync(EvidenceHarvesterRequest req, string month, string year, string npdid, string filter)
         {
             var url = GetUriAll(BaseUri, NpdidDatasetName, req.Requestor, month, year, null, npdid);
-            return await _client.GetData<NPDIDAuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
+            return await _client.GetData<NpdidAuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
         public virtual async Task<AlertMessageList> GetAlertMessagesAsync(EvidenceHarvesterRequest req, string month, string year, string identifier)

@@ -8,6 +8,7 @@ using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models.AlertMessages;
 using Dan.Plugin.Tilda.Services;
 using Dan.Plugin.Tilda.Utils;
+using Dan.Tilda.Models.Alerts;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 

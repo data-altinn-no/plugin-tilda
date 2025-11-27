@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Dan.Common.Models;
 using Dan.Plugin.Tilda.Models;
+using Dan.Tilda.Models.Audits.Report;
 
 namespace Dan.Plugin.Tilda.Interfaces
 {

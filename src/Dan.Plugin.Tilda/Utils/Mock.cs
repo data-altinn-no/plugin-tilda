@@ -1,11 +1,28 @@
 using Dan.Common.Models;
-using Dan.Plugin.Tilda.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Dan.Plugin.Tilda.Models;
+using Dan.Tilda.Models.Audits.Coordination;
+using Dan.Tilda.Models.Audits.NPDID;
+using Dan.Tilda.Models.Audits.Report;
+using Dan.Tilda.Models.Audits.Trend;
+using AlertCompact = Dan.Tilda.Models.Entities.AlertCompact;
+using AlertFull = Dan.Tilda.Models.Entities.AlertFull;
+using AlertMessage = Dan.Tilda.Models.Audits.Alerts.AlertMessage;
+using AuditAddress = Dan.Tilda.Models.Entities.AuditAddress;
+using Campaign = Dan.Tilda.Models.Entities.Campaign;
+using ControlActivity = Dan.Tilda.Models.Entities.ControlActivity;
+using ControlAttribute = Dan.Tilda.Models.Entities.ControlAttribute;
+using ControlContact = Dan.Tilda.Models.Entities.ControlContact;
+using ControlReactionDetails = Dan.Tilda.Models.Entities.ControlReactionDetails;
+using CoordinatedControlAgency = Dan.Tilda.Models.Entities.CoordinatedControlAgency;
+using PlannedControlActivity = Dan.Tilda.Models.Entities.PlannedControlActivity;
+using Reaction = Dan.Tilda.Models.Entities.Reaction;
+using Remark = Dan.Tilda.Models.Entities.Remark;
 
 namespace Dan.Plugin.Tilda.Utils
 {
@@ -111,18 +128,18 @@ namespace Dan.Plugin.Tilda.Utils
             return a;
         }
 
-        public async Task<List<NPDIDAuditReport>> GetNpdidReports(string orgno, string agency, string agencyname, string npdid)
+        public async Task<List<NpdidAuditReport>> GetNpdidReports(string orgno, string agency, string agencyname, string npdid)
         {
-            var list = new List<NPDIDAuditReport>();
+            var list = new List<NpdidAuditReport>();
             list.Add(CreateMockNPDIDReport(orgno, agency, agencyname, npdid));
 
             return await Task.FromResult(list);
         }
 
-        private NPDIDAuditReport CreateMockNPDIDReport(string orgno, string agency, string agencyname, string npdid)
+        private NpdidAuditReport CreateMockNPDIDReport(string orgno, string agency, string agencyname, string npdid)
         {
             _digest = DummyData.GetDigest(DateTime.Now.Second.ToString());
-            var a = new NPDIDAuditReport()
+            var a = new NpdidAuditReport()
             {
                 Npdid = npdid,
                 ControlObject = "974720760",
@@ -149,9 +166,9 @@ namespace Dan.Plugin.Tilda.Utils
             return await Task.FromResult(list);
         }
 
-        public async Task<List<NPDIDAuditReport>> GetMockNPDIDAuditReports(string orgno, string agency, string agencyname, string npdid)
+        public async Task<List<NpdidAuditReport>> GetMockNPDIDAuditReports(string orgno, string agency, string agencyname, string npdid)
         {
-            var list = new List<NPDIDAuditReport>();
+            var list = new List<NpdidAuditReport>();
 
             list.Add(CreateMockNPDIDReport(orgno, agency, agencyname, npdid));
 
@@ -527,10 +544,10 @@ namespace Dan.Plugin.Tilda.Utils
             return new ControlAttribute()
             {
                 ControlKeywords = "key, word",
-                ControlStatus = ControlState.Aapen,
+                ControlStatus = Dan.Tilda.Models.Enums.ControlState.Aapen,
                 InternalControlId = Guid.NewGuid().ToString(),
-                Major = MajorAccidentAttributeType.Nei,
-                NotNotified = SurpriseControlAttributeType.Ja,
+                Major = Dan.Tilda.Models.Enums.MajorAccidentAttributeType.Nei,
+                NotNotified = Dan.Tilda.Models.Enums.SurpriseControlAttributeType.Ja,
                 ControlTopic = "Fem tema om dagen gjør godt for magen",
                 SelectionCriteria = "Veldig suspekte folk",
                 WebReportUrl = "https://www.vg.no"

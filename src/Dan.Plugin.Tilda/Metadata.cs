@@ -13,6 +13,10 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Dan.Tilda.Models.Audits.Coordination;
+using Dan.Tilda.Models.Audits.NPDID;
+using Dan.Tilda.Models.Audits.Report;
+using Dan.Tilda.Models.Audits.Storulykke;
 using AlertMessage = Dan.Plugin.Tilda.Models.AlertMessages.AlertMessage;
 
 namespace Dan.Plugin.Tilda
@@ -181,7 +185,7 @@ namespace Dan.Plugin.Tilda
         }
 
         private static IEnumerable<EvidenceCode> GetTildaStorulykkeMetadataAlle()
-        {            
+        {
             var schema = EvidenceValue.SchemaFromObject<StorulykkevirksomhetListe>(Formatting.Indented);
             var a = new EvidenceCode()
             {
@@ -458,7 +462,7 @@ namespace Dan.Plugin.Tilda
 
         private static IEnumerable<EvidenceCode> GetNPDIDMetadata()
         {
-            var schema = EvidenceValue.SchemaFromObject<NPDIDAuditReportList>(Formatting.Indented);
+            var schema = EvidenceValue.SchemaFromObject<NpdidAuditReportList>(Formatting.Indented);
             var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
 
             var a = new EvidenceCode()
