@@ -10,6 +10,7 @@ using Dan.Tilda.Models.Audits.Coordination;
 using Dan.Tilda.Models.Audits.NPDID;
 using Dan.Tilda.Models.Audits.Report;
 using Dan.Tilda.Models.Audits.Trend;
+using Dan.Tilda.Models.Entities;
 using AlertCompact = Dan.Tilda.Models.Entities.AlertCompact;
 using AlertFull = Dan.Tilda.Models.Entities.AlertFull;
 using AlertMessage = Dan.Tilda.Models.Audits.Alerts.AlertMessage;
@@ -338,9 +339,9 @@ namespace Dan.Plugin.Tilda.Utils
             };
         }
 
-        private ERAddress GetMockERAddress()
+        private ErAddress GetMockERAddress()
         {
-            return new ERAddress()
+            return new ErAddress()
             {
                 AddressName = "Objektadresseveien 2",
                 AddressNumber = "2",
@@ -411,7 +412,7 @@ namespace Dan.Plugin.Tilda.Utils
                 Name = name,
                 OrganizationNumber = orgNumber,
                 OrganisationForm = orgForm,
-                PublicLocationAddress = new ERAddress()
+                PublicLocationAddress = new ErAddress()
                 {
                     AddressName = "Objektadresseveien 2",
                     AddressNumber = "2",

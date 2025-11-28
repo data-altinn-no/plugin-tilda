@@ -25,6 +25,7 @@ using Dan.Tilda.Models.Audits.NPDID;
 using Dan.Tilda.Models.Audits.Report;
 using Dan.Tilda.Models.Audits.Storulykke;
 using Dan.Tilda.Models.Audits.Trend;
+using Dan.Tilda.Models.Entities;
 using Dan.Tilda.Models.Enums;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -534,7 +535,7 @@ namespace Dan.Plugin.Tilda
 
             if (brResult.Forretningsadresse != null)
             {
-                item.PublicLocationAddress = new ERAddress()
+                item.PublicLocationAddress = new ErAddress()
                 {
                     AddressName = string.Join(",", brResult.Forretningsadresse?.Adressenavn),
                     PostNumber = brResult.Forretningsadresse?.Postnummer,
