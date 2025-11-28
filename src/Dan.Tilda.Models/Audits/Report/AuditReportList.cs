@@ -27,7 +27,12 @@ public class AuditReportList : IAuditList
     }
 
     public AuditReportList()
-    {}
+    {
+        Status = StatusEnum.Ok;
+        StatusText = string.Empty;
+        ControlAgency = string.Empty;
+        AuditReports = [];
+    }
 
     public void SetStatusAndTextAndOwner(string statusText, StatusEnum status, string owner)
     {

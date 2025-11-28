@@ -253,7 +253,7 @@ namespace Dan.Plugin.Tilda.Utils
                     NumberOfControls = 2,
                     NumberOfControlsWithReactions = 1,
                     NumberOfControlsWithoutReactions = 1,
-                    NumberofAlerts = 1,
+                    NumberOfAlerts = 1,
                     PoliceReactions = 1,
                     NumberOfRemarks = 2323
 
@@ -268,7 +268,7 @@ namespace Dan.Plugin.Tilda.Utils
                     NumberOfControls = 2,
                     NumberOfControlsWithReactions = 1,
                     NumberOfControlsWithoutReactions = 1,
-                    NumberofAlerts = 1,
+                    NumberOfAlerts = 1,
                     PoliceReactions = 1,
                     NumberOfRemarks = 23
                 },
@@ -282,7 +282,7 @@ namespace Dan.Plugin.Tilda.Utils
                     NumberOfControls = 2,
                     NumberOfControlsWithReactions = 1,
                     NumberOfControlsWithoutReactions = 1,
-                    NumberofAlerts = 1,
+                    NumberOfAlerts = 1,
                     PoliceReactions = 1,
                     NumberOfRemarks = 1
                 },
@@ -296,7 +296,7 @@ namespace Dan.Plugin.Tilda.Utils
                     NumberOfControls = 2,
                     NumberOfControlsWithReactions = 1,
                     NumberOfControlsWithoutReactions = 1,
-                    NumberofAlerts = 1,
+                    NumberOfAlerts = 1,
                     PoliceReactions = 1,
                     NumberOfRemarks = 0
                 },
@@ -310,7 +310,7 @@ namespace Dan.Plugin.Tilda.Utils
                     NumberOfControls = 2,
                     NumberOfControlsWithReactions = 1,
                     NumberOfControlsWithoutReactions = 1,
-                    NumberofAlerts = 1,
+                    NumberOfAlerts = 1,
                     PoliceReactions = 1,
                     NumberOfRemarks = 0
                 }

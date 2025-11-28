@@ -6,36 +6,36 @@ namespace Dan.Plugin.Tilda.Models
     public class ERAddress
     {
         [JsonProperty("lengdegrad", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string Latitude;
+        public string Latitude { get; set; }
 
         [JsonProperty("breddegrad", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string Longtitude;
+        public string Longtitude { get; set; }
 
         [JsonProperty("bygningsnummer", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string BuildingNumber;
+        public string BuildingNumber { get; set; }
 
         [JsonProperty("bruksenhetsnummer", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string UnitNumber;
+        public string UnitNumber { get; set; }
 
         [JsonProperty("adressenavn", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string AddressName;
+        public string AddressName { get; set; }
 
         [JsonProperty("adressenummer", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string AddressNumber;
+        public string AddressNumber { get; set; }
 
         [JsonProperty("postnummer", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string PostNumber;
+        public string PostNumber { get; set; }
 
         [JsonProperty("poststedsnavn", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string PostName;
+        public string PostName { get; set; }
 
         [JsonProperty("kommunenummer", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string MunicipalityNumber;
+        public string MunicipalityNumber { get; set; }
 
         [JsonProperty("bydel", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string District;
+        public string District { get; set; }
 
         [JsonProperty("fylkesnummer", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string CountyNumber;
+        public string CountyNumber { get; set; }
     }
 }

@@ -27,7 +27,12 @@ public class AlertMessageList : IAuditList
     }
 
     public AlertMessageList()
-    {}
+    {
+        Status = StatusEnum.Ok;
+        StatusText = string.Empty;
+        ControlAgency = string.Empty;
+        AlertMessages = [];
+    }
 
     public void SetStatusAndTextAndOwner(string statusText, StatusEnum status, string owner)
     {

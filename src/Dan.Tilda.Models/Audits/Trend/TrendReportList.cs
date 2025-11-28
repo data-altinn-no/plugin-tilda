@@ -28,7 +28,10 @@ public class TrendReportList : IAuditList
 
     public TrendReportList()
     {
-
+        Status = StatusEnum.Ok;
+        StatusText = string.Empty;
+        ControlAgency = string.Empty;
+        TrendReports = [];
     }
 
     public void SetStatusAndTextAndOwner(string statusText, StatusEnum status, string owner)

@@ -9,7 +9,7 @@ public class Annual
     public int Year { get; set; }
 
     [JsonProperty("antallMeldingerTilAnnenMyndighet", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public int NumberofAlerts { get; set; }
+    public int NumberOfAlerts { get; set; }
 
     [JsonProperty("antallMaanederMedData", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
     public int MonthsOfData { get; set; }

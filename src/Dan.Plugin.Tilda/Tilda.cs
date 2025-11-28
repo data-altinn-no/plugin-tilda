@@ -55,7 +55,7 @@ namespace Dan.Plugin.Tilda
         {
             _cache = cache;
             _entityRegistryService = entityRegistry;
-            _entityRegistryService.AllowTestCcrLookup = settings.Value.IsLocalDevelopment || settings.Value.IsLocalDevelopment;
+            _entityRegistryService.AllowTestCcrLookup = settings.Value.IsLocalDevelopment || settings.Value.IsTest;
             _metadata = metadata;
             _tildaSourceProvider = tildaSourceProvider;
             _brregService = brregService;

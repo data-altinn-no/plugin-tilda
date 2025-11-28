@@ -27,7 +27,12 @@ public class AuditCoordinationList : IAuditList
     }
 
     public AuditCoordinationList()
-    {}
+    {
+        Status = StatusEnum.Ok;
+        StatusText = string.Empty;
+        ControlAgency = string.Empty;
+        AuditCoordinations = [];
+    }
 
     public void SetStatusAndTextAndOwner(string statusText, StatusEnum status, string owner)
     {
