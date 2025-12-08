@@ -9,7 +9,7 @@ public class ErAddress
     public string? Latitude { get; set; }
 
     [JsonProperty("lengdegrad", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public string? Longtitude { get; set; }
+    public string? Longitude { get; set; }
 
     [JsonProperty("bygningsnummer", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
     public string? BuildingNumber { get; set; }
