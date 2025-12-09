@@ -1,5 +1,7 @@
 # Workflow creating a GitHub package
 name: Dan.Tilda.Models Release Nuget
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
@@ -18,7 +20,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-          include-prerelease: true
       - name: Set VERSION variable from latest tag
         run: |
           LATEST_TAG=$(git fetch --tags && git for-each-ref --sort=creatordate --format '%(refname)' refs/tags | tail -n 1)

@@ -196,7 +196,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 
                 var mock = new Mock();
 
-                resultList.AuditReports.AddRange(await mock.GetMockNPDIDAuditReports(req.OrganizationNumber, OrganizationNumber, ControlAgency, "342342"));
+                resultList.AuditReports.AddRange(await mock.GetMockNpdidAuditReports(req.OrganizationNumber, OrganizationNumber, ControlAgency, "342342"));
 
                 if (resultList.AuditReports.Count == 0)
                 {
