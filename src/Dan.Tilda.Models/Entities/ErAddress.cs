@@ -5,11 +5,11 @@ namespace Dan.Tilda.Models.Entities;
 [JsonObject("tilsynsadresse")]
 public class ErAddress
 {
-    [JsonProperty("lengdegrad", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
+    [JsonProperty("breddegrad", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
     public string? Latitude { get; set; }
 
-    [JsonProperty("breddegrad", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public string? Longtitude { get; set; }
+    [JsonProperty("lengdegrad", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
+    public string? Longitude { get; set; }
 
     [JsonProperty("bygningsnummer", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
     public string? BuildingNumber { get; set; }

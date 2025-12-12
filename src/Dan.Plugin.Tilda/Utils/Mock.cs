@@ -132,12 +132,12 @@ namespace Dan.Plugin.Tilda.Utils
         public async Task<List<NpdidAuditReport>> GetNpdidReports(string orgno, string agency, string agencyname, string npdid)
         {
             var list = new List<NpdidAuditReport>();
-            list.Add(CreateMockNPDIDReport(orgno, agency, agencyname, npdid));
+            list.Add(CreateMockNpdidReport(orgno, agency, agencyname, npdid));
 
             return await Task.FromResult(list);
         }
 
-        private NpdidAuditReport CreateMockNPDIDReport(string orgno, string agency, string agencyname, string npdid)
+        private NpdidAuditReport CreateMockNpdidReport(string orgno, string agency, string agencyname, string npdid)
         {
             _digest = DummyData.GetDigest(DateTime.Now.Second.ToString());
             var a = new NpdidAuditReport()
@@ -167,11 +167,11 @@ namespace Dan.Plugin.Tilda.Utils
             return await Task.FromResult(list);
         }
 
-        public async Task<List<NpdidAuditReport>> GetMockNPDIDAuditReports(string orgno, string agency, string agencyname, string npdid)
+        public async Task<List<NpdidAuditReport>> GetMockNpdidAuditReports(string orgno, string agency, string agencyname, string npdid)
         {
             var list = new List<NpdidAuditReport>();
 
-            list.Add(CreateMockNPDIDReport(orgno, agency, agencyname, npdid));
+            list.Add(CreateMockNpdidReport(orgno, agency, agencyname, npdid));
 
             return await Task.FromResult(list);
         }
@@ -328,7 +328,7 @@ namespace Dan.Plugin.Tilda.Utils
                 BuildingNumber = "2",
                 CountyNumber = "020",
                 Latitude = "59.913868",
-                Longtitude = "10.752245",
+                Longitude = "10.752245",
                 LocationDescription = "Enda ei rønne",
                 MunicipalityNumber = "0301",
                 PostName = "Poststedsnavn",
@@ -349,7 +349,7 @@ namespace Dan.Plugin.Tilda.Utils
                 BuildingNumber = "2",
                 CountyNumber = "020",
                 Latitude = "59.913868",
-                Longtitude = "10.752245",
+                Longitude = "10.752245",
                 MunicipalityNumber = "0301",
                 PostName = "Poststedsnavn",
                 PostNumber = "Postnummer",
@@ -420,7 +420,7 @@ namespace Dan.Plugin.Tilda.Utils
                     BuildingNumber = "x",
                     CountyNumber = "020",
                     Latitude = "59.913868",
-                    Longtitude = "10.752245",
+                    Longitude = "10.752245",
                     MunicipalityNumber = "0301",
                     PostName = "Poststedsnavn",
                     PostNumber = "Postnummer",
@@ -529,7 +529,7 @@ namespace Dan.Plugin.Tilda.Utils
                 BuildingNumber = DummyData.GenerateDummyNumber(_digest).ToString(),
                 CountyNumber = "020",
                 Latitude = DummyData.GenerateDummyNumber(_digest).ToString(),
-                Longtitude = DummyData.GenerateDummyNumber(_digest).ToString(),
+                Longitude = DummyData.GenerateDummyNumber(_digest).ToString(),
                 LocationDescription = "Enda ei rønne",
                 MunicipalityNumber = "0301",
                 PostName = DummyData.GenerateDummyString(_digest),
