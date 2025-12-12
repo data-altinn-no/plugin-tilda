@@ -41,4 +41,7 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dan.Tilda.Models\Dan.Tilda.Models.csproj" />
+  </ItemGroup>
 </Project>

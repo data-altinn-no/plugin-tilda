@@ -2,6 +2,7 @@
 using System.Web;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Models.AlertMessages;
+using Dan.Tilda.Models.Alerts;
 using Microsoft.Extensions.Options;
 
 namespace Dan.Plugin.Tilda.Mappers;

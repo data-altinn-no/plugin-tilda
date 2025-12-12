@@ -8,6 +8,11 @@ using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Utils;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Services;
+using Dan.Tilda.Models.Audits.Alerts;
+using Dan.Tilda.Models.Audits.Coordination;
+using Dan.Tilda.Models.Audits.NPDID;
+using Dan.Tilda.Models.Audits.Report;
+using Dan.Tilda.Models.Audits.Trend;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly.Registry;
@@ -91,12 +96,12 @@ namespace Dan.Plugin.Tilda.TildaSources
                 list.AlertMessages.AddRange(await new Mock().GetMockAlertMessages(req.OrganizationNumber, OrganizationNumber, ControlAgency, Guid.NewGuid().ToString()));
 
                 if (list.AlertMessages.Count > 0)
-                    list.SetStatusAndTextAndOwner("OK", Models.Enums.StatusEnum.OK, OrganizationNumber);
+                    list.SetStatusAndTextAndOwner("OK", Dan.Tilda.Models.Enums.StatusEnum.Ok, OrganizationNumber);
                 else
-                    list.SetStatusAndTextAndOwner("Tomt", Models.Enums.StatusEnum.NotFound, OrganizationNumber);
+                    list.SetStatusAndTextAndOwner("Tomt", Dan.Tilda.Models.Enums.StatusEnum.NotFound, OrganizationNumber);
             } catch (Exception ex)
             {
-                list.SetStatusAndTextAndOwner(ex.Message, Models.Enums.StatusEnum.Failed, OrganizationNumber);
+                list.SetStatusAndTextAndOwner(ex.Message, Dan.Tilda.Models.Enums.StatusEnum.Failed, OrganizationNumber);
             }
 
             return list;
@@ -181,17 +186,17 @@ namespace Dan.Plugin.Tilda.TildaSources
             return resultList;
         }
 
-        public override async Task<NPDIDAuditReportList> GetNPDIDAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string npdid)
+        public override async Task<NpdidAuditReportList> GetNPDIDAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string npdid)
         {
             var url = $"{BaseUri}/npdid/{req.OrganizationNumber}";
 
-            var resultList = new NPDIDAuditReportList(OrganizationNumber);
+            var resultList = new NpdidAuditReportList(OrganizationNumber);
             try
             {
 
                 var mock = new Mock();
 
-                resultList.AuditReports.AddRange(await mock.GetMockNPDIDAuditReports(req.OrganizationNumber, OrganizationNumber, ControlAgency, "342342"));
+                resultList.AuditReports.AddRange(await mock.GetMockNpdidAuditReports(req.OrganizationNumber, OrganizationNumber, ControlAgency, "342342"));
 
                 if (resultList.AuditReports.Count == 0)
                 {

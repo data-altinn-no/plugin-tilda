@@ -2,25 +2,23 @@ using Dan.Common.Extensions;
 using Dan.Common.Interfaces;
 using Dan.Common.Services;
 using Dan.Plugin.Tilda;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Polly;
-using Polly.Caching.Distributed;
 using Polly.Extensions.Http;
 using Polly.Registry;
 using System;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using Azure.Core;
 using Azure.Identity;
 using Dan.Plugin.Tilda.Clients;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Mappers;
 using Dan.Plugin.Tilda.Services;
+using Dan.Plugin.Tilda.TildaSources;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Azure.Cosmos.Fluent;
 using Polly.Retry;
@@ -96,7 +94,8 @@ var host = new HostBuilder()
             .ExportedTypes
             .Where(type =>
                 type is { IsClass: true, Namespace: "Dan.Plugin.Tilda.TildaSources", IsNestedPrivate: false } &&
-                typeof(ITildaDataSource).IsAssignableFrom(type))
+                typeof(ITildaDataSource).IsAssignableFrom(type) &&
+                type != typeof(TildaDataSource))
             .ToList()
             .ForEach(type => services.AddTransient(typeof(ITildaDataSource), type));
 

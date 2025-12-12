@@ -1,6 +1,5 @@
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models;
-using Dan.Plugin.Tilda.Models.Enums;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -12,6 +11,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using Dan.Plugin.Tilda.Extensions;
+using Dan.Tilda.Models.Audits.Coordination;
+using Dan.Tilda.Models.Audits.NPDID;
+using Dan.Tilda.Models.Audits.Report;
+using Dan.Tilda.Models.Audits.Trend;
+using Dan.Tilda.Models.Enums;
 
 
 namespace Dan.Plugin.Tilda.Utils
@@ -36,18 +40,18 @@ namespace Dan.Plugin.Tilda.Utils
             };
         }
 
-        public static NPDIDAuditReportList GetEmptyResponseNPDIDAuditReportList(string controlAgency)
+        public static NpdidAuditReportList GetEmptyResponseNPDIDAuditReportList(string controlAgency)
         {
-            return new NPDIDAuditReportList(controlAgency)
+            return new NpdidAuditReportList(controlAgency)
             {
                 StatusText = $"Tomt resultat fra {controlAgency}",
                 Status = StatusEnum.NotFound
             };
         }
 
-        public static NPDIDAuditReportList GetEmptyFailedResponseNPDIDAuditReportList(string controlAgency)
+        public static NpdidAuditReportList GetEmptyFailedResponseNPDIDAuditReportList(string controlAgency)
         {
-            return new NPDIDAuditReportList(controlAgency)
+            return new NpdidAuditReportList(controlAgency)
             {
                 StatusText = $"Kunne ikke hente data fra {controlAgency}, ",
                 Status = StatusEnum.Failed

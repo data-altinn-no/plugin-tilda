@@ -8,6 +8,7 @@ using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models.AlertMessages;
 using Dan.Plugin.Tilda.Utils;
+using Dan.Tilda.Models.Alerts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

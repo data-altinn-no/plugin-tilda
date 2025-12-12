@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Dan.Tilda.Models.Entities;
 using Newtonsoft.Json;
 
 namespace Dan.Plugin.Tilda.Models
@@ -20,7 +21,7 @@ namespace Dan.Plugin.Tilda.Models
         public string ControlObjectParent;
 
         [JsonProperty("besoeksadresse", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public ERAddress PublicLocationAddress;
+        public ErAddress PublicLocationAddress;
 
         [JsonProperty("naeringskode", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string BusinessCode;

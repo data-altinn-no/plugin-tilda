@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dan.Plugin.Tilda", "src\Dan
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dan.Plugin.Tilda.Test", "test\Dan.Plugin.Tilda.Test\Dan.Plugin.Tilda.Test.csproj", "{52B0FB3E-1F50-45BD-BB1E-451B3B74AFA3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dan.Tilda.Models", "src\Dan.Tilda.Models\Dan.Tilda.Models.csproj", "{3C6FE4DA-126A-4D7E-82A2-B0FF6BD15267}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{52B0FB3E-1F50-45BD-BB1E-451B3B74AFA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52B0FB3E-1F50-45BD-BB1E-451B3B74AFA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52B0FB3E-1F50-45BD-BB1E-451B3B74AFA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C6FE4DA-126A-4D7E-82A2-B0FF6BD15267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C6FE4DA-126A-4D7E-82A2-B0FF6BD15267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C6FE4DA-126A-4D7E-82A2-B0FF6BD15267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C6FE4DA-126A-4D7E-82A2-B0FF6BD15267}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

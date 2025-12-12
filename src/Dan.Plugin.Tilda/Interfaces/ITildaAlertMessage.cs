@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CloudNative.CloudEvents;
 using Dan.Common.Models;
-using Dan.Plugin.Tilda.Models.AlertMessages;
+using Dan.Tilda.Models.Alerts;
 
 namespace Dan.Plugin.Tilda.Interfaces
 {

@@ -6,7 +6,6 @@ using Dan.Common.Util;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models;
-using Dan.Plugin.Tilda.Models.Enums;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -21,6 +20,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Dan.Plugin.Tilda.Extensions;
 using Dan.Plugin.Tilda.Services;
+using Dan.Tilda.Models.Audits.Coordination;
+using Dan.Tilda.Models.Audits.NPDID;
+using Dan.Tilda.Models.Audits.Report;
+using Dan.Tilda.Models.Audits.Storulykke;
+using Dan.Tilda.Models.Audits.Trend;
+using Dan.Tilda.Models.Entities;
+using Dan.Tilda.Models.Enums;
 using Microsoft.Extensions.Caching.Distributed;
 
 
@@ -30,10 +36,6 @@ namespace Dan.Plugin.Tilda
     {
         private readonly IDistributedCache _cache;
         private ILogger _logger;
-        private HttpClient _client;
-        private HttpClient _erClient;
-        private HttpClient _kofuviClient;
-        private Settings _settings;
         private readonly IEntityRegistryService _entityRegistryService;
         private readonly IEvidenceSourceMetadata _metadata;
         private readonly IBrregService _brregService;
@@ -44,7 +46,6 @@ namespace Dan.Plugin.Tilda
         private readonly ITildaSourceProvider _tildaSourceProvider;
 
         public Tilda(
-            IHttpClientFactory httpClientFactory,
             IOptions<Settings> settings,
             IDistributedCache cache,
             IEntityRegistryService entityRegistry,
@@ -54,12 +55,8 @@ namespace Dan.Plugin.Tilda
             IFilterService filterService)
         {
             _cache = cache;
-            _client = httpClientFactory.CreateClient("SafeHttpClient");
-            _erClient = httpClientFactory.CreateClient("ERHttpClient");
-            _kofuviClient = httpClientFactory.CreateClient("KofuviClient");
-            _settings = settings.Value;
             _entityRegistryService = entityRegistry;
-            _entityRegistryService.AllowTestCcrLookup = _settings.IsLocalDevelopment || _settings.IsLocalDevelopment;
+            _entityRegistryService.AllowTestCcrLookup = settings.Value.IsLocalDevelopment || settings.Value.IsTest;
             _metadata = metadata;
             _tildaSourceProvider = tildaSourceProvider;
             _brregService = brregService;
@@ -228,20 +225,6 @@ namespace Dan.Plugin.Tilda
             }
         }
 
-        private List<EvidenceValue> BuildEvidenceValueList(string evidenceCodeName, string evidenceValueName, List<IAuditList> input)
-        {
-
-            var ecb = new EvidenceBuilder(_metadata, evidenceCodeName);
-
-            foreach (var b in input)
-            {
-                ecb.AddEvidenceValue(evidenceValueName, JsonConvert.SerializeObject(b, Formatting.None), b.GetOwner(), false);
-            }
-
-            return ecb.GetEvidenceValues();
-        }
-
-
         private async Task<List<EvidenceValue>> GetEvidenceValuesTildaMetadata(EvidenceHarvesterRequest req)
         {
             var ecb = new EvidenceBuilder(_metadata, "TildaMetadatav1");
@@ -289,7 +272,7 @@ namespace Dan.Plugin.Tilda
         {
             var brResultTask = GetOrganizationsFromBR(req.OrganizationNumber, param);
 
-            var taskList = new List<Task<NPDIDAuditReportList>>();
+            var taskList = new List<Task<NpdidAuditReportList>>();
             try
             {
                 foreach (ITildaNPDIDAuditReports a in _tildaSourceProvider.GetRelevantSources<ITildaNPDIDAuditReports>(param.sourceFilter))
@@ -305,13 +288,15 @@ namespace Dan.Plugin.Tilda
 
             await Task.WhenAll(taskList);
             var brResult = await brResultTask;
-            var list = new List<NPDIDAuditReportList>();
+            var list = new List<NpdidAuditReportList>();
 
             foreach (var task in taskList)
             {
                 var values = task.Result;
 
-                if (values.Status == StatusEnum.NotFound || values.Status == StatusEnum.Failed || values.Status == StatusEnum.Unknown)
+                if (values.Status == StatusEnum.NotFound ||
+                    values.Status == StatusEnum.Failed ||
+                    values.Status == StatusEnum.Unknown)
                 {
                     values.AuditReports = null;
                 }
@@ -327,7 +312,7 @@ namespace Dan.Plugin.Tilda
             {
                 foreach (var a in list)
                 {
-                    var filtered = (NPDIDAuditReportList)_filterService.FilterAuditList(a, brResult);
+                    var filtered = (NpdidAuditReportList)_filterService.FilterAuditList(a, brResult);
                     ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
                 }
             }
@@ -485,7 +470,9 @@ namespace Dan.Plugin.Tilda
             {
                 var values = task.Result;
 
-                if (values.Status == StatusEnum.NotFound || values.Status == StatusEnum.Failed || values.Status == StatusEnum.Unknown)
+                if (values.Status == StatusEnum.NotFound ||
+                    values.Status == StatusEnum.Failed ||
+                    values.Status == StatusEnum.Unknown)
                 {
                     values.AuditCoordinations = null;
                 }
@@ -548,7 +535,7 @@ namespace Dan.Plugin.Tilda
 
             if (brResult.Forretningsadresse != null)
             {
-                item.PublicLocationAddress = new ERAddress()
+                item.PublicLocationAddress = new ErAddress()
                 {
                     AddressName = string.Join(",", brResult.Forretningsadresse?.Adressenavn),
                     PostNumber = brResult.Forretningsadresse?.Postnummer,
@@ -610,7 +597,9 @@ namespace Dan.Plugin.Tilda
             {
                 var values = task.Result;
 
-                if (values.Status == StatusEnum.NotFound || values.Status == StatusEnum.Failed || values.Status == StatusEnum.Unknown)
+                if (values.Status == StatusEnum.NotFound ||
+                    values.Status == StatusEnum.Failed ||
+                    values.Status == StatusEnum.Unknown)
                 {
                     values.TrendReports = null;
                 }
@@ -650,7 +639,9 @@ namespace Dan.Plugin.Tilda
             {
                 result = await sourceList?.First().GetDataTrendAllAsync(req, param.month, param.year, param.filter);
 
-                if (result.Status == StatusEnum.NotFound || result.Status == StatusEnum.Failed || result.Status == StatusEnum.Unknown)
+                if (result.Status == StatusEnum.NotFound ||
+                    result.Status == StatusEnum.Failed ||
+                    result.Status == StatusEnum.Unknown)
                 {
                     result.TrendReports = null;
                 }
@@ -725,7 +716,9 @@ namespace Dan.Plugin.Tilda
             {
                 result = await sourceList?.First().GetAuditCoordinationAllAsync(req, param.month, param.year, param.filter);
 
-                if (result.Status == StatusEnum.NotFound || result.Status == StatusEnum.Failed || result.Status == StatusEnum.Unknown)
+                if (result.Status == StatusEnum.NotFound ||
+                    result.Status == StatusEnum.Failed ||
+                    result.Status == StatusEnum.Unknown)
                 {
                     result.AuditCoordinations = null;
                 }
@@ -805,7 +798,9 @@ namespace Dan.Plugin.Tilda
             {
                 result = await sourceList?.First().GetAuditReportsAllAsync(req, param.month, param.year, param.filter);
 
-                if (result.Status == StatusEnum.NotFound || result.Status == StatusEnum.Failed || result.Status == StatusEnum.Unknown)
+                if (result.Status == StatusEnum.NotFound ||
+                    result.Status == StatusEnum.Failed ||
+                    result.Status == StatusEnum.Unknown)
                 {
                     result.AuditReports = null;
                 }
@@ -893,7 +888,9 @@ namespace Dan.Plugin.Tilda
             {
                 var values = task.Result;
 
-                if (values.Status == StatusEnum.NotFound || values.Status == StatusEnum.Failed || values.Status == StatusEnum.Unknown)
+                if (values.Status == StatusEnum.NotFound ||
+                    values.Status == StatusEnum.Failed ||
+                    values.Status == StatusEnum.Unknown)
                 {
                     values.AuditReports = null;
                 }

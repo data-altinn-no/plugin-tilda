@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models;
+using Dan.Tilda.Models.Audits;
+using Dan.Tilda.Models.Audits.Coordination;
+using Dan.Tilda.Models.Audits.NPDID;
+using Dan.Tilda.Models.Audits.Report;
+using Dan.Tilda.Models.Audits.Trend;
 
 namespace Dan.Plugin.Tilda.Services;
 
@@ -72,7 +76,7 @@ public class FilterService : IFilterService
                 });
                 return filteredResultList;
 
-            case NPDIDAuditReportList filteredResultList:
+            case NpdidAuditReportList filteredResultList:
                 filteredResultList.AuditReports?.ForEach(x =>
                 {
                     if (x is null)
