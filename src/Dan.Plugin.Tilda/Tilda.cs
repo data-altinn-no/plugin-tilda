@@ -63,31 +63,6 @@ namespace Dan.Plugin.Tilda
             _filterService = filterService;
         }
 
-        [Function("TildaStorulykkevirksomhet")]
-        public async Task<HttpResponseData> TildaStorulykkevirksomhet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhet")] HttpRequestData req, FunctionContext context)
-        {
-            _logger = context.GetLogger(context.FunctionDefinition.Name);
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
-
-            await GetStorulykkeProps();
-
-            return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesStorulykkevirksomhet(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
-        }
-
-
-        [Function("TildaStorulykkevirksomhetAlle")]
-        public async Task<HttpResponseData> TildaStorulykkevirksomhetAlle([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhetAlle")] HttpRequestData req, FunctionContext context)
-        {
-            _logger = context.GetLogger(context.FunctionDefinition.Name);
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
-
-            await GetStorulykkeProps();
-
-            return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesStorulykkevirksomhetAlle(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
-        }
-
         [Function("TildaTilsynsrapportv1")]
         public async Task<HttpResponseData> Tilsynsrapport(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynsrapportv1")] HttpRequestData req, FunctionContext context)
