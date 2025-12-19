@@ -16,7 +16,7 @@ public class AuditReportList : IAuditList
     public string ControlAgency { get; set; }
 
     [JsonProperty("tilsynsrapporter", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public List<AuditReport> AuditReports { get; set; }
+    public List<AuditReport>? AuditReports { get; set; }
 
     public AuditReportList(string controlAgency)
     {

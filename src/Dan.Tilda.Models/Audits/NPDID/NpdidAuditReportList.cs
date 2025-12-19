@@ -16,7 +16,7 @@ public class NpdidAuditReportList : IAuditList
     public string ControlAgency { get; set; }
 
     [JsonProperty("tilsynsrapporter", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public List<NpdidAuditReport> AuditReports { get; set; }
+    public List<NpdidAuditReport>? AuditReports { get; set; }
 
     public NpdidAuditReportList(string controlAgency)
     {
