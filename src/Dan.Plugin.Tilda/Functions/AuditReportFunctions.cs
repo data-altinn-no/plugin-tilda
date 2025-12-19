@@ -27,14 +27,14 @@ public class AuditReportFunctions(
     IEvidenceSourceMetadata metadata,
     IFilterService filterService) : AuditFunctionsBase(brregService)
 {
-    private ILogger _logger;
+    private ILogger logger;
 
     [Function("TildaTilsynsrapportv1")]
     public async Task<HttpResponseData> Tilsynsrapport(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynsrapportv1")] HttpRequestData req, FunctionContext context)
     {
-        _logger = context.GetLogger(context.FunctionDefinition.Name);
-        string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        logger = context.GetLogger(context.FunctionDefinition.Name);
+        var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
         var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
 
         return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesTilsynsrapport(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
@@ -44,8 +44,8 @@ public class AuditReportFunctions(
     public async Task<HttpResponseData> TilsynsrapportAlle(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaTilsynsrapportAllev1")] HttpRequestData req, FunctionContext context)
     {
-        _logger = context.GetLogger(context.FunctionDefinition.Name);
-        string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        logger = context.GetLogger(context.FunctionDefinition.Name);
+        var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
         var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
 
         return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesTilsynsRapportAllAsync(evidenceHarvesterRequest, GetValuesFromParameters(evidenceHarvesterRequest)));
@@ -65,7 +65,7 @@ public class AuditReportFunctions(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message);
+            logger.LogError("{exMessage}", ex.Message);
             throw new EvidenceSourcePermanentClientException(1,"Could not create requests for specified sources");
         }
 
@@ -75,9 +75,10 @@ public class AuditReportFunctions(
 
         foreach (var values in taskList.Select(task => task.Result))
         {
-            if (values.Status == StatusEnum.NotFound ||
-                values.Status == StatusEnum.Failed ||
-                values.Status == StatusEnum.Unknown)
+            if (values.Status is
+                StatusEnum.NotFound or
+                StatusEnum.Failed or
+                StatusEnum.Unknown)
             {
                 values.AuditReports = null;
             }
@@ -113,17 +114,21 @@ public class AuditReportFunctions(
 
 
         var tildaAuditReportsAlls = sourceList.ToList();
-        if (tildaAuditReportsAlls.Count != 1) //should only return the one source
-            throw new EvidenceSourcePermanentServerException(1001,
-                $"Angitt kilde ({req.OrganizationNumber}) støtter ikke datasettet");
+        //should only return the one source
+        if (tildaAuditReportsAlls.Count != 1)
+        {
+            throw new EvidenceSourcePermanentServerException(1001, $"Angitt kilde ({req.OrganizationNumber}) støtter ikke datasettet");
+        }
+
 
         try
         {
-            result = await tildaAuditReportsAlls?.First().GetAuditReportsAllAsync(req, param.month, param.year, param.filter);
+            result = await tildaAuditReportsAlls.First().GetAuditReportsAllAsync(req, param.month, param.year, param.filter);
 
-            if (result.Status == StatusEnum.NotFound ||
-                result.Status == StatusEnum.Failed ||
-                result.Status == StatusEnum.Unknown)
+            if (result.Status is
+                StatusEnum.NotFound or
+                StatusEnum.Failed or
+                StatusEnum.Unknown)
             {
                 result.AuditReports = null;
             }
@@ -142,7 +147,7 @@ public class AuditReportFunctions(
             {
                 await taskResult;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Don't want one failed fetch to break the listing of the rest of the orgs
                 if (taskResult.IsFaulted)
@@ -150,7 +155,7 @@ public class AuditReportFunctions(
                     var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
                     foreach (var task in failedTasks)
                     {
-                        _logger.LogError(task.Exception, task.Exception?.Message);
+                        logger.LogError(task.Exception, task.Exception?.Message);
                     }
 
                     taskList = taskList.Where(task => !task.IsFaulted).ToList();
@@ -160,29 +165,28 @@ public class AuditReportFunctions(
             taskList = taskList
                 .Where(task => task.Result is not null)
                 .ToList();
-            foreach (var t in taskList)
-            {
-                brResults.Add(t.Result);
-            }
+            brResults.AddRange(taskList.Select(t => t.Result));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message);
+            logger.LogError(ex.Message);
         }
 
-        if (result != null)
+        if (result == null)
         {
-            if (param.HasGeoSearchParams())
-            {
-                var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
-                result.AuditReports =
-                    result.AuditReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
-            }
-
-            var filtered = (AuditReportList)filterService.FilterAuditList(result, brResults);
-            ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None),
-                result.ControlAgency, false);
+            return ecb.GetEvidenceValues();
         }
+
+        if (param.HasGeoSearchParams())
+        {
+            var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
+            result.AuditReports =
+                result.AuditReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
+        }
+
+        var filtered = (AuditReportList)filterService.FilterAuditList(result, brResults);
+        ecb.AddEvidenceValue("tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None),
+            result.ControlAgency, false);
 
         return ecb.GetEvidenceValues();
     }

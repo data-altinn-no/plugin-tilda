@@ -16,7 +16,7 @@ public class TrendReportList : IAuditList
     public string ControlAgency { get; set; }
 
     [JsonProperty("trendrapporter", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public List<TrendReport> TrendReports { get; set; }
+    public List<TrendReport>? TrendReports { get; set; }
 
     public TrendReportList(string controlAgency)
     {

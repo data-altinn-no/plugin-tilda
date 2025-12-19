@@ -7,14 +7,13 @@ using Dan.Common.Models;
 using Dan.Plugin.Tilda.Extensions;
 using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Services;
-using Dan.Plugin.Tilda.Utils;
 using Dan.Tilda.Models.Entities;
 
 namespace Dan.Plugin.Tilda.Functions;
 
 public abstract class AuditFunctionsBase(IBrregService brregService)
 {
-    protected TildaParameters GetValuesFromParameters(EvidenceHarvesterRequest req)
+    protected static TildaParameters GetValuesFromParameters(EvidenceHarvesterRequest req)
     {
         DateTime? fromDateTime = null;
         DateTime? toDateTime = null;

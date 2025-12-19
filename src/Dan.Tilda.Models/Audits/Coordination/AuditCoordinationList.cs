@@ -16,7 +16,7 @@ public class AuditCoordinationList : IAuditList
     public string ControlAgency { get; set; }
 
     [JsonProperty("tilsynskoordineringer", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public List<AuditCoordination> AuditCoordinations { get; set; }
+    public List<AuditCoordination>? AuditCoordinations { get; set; }
 
     public AuditCoordinationList(string controlAgency)
     {

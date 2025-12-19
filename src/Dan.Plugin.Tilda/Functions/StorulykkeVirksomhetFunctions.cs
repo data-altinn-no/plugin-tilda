@@ -14,8 +14,8 @@ namespace Dan.Plugin.Tilda.Functions;
 
 public class StorulykkeVirksomhetFunctions(IEvidenceSourceMetadata metadata)
 {
-    private List<string> _p6Orgs;
-    private List<string> _p9Orgs;
+    private List<string> p6Orgs;
+    private List<string> p9Orgs;
 
     [Function("TildaStorulykkevirksomhet")]
     public async Task<HttpResponseData> TildaStorulykkevirksomhet([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhet")] HttpRequestData req, FunctionContext context)
@@ -40,12 +40,12 @@ public class StorulykkeVirksomhetFunctions(IEvidenceSourceMetadata metadata)
             OrganizationNumber = evidenceHarvesterRequest.OrganizationNumber
         };
 
-        if (_p6Orgs.Contains(evidenceHarvesterRequest.OrganizationNumber))
+        if (p6Orgs.Contains(evidenceHarvesterRequest.OrganizationNumber))
         {
             result.Paragraph6 = true;
         }
 
-        if (_p9Orgs.Contains(evidenceHarvesterRequest.OrganizationNumber))
+        if (p9Orgs.Contains(evidenceHarvesterRequest.OrganizationNumber))
         {
             result.Paragraph9 = true;
 
@@ -58,7 +58,7 @@ public class StorulykkeVirksomhetFunctions(IEvidenceSourceMetadata metadata)
 
     private async Task GetStorulykkeProps()
     {
-        _p6Orgs = await ResourceManager.GetParagraph("6");
-        _p9Orgs = await ResourceManager.GetParagraph("9");
+        p6Orgs = await ResourceManager.GetParagraph("6");
+        p9Orgs = await ResourceManager.GetParagraph("9");
     }
 }
