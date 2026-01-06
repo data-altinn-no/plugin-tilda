@@ -59,7 +59,7 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
             return null;
         }
 
-        if (brEntity.Organisasjonsform.Kode != "ENK")
+        if (brEntity.Organisasjonsform?.Kode != "ENK")
         {
             accountsInformation = await brregService.GetAnnualTurnoverFromBr(organizationNumber);
         }
@@ -81,7 +81,7 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
         var brResult = await brregService.GetFromBr(organizationNumber, false);
         var brEntity = brResult.First();
         AccountsInformation accountsInformation = null;
-        if (string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform.Kode != "ENK")
+        if (string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform?.Kode != "ENK")
         {
             accountsInformation = await brregService.GetAnnualTurnoverFromBr(organizationNumber);
         }

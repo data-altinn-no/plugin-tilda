@@ -53,8 +53,8 @@ public class NpdidFunctions(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
-            throw new EvidenceSourcePermanentClientException(1, $"Could not create requests for specified sources ({ex.Message}");
+            logger.LogError("{errorMessage}", ex.Message);
+            throw new EvidenceSourcePermanentClientException(1, $"Could not create requests for specified sources ({ex.Message})");
         }
 
         await Task.WhenAll(taskList);

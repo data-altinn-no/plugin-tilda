@@ -64,8 +64,8 @@ public class PdfFunctions(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
-            throw new EvidenceSourcePermanentClientException(1, $"Source {filter} does not support pdf reports");
+            logger.LogError("{errorMessage}", ex.Message);
+            throw new EvidenceSourcePermanentClientException(1, $"Source {filter} does not support pdf reports", ex);
         }
     }
 }
