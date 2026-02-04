@@ -149,6 +149,14 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<List<AlertSourceMessage>> GetAlertMessagesAsync(string from)
         {
+            if (string.IsNullOrWhiteSpace(BaseUri))
+            {
+                _logger.LogInformation("Base url missing for org={organizationNumber}", OrganizationNumber);
+                // Why throw instead of return empty collection? Empty collection would imply that a valid call was
+                // made and will update the timestamp for when last successfully fetched, which we don't want
+                throw new FailedToFetchDataException(
+                    $"Base url missing for org={OrganizationNumber}");
+            }
             var targetUrl = GetAlertUri(from);
             string responseString;
             try
