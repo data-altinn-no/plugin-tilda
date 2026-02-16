@@ -79,15 +79,15 @@ public class Timers(
                 continue;
             }
 
-            if (key.StartsWith(mainKeyPrefix))
-            {
-                var mainKey = key.Replace(mainKeyPrefix, "");
-                mainunitKeys.Add(mainKey);
-            }
-            else if (key.StartsWith(subunitKeyPrefix))
+            if (key.StartsWith(subunitKeyPrefix))
             {
                 var subKey =  key.Replace(subunitKeyPrefix, "");
                 subunitKeys.Add(subKey);
+            }
+            else if (key.StartsWith(mainKeyPrefix))
+            {
+                var mainKey = key.Replace(mainKeyPrefix, "");
+                mainunitKeys.Add(mainKey);
             }
         }
 
