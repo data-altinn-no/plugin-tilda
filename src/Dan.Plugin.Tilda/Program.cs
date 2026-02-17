@@ -13,6 +13,7 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Threading.Tasks;
 using Azure.Identity;
 using Dan.Plugin.Tilda.Clients;
 using Dan.Plugin.Tilda.Interfaces;
@@ -50,21 +51,20 @@ var host = new HostBuilder()
             {
                 option.Configuration = settings.RedisConnectionString;
             });
+            services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(settings.RedisConnectionString));
         }
         else
         {
+            var configurationOptions = ConfigurationOptions
+                .Parse(settings.RedisConnectionString)
+                .ConfigureForAzureWithTokenCredentialAsync(credentials)
+                .GetAwaiter().GetResult();
+
+            IConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(configurationOptions);
+            services.AddSingleton(connectionMultiplexer);
             services.AddStackExchangeRedisCache(option =>
             {
-                option.ConnectionMultiplexerFactory = async () =>
-                {
-                    var configurationOptions = await ConfigurationOptions
-                        .Parse(settings.RedisConnectionString)
-                        .ConfigureForAzureWithTokenCredentialAsync(credentials);
-
-                    var connectionMultiplexer = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
-
-                    return connectionMultiplexer;
-                };
+                option.ConnectionMultiplexerFactory = () => Task.FromResult(connectionMultiplexer);
             });
         }
 
