@@ -79,6 +79,11 @@ public class Timers(
         await foreach (var key in keys)
         {
             var expiry = await db.KeyExpireTimeAsync(key);
+            if (expiry is null)
+            {
+                logger.LogInformation("Expiry for key {} is null", key);
+                continue;
+            }
             var timeLeft = expiry - now;
             if (!(timeLeft <= TimeSpan.FromMinutes(11)))
             {
