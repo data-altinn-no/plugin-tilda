@@ -77,7 +77,7 @@ public class Timers(
             var expiry = await db.KeyExpireTimeAsync(key);
             if (expiry is null)
             {
-                logger.LogInformation("Expiry for key {} is null", key);
+                logger.LogInformation("Expiry for key {key} is null", key);
                 continue;
             }
             var timeLeft = expiry - now;
