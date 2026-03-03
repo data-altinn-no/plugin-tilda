@@ -19,7 +19,7 @@ public interface IBrregService
 {
     Task<AccountsInformation> GetAnnualTurnoverFromBr(string organizationNumber);
 
-    Task<List<BREntityRegisterEntry>> GetFromBr(string organization, bool? includeSubunits);
+    Task<List<BREntityRegisterEntry>> GetFromBr(string organization, bool? includeSubunits, bool skipCache = false);
 
     Task<List<string>> GetKofuviAddresses(string organizationNumber);
 }
@@ -92,7 +92,7 @@ public class BrregService(
         return result;
     }
 
-    public async Task<List<BREntityRegisterEntry>> GetFromBr(string organization, bool? includeSubunits)
+    public async Task<List<BREntityRegisterEntry>> GetFromBr(string organization, bool? includeSubunits, bool skipCache = false)
     {
         var result = new List<BREntityRegisterEntry>();
 
@@ -110,11 +110,11 @@ public class BrregService(
 
         if (includeSubunits == true)
         {
-            result.AddRange(await GetAllUnitsFromBr(organization));
+            result.AddRange(await GetAllUnitsFromBr(organization, skipCache));
         }
         else
         {
-            result.Add(await GetOrganizationInfoFromBr(organization));
+            result.Add(await GetOrganizationInfoFromBr(organization, skipCache));
         }
 
         return result;
@@ -207,7 +207,7 @@ public class BrregService(
         }
     }
 
-    private async Task<BREntityRegisterEntry> GetOrganizationInfoFromBr(string organizationNumber)
+    private async Task<BREntityRegisterEntry> GetOrganizationInfoFromBr(string organizationNumber, bool skipCache = false)
     {
         var mainUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/enheter/{organizationNumber}";
         var subUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/underenheter/{organizationNumber}";
@@ -217,19 +217,22 @@ public class BrregService(
         string rawResult;
         try
         {
-            try
+            if (!skipCache)
             {
-                result = await cache.GetValueAsync<BREntityRegisterEntry>(cacheKey);
-                if (result is not null)
+                try
                 {
-                    return result;
+                    result = await cache.GetValueAsync<BREntityRegisterEntry>(cacheKey);
+                    if (result is not null)
+                    {
+                        return result;
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                logger.LogWarning("Failed to get GetOrganizationInfoFromBr from cache for {orgNumber}, fetching from source directly. Exception message: {message}",
-                    organizationNumber,
-                    e.Message);
+                catch (Exception e)
+                {
+                    logger.LogWarning("Failed to get GetOrganizationInfoFromBr from cache for {orgNumber}, fetching from source directly. Exception message: {message}",
+                        organizationNumber,
+                        e.Message);
+                }
             }
 
             var response = await _erClient.GetAsync(mainUnitUrl);
@@ -270,7 +273,7 @@ public class BrregService(
         return result;
     }
 
-    private async Task<List<BREntityRegisterEntry>> GetAllUnitsFromBr(string organizationNumber)
+    private async Task<List<BREntityRegisterEntry>> GetAllUnitsFromBr(string organizationNumber, bool skipCache = false)
     {
         List<BREntityRegisterEntry> result;
         string rawResult;
@@ -279,19 +282,22 @@ public class BrregService(
 
         try
         {
-            try
+            if (!skipCache)
             {
-                result = await cache.GetValueAsync<List<BREntityRegisterEntry>>(cacheKey);
-                if (result is not null)
+                try
                 {
-                    return result;
+                    result = await cache.GetValueAsync<List<BREntityRegisterEntry>>(cacheKey);
+                    if (result is not null)
+                    {
+                        return result;
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                logger.LogWarning("Failed to get GetAllUnitsFromBr from cache for {orgNumber}, fetching from source directly. Exception message: {message}",
-                    organizationNumber,
-                    e.Message);
+                catch (Exception e)
+                {
+                    logger.LogWarning("Failed to get GetAllUnitsFromBr from cache for {orgNumber}, fetching from source directly. Exception message: {message}",
+                        organizationNumber,
+                        e.Message);
+                }
             }
 
             result = [];
