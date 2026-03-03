@@ -19,10 +19,9 @@ public class Timers(
     IMtamCounterClient mtamCounterClient,
     IAlertMessageSender alertMessageSender,
     IConnectionMultiplexer connectionMultiplexer,
-    IBrregService brregService)
+    IBrregService brregService,
+    ILogger<Timers> logger)
 {
-    private ILogger logger;
-
     // MTAM - Melding til annen myndighet (message to other authority/auditor)
     [Function("MtamTimer")]
     public async Task MessageToOtherAuditorsTimer(
@@ -30,7 +29,6 @@ public class Timers(
         [TimerTrigger("%MtamTriggerCron%")] TimerInfo timerInfo,
         FunctionContext context)
     {
-        logger = context.GetLogger(context.FunctionDefinition.Name);
         var mtamSources = tildaSourceProvider.GetAllSources<ITildaAlertMessage>().ToList();
         foreach (var mtamSource in mtamSources)
         {
@@ -41,7 +39,7 @@ public class Timers(
             {
                 messages = await mtamSource.GetAlertMessagesAsync(from);
             }
-            catch (FailedToFetchDataException e)
+            catch (FailedToFetchDataException)
             {
                 // If we fail to fetch alert messages from a source, we should continue with the rest of sources
                 // but not update this source's counter so we'll try to fetch from the same time again next attempt
@@ -66,8 +64,6 @@ public class Timers(
         [TimerTrigger("%CacheRefreshCron%")] TimerInfo timerInfo,
         FunctionContext context)
     {
-        logger = context.GetLogger(context.FunctionDefinition.Name);
-
         var db = connectionMultiplexer.GetDatabase();
         var now =  DateTime.UtcNow;
         var mainunitKeys = new List<string>();
