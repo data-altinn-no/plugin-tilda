@@ -18,7 +18,7 @@ jobs:
   with:
     artifact_name: 'dan-plugin-tilda' # Can be omitted, defaults to 'artifact'
     function_project_path: 'src/Dan.Plugin.Tilda'
-    dotnet_version: '8.0.x'
+    dotnet_version: '10.0.x'
   secrets:
     function_app_name: ${{ secrets.FUNCTIONAPP_NAME }}
     publish_profile: ${{ secrets.AZURE_FUNCTION_PUBLISH_CREDS }}
