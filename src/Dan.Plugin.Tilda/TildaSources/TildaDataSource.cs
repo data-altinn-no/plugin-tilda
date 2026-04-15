@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Altinn.ApiClients.Maskinporten.Interfaces;
 using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.Http;
 using CloudNative.CloudEvents.NewtonsoftJson;
@@ -54,13 +56,15 @@ namespace Dan.Plugin.Tilda.TildaSources
         protected HttpClient _client;
         protected HttpClient _alertClient;
         protected IUriFormatter _uriFormatter;
+        protected IMaskinportenService _maskinportenService;
 
         public TildaDataSource(
             IOptions<Settings> settings,
             IHttpClientFactory httpClientFactory,
             ILoggerFactory loggerFactory,
             ResiliencePipelineProvider<string> pipelineProvider,
-            IUriFormatter uriFormatter)
+            IUriFormatter uriFormatter,
+            IMaskinportenService maskinportenService)
         {
             _pipelineProvider = pipelineProvider;
             _settings = settings.Value;
@@ -69,6 +73,7 @@ namespace Dan.Plugin.Tilda.TildaSources
             _alertClient = httpClientFactory.CreateClient("AlertHttpClient");
             BaseUri = _settings.GetClassBaseUri(GetType().Name);
             _uriFormatter = uriFormatter;
+            _maskinportenService = maskinportenService;
         }
 
         public TildaDataSource()
@@ -161,7 +166,11 @@ namespace Dan.Plugin.Tilda.TildaSources
             string responseString;
             try
             {
-                var response = await _client.GetAsync(targetUrl);
+                var token = await _maskinportenService.GetToken(_settings.DigdirCertificate, _settings.MaskinportenEnvironment,
+                    _settings.ClientId, "brreg:tilda", null);
+                var message = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+                var response = await _client.SendAsync(message);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError(
@@ -206,7 +215,11 @@ namespace Dan.Plugin.Tilda.TildaSources
             string responseString;
             try
             {
-                var response = await _client.GetAsync(targetUrl);
+                var token = await _maskinportenService.GetToken(_settings.DigdirCertificate, _settings.MaskinportenEnvironment,
+                    _settings.ClientId, "brreg:tilda", null);
+                var message = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+                var response = await _client.SendAsync(message);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError(
@@ -275,9 +288,14 @@ namespace Dan.Plugin.Tilda.TildaSources
             CloudEventFormatter formatter = new JsonEventFormatter();
             var cloudEventContent = cloudEvent.ToHttpContent(ContentMode.Structured, formatter);
             HttpResponseMessage response;
-            await resiliencePipeline.ExecuteAsync(async token =>
+            await resiliencePipeline.ExecuteAsync(async cancellationToken =>
             {
-                response = await _alertClient.PostAsync(targetUrl, cloudEventContent, token);
+                var token = await _maskinportenService.GetToken(_settings.DigdirCertificate, _settings.MaskinportenEnvironment,
+                    _settings.ClientId, "brreg:tilda", null);
+                var message = new HttpRequestMessage(HttpMethod.Post, targetUrl);
+                message.Content = cloudEventContent;
+                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+                response = await _alertClient.SendAsync(message, cancellationToken);
                 if (!response.IsSuccessStatusCode)
                 {
                     throw new Exception($"Unable to post alert message to {targetUrl}, code {response.StatusCode}, reason: {response.ReasonPhrase}");
