@@ -1,4 +1,5 @@
 using System.Net.Http;
+using Altinn.ApiClients.Maskinporten.Interfaces;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models;
@@ -23,8 +24,9 @@ namespace Dan.Plugin.Tilda.TildaSources
             IHttpClientFactory httpClientFactory,
             ILoggerFactory loggerFactory,
             ResiliencePipelineProvider<string> pipelineProvider,
-            IUriFormatter uriFormatter) :
-            base(settings, httpClientFactory, loggerFactory, pipelineProvider, uriFormatter)
+            IUriFormatter uriFormatter,
+            IMaskinportenService maskinportenService) :
+            base(settings, httpClientFactory, loggerFactory, pipelineProvider, uriFormatter, maskinportenService)
         {
 
         }

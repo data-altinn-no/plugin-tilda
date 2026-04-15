@@ -13,6 +13,8 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using Altinn.ApiClients.Maskinporten.Interfaces;
+using Altinn.ApiClients.Maskinporten.Services;
 using Azure.Identity;
 using Dan.Plugin.Tilda.Clients;
 using Dan.Plugin.Tilda.Interfaces;
@@ -79,6 +81,8 @@ var host = new HostBuilder()
         }
         services.AddSingleton<IEntityRegistryService, EntityRegistryService>();
         services.AddSingleton<IEvidenceSourceMetadata, Metadata>();
+        services.AddSingleton<ITokenCacheProvider, MemoryTokenCacheProvider>();
+        services.AddSingleton<IMaskinportenService, MaskinportenService>();
 
         services.AddTransient<IMtamCounterClient, MtamCounterClient>();
         services.AddTransient<IAlertMessageSender, AlertMessageSender>();
@@ -117,7 +121,7 @@ var host = new HostBuilder()
         .ConfigurePrimaryHttpMessageHandler(() =>
         {
             var handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(Settings.Certificate);
+            handler.ClientCertificates.Add(Settings.KofuviCertificate);
             return handler;
         });
 

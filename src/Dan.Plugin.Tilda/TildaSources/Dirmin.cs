@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using Altinn.ApiClients.Maskinporten.Interfaces;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Utils;
@@ -13,8 +14,9 @@ public class Dirmin(
     IHttpClientFactory httpClientFactory,
     ILoggerFactory loggerFactory,
     ResiliencePipelineProvider<string> pipelineProvider,
-    IUriFormatter uriFormatter)
-    :   TildaDataSource(settings, httpClientFactory, loggerFactory, pipelineProvider, uriFormatter),
+    IUriFormatter uriFormatter,
+    IMaskinportenService maskinportenService)
+    :   TildaDataSource(settings, httpClientFactory, loggerFactory, pipelineProvider, uriFormatter, maskinportenService),
         ITildaAuditReports,
         ITildaAuditCoordination,
         ITildaAlertMessage
