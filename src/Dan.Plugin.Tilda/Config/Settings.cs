@@ -36,17 +36,23 @@ namespace Dan.Plugin.Tilda.Config
         private static string KeyVaultName => Environment.GetEnvironmentVariable("KvName");
         private static string KofuviCertificateName => Environment.GetEnvironmentVariable("KvKofuviCertificateName");
 
-        private static X509Certificate2 _altinnCertificate { get; set; }
-        public static X509Certificate2 Certificate
+        private static string DigdirCertificateName => Environment.GetEnvironmentVariable("DigdirCertificateName");
+
+        private static X509Certificate2 _kofuviCertificate { get; set; }
+        public static X509Certificate2 KofuviCertificate
         {
-            get
-            {
-                return _altinnCertificate ?? new KeyVault(KeyVaultName).GetCertificate(KofuviCertificateName).Result;
-            }
-            set
-            {
-                _altinnCertificate = value;
-            }
+            get => _kofuviCertificate ?? new KeyVault(KeyVaultName).GetCertificate(KofuviCertificateName).Result;
+            set => _kofuviCertificate = value;
         }
+
+        private X509Certificate2 _digdirCertificate { get; set; }
+        public X509Certificate2 DigdirCertificate
+        {
+            get => _digdirCertificate ?? new KeyVault(KeyVaultName).GetCertificate(DigdirCertificateName).Result;
+            set => _digdirCertificate = value;
+        }
+
+        public string MaskinportenEnvironment { get; set; }
+        public string ClientId { get; set; }
     }
 }
