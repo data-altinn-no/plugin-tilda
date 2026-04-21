@@ -1,7 +1,7 @@
-using System;
-using System.Collections.Generic;
 using Dan.Tilda.Models.Entities;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace Dan.Plugin.Tilda.Models
 {
@@ -46,5 +46,24 @@ namespace Dan.Plugin.Tilda.Models
 
         [JsonProperty("aarligOmsetning", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string AnnualTurnover;
+
+        [JsonProperty("driftsresultat", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string AnnualResult;
+
+        [JsonProperty("sumEgenkapital", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string TotalEquity;
+
+        [JsonProperty("sumGjeld", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string TotalDebt;
+
+        [JsonProperty("sumKortsiktigGjeld", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string ShortTermDebt;
+
+        [JsonProperty("omloepsmidler", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string CurrentAssets;
+
+        [JsonProperty("opptjentEgenkapital", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string EarnedEquity;
+
     }
 }

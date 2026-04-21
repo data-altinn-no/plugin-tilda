@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -12,6 +12,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Dan.Plugin.Tilda.Services;
 
@@ -60,20 +61,29 @@ public class BrregService(
                     e.Message);
             }
 
-            result = new AccountsInformation();
+            
             var response = await _safeHttpClient.GetAsync(accountsUrl);
             var rawResult = await response.Content.ReadAsStringAsync();
 
-            dynamic tmp = JsonConvert.DeserializeObject(rawResult);
-            if (tmp is null)
+            var tmp = JsonConvert.DeserializeObject<JArray>(rawResult);
+            if (tmp is null || tmp.Count == 0)
             {
                 return result;
             }
 
-
-            result.ToDate = tmp[0]["regnskapsperiode"]["tilDato"];
-            result.FromDate = tmp[0]["regnskapsperiode"]["fraDato"];
-            result.AnnualTurnover = tmp[0]["resultatregnskapResultat"]["driftsresultat"]["driftsinntekter"]["sumDriftsinntekter"];
+            var entry = tmp[0];
+            result = new AccountsInformation()
+            {
+                ToDate = entry["regnskapsperiode"]?["tilDato"]?.ToObject<DateTime>() ?? default,
+                FromDate = entry["regnskapsperiode"]?["fraDato"]?.ToObject<DateTime>() ?? default,
+                AnnualTurnover = entry["resultatregnskapResultat"]?["driftsresultat"]?["driftsinntekter"]?["sumDriftsinntekter"]?.ToString(),
+                AnnualResult = entry["resultatregnskapResultat"]?["driftsresultat"]?["driftsresultat"]?.ToString(),
+                CurrentAssets = entry["eiendeler"]?["omloepsmidler"]?["sumOmloepsmidler"]?.ToString(),
+                EarnedEquity = entry["egenkapitalGjeld"]?["egenkapital"]?["opptjentEgenkapital"]?["sumOpptjentEgenkapital"]?.ToString(),
+                TotalDebt = entry["egenkapitalGjeld"]?["gjeldOversikt"]?["sumGjeld"]?.ToString(),
+                ShortTermDebt = entry["egenkapitalGjeld"]?["gjeldOversikt"]?["kortsiktigGjeld"]?["sumKortsiktigGjeld"]?.ToString(),
+                TotalEquity = entry["egenkapitalGjeld"]?["egenkapital"]?["sumEgenkapital"]?.ToString()
+            };
 
             var cacheOptions = new DistributedCacheEntryOptions
             {
