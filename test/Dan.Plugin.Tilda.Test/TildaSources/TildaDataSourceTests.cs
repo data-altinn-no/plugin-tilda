@@ -23,7 +23,8 @@ public class TildaDataSourceTests
     [Theory]
     [InlineData("https://test.test.test/", "https://test.test.test")]
     [InlineData("https://test.test.test", "https://test.test.test")]
-    public void Constructor_BaseUrl_ShouldRemoveTrailingSlash(string inputUrl, string expected)
+    [InlineData(null, null)]
+    public void Constructor_BaseUrl_ShouldRemoveTrailingSlash(string? inputUrl, string? expected)
     {
         // Arrange
         Environment.SetEnvironmentVariable("TildaDataSourceDummy.uri", inputUrl);
