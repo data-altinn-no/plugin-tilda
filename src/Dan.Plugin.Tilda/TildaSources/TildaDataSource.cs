@@ -71,7 +71,8 @@ namespace Dan.Plugin.Tilda.TildaSources
             _logger = loggerFactory.CreateLogger<TildaDataSource>();
             _client = httpClientFactory.CreateClient("SafeHttpClient");
             _alertClient = httpClientFactory.CreateClient("AlertHttpClient");
-            BaseUri = _settings.GetClassBaseUri(GetType().Name);
+            var url = _settings.GetClassBaseUri(GetType().Name);
+            BaseUri = url.EndsWith('/') ? url[..^1] : url; // removes trailing slashes '/'
             _uriFormatter = uriFormatter;
             _maskinportenService = maskinportenService;
         }
