@@ -74,13 +74,12 @@ public class Timers(
         var keys = GetKeysAsync("Tilda-Cache_Absolute*");
         await foreach (var key in keys)
         {
-            var expiry = await db.KeyExpireTimeAsync(key);
-            if (expiry is null)
+            var timeLeft = await db.KeyTimeToLiveAsync(key);
+            if (timeLeft is null)
             {
-                logger.LogInformation("Expiry for key {key} is null", key);
+                logger.LogInformation("Timeleft for key {key} is null", key);
                 continue;
             }
-            var timeLeft = expiry - now;
             if (!(timeLeft <= TimeSpan.FromMinutes(11)))
             {
                 continue;
