@@ -11,7 +11,7 @@ using Polly.Registry;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
-    public class Justervesenet : TildaDataSource, ITildaAuditCoordination, ITildaAuditReports, ITildaTrendReports, ITildaAuditCoordinationAll
+    public class Justervesenet : TildaDataSource, ITildaAuditCoordination, ITildaAuditReports, ITildaTrendReports, ITildaAuditCoordinationAll, ITildaAlertMessage
     {
 
         private const string orgNo = "874761192";
