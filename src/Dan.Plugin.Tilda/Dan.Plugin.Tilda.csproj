@@ -23,7 +23,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
+    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
     <PackageReference Include="CloudNative.CloudEvents.NewtonsoftJson" Version="2.8.0" />
     <PackageReference Include="Dan.Common" Version="1.11.1" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.58.0" />
