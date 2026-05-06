@@ -5,10 +5,10 @@ namespace Dan.Tilda.Models.Entities;
 public class AccountsInformation
 {
     [JsonProperty("fraDato", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
-    public DateTime FromDate { get; set; }
+    public DateTime? FromDate { get; set; }
 
     [JsonProperty("tilDato", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
-    public DateTime ToDate { get; set; }
+    public DateTime? ToDate { get; set; }
 
     [JsonProperty("aarligOmsetning", Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore)]
     public string? AnnualTurnover { get; set; }
