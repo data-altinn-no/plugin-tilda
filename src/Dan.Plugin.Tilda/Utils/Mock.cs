@@ -11,6 +11,7 @@ using Dan.Tilda.Models.Audits.NPDID;
 using Dan.Tilda.Models.Audits.Report;
 using Dan.Tilda.Models.Audits.Trend;
 using Dan.Tilda.Models.Entities;
+using Dan.Tilda.Models.Enums;
 using AlertCompact = Dan.Tilda.Models.Entities.AlertCompact;
 using AlertFull = Dan.Tilda.Models.Entities.AlertFull;
 using AlertMessage = Dan.Tilda.Models.Audits.Alerts.AlertMessage;
@@ -200,7 +201,7 @@ namespace Dan.Plugin.Tilda.Utils
                 Name = "Organisasjonen AS",
                 Accounts = new AccountsInformation(),
                 BusinessCode = "47.110",
-                OperationalStatus = OperationStatus.OK,
+                OperationalStatus = OperationStatus.Ok,
                 OrganizationNumber = "123456789",
                 PublicLocationAddress = GetMockERAddress(),
                 ControlObjectParent = "222222222"
@@ -428,7 +429,7 @@ namespace Dan.Plugin.Tilda.Utils
                 },
                 BusinessCode = "NACE",
                 Accounts = new AccountsInformation(),
-                OperationalStatus = OperationStatus.OK,
+                OperationalStatus = OperationStatus.Ok,
             };
         }
 

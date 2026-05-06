@@ -6,6 +6,7 @@ using Dan.Tilda.Models.Audits.Coordination;
 using Dan.Tilda.Models.Audits.NPDID;
 using Dan.Tilda.Models.Audits.Report;
 using Dan.Tilda.Models.Audits.Trend;
+using Dan.Tilda.Models.Entities;
 
 namespace Dan.Plugin.Tilda.Services;
 

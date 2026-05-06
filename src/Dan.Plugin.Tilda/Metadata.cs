@@ -17,6 +17,7 @@ using Dan.Tilda.Models.Audits.Coordination;
 using Dan.Tilda.Models.Audits.NPDID;
 using Dan.Tilda.Models.Audits.Report;
 using Dan.Tilda.Models.Audits.Storulykke;
+using Dan.Tilda.Models.Entities;
 using AlertMessage = Dan.Plugin.Tilda.Models.AlertMessages.AlertMessage;
 
 namespace Dan.Plugin.Tilda

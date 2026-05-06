@@ -8,6 +8,7 @@ using Dan.Plugin.Tilda.Extensions;
 using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Services;
 using Dan.Tilda.Models.Entities;
+using Dan.Tilda.Models.Enums;
 
 namespace Dan.Plugin.Tilda.Functions;
 
@@ -173,6 +174,6 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
             return OperationStatus.Slettet;
         }
 
-        return OperationStatus.OK;
+        return OperationStatus.Ok;
     }
 }

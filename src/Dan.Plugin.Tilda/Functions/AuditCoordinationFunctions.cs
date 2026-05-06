@@ -13,6 +13,7 @@ using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Services;
 using Dan.Plugin.Tilda.Utils;
 using Dan.Tilda.Models.Audits.Coordination;
+using Dan.Tilda.Models.Entities;
 using Dan.Tilda.Models.Enums;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
