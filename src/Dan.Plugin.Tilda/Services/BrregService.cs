@@ -8,6 +8,7 @@ using Dan.Common.Exceptions;
 using Dan.Common.Extensions;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Models;
+using Dan.Tilda.Models.Entities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -61,7 +62,7 @@ public class BrregService(
                     e.Message);
             }
 
-            
+
             var response = await _safeHttpClient.GetAsync(accountsUrl);
             var rawResult = await response.Content.ReadAsStringAsync();
 
