@@ -168,6 +168,11 @@ public class TrendReportFunctions(
                         taskList = taskList.Where(task => !task.IsFaulted).ToList();
                     }
                 }
+                taskList = taskList
+                    .Where(task => task.Result is not null)
+                    .GroupBy(x => x.Result.OrganizationNumber)
+                    .Select(y => y.FirstOrDefault())
+                    .ToList();
 
                 brResults.AddRange(taskList.Select(t => t.Result));
             }
