@@ -107,9 +107,7 @@ public class TrendReportFunctions(
     {
         var sourceList = tildaSourceProvider.GetRelevantSources<ITildaTrendReportsAll>(req.OrganizationNumber).ToList();
         TrendReportList result = null;
-        var brResults = new List<TildaRegistryEntry>();
         var ecb = new EvidenceBuilder(metadata, "TildaTrendrapportAllev1");
-
 
         //should only return the one source
         if (sourceList.Count!= 1)
@@ -128,39 +126,10 @@ public class TrendReportFunctions(
             {
                 result.TrendReports = null;
             }
-
-            var taskList = new List<Task<TildaRegistryEntry>>();
-
-            if (result.TrendReports != null)
-            {
-                var distinctList = result.TrendReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
-                taskList.AddRange(distinctList.Select(item => GetOrganizationFromBr(item.ControlObject, param)));
-            }
-
-            var taskResult = Task.WhenAll(taskList);
-            try
-            {
-                await taskResult;
-            }
-            catch (Exception)
-            {
-                // Don't want one failed fetch to break the listing of the rest of the orgs
-                if (taskResult.IsFaulted)
-                {
-                    var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
-                    foreach (var task in failedTasks)
-                    {
-                        logger.LogError(task.Exception, "{message}", task.Exception?.Message);
-                    }
-                    taskList = taskList.Where(task => !task.IsFaulted).ToList();
-                }
-            }
-
-            brResults.AddRange(taskList.Select(t => t.Result));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError("Failed getting TrendRapportAlle for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
         }
 
         if (result == null)
@@ -168,14 +137,57 @@ public class TrendReportFunctions(
             return ecb.GetEvidenceValues();
         }
 
+        var brResults = new List<TildaRegistryEntry>();
         if (param.HasGeoSearchParams())
         {
+            try
+            {
+                var taskList = new List<Task<TildaRegistryEntry>>();
+
+                if (result.TrendReports != null)
+                {
+                    var distinctList = result.TrendReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
+                    taskList.AddRange(distinctList.Select(item => GetOrganizationFromBr(item.ControlObject, param)));
+                }
+
+                var taskResult = Task.WhenAll(taskList);
+                try
+                {
+                    await taskResult;
+                }
+                catch (Exception)
+                {
+                    // Don't want one failed fetch to break the listing of the rest of the orgs
+                    if (taskResult.IsFaulted)
+                    {
+                        var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
+                        foreach (var task in failedTasks)
+                        {
+                            logger.LogError(task.Exception, "{message}", task.Exception?.Message);
+                        }
+                        taskList = taskList.Where(task => !task.IsFaulted).ToList();
+                    }
+                }
+                taskList = taskList
+                    .Where(task => task.Result is not null)
+                    .GroupBy(x => x.Result.OrganizationNumber)
+                    .Select(y => y.FirstOrDefault())
+                    .ToList();
+
+                brResults.AddRange(taskList.Select(t => t.Result));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Failed getting TrendRapportAlle org info for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
+            }
+
             var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
             result.TrendReports =
                 result.TrendReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
         }
+        // If brResults is null or empty, filtered will be the same as it was before
         var filtered = (TrendReportList)filterService.FilterAuditList(result, brResults);
-        ecb.AddEvidenceValue($"tilsynstrendrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
+        ecb.AddEvidenceValue("tilsynstrendrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
 
         return ecb.GetEvidenceValues();
     }
