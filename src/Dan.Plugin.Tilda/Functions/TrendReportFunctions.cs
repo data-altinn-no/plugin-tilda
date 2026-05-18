@@ -129,7 +129,7 @@ public class TrendReportFunctions(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError("Failed getting TrendRapportAlle for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
         }
 
         if (result == null)
@@ -140,34 +140,41 @@ public class TrendReportFunctions(
         var brResults = new List<TildaRegistryEntry>();
         if (param.HasGeoSearchParams())
         {
-            var taskList = new List<Task<TildaRegistryEntry>>();
-
-            if (result.TrendReports != null)
-            {
-                var distinctList = result.TrendReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
-                taskList.AddRange(distinctList.Select(item => GetOrganizationFromBr(item.ControlObject, param)));
-            }
-
-            var taskResult = Task.WhenAll(taskList);
             try
             {
-                await taskResult;
-            }
-            catch (Exception)
-            {
-                // Don't want one failed fetch to break the listing of the rest of the orgs
-                if (taskResult.IsFaulted)
-                {
-                    var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
-                    foreach (var task in failedTasks)
-                    {
-                        logger.LogError(task.Exception, "{message}", task.Exception?.Message);
-                    }
-                    taskList = taskList.Where(task => !task.IsFaulted).ToList();
-                }
-            }
+                var taskList = new List<Task<TildaRegistryEntry>>();
 
-            brResults.AddRange(taskList.Select(t => t.Result));
+                if (result.TrendReports != null)
+                {
+                    var distinctList = result.TrendReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
+                    taskList.AddRange(distinctList.Select(item => GetOrganizationFromBr(item.ControlObject, param)));
+                }
+
+                var taskResult = Task.WhenAll(taskList);
+                try
+                {
+                    await taskResult;
+                }
+                catch (Exception)
+                {
+                    // Don't want one failed fetch to break the listing of the rest of the orgs
+                    if (taskResult.IsFaulted)
+                    {
+                        var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
+                        foreach (var task in failedTasks)
+                        {
+                            logger.LogError(task.Exception, "{message}", task.Exception?.Message);
+                        }
+                        taskList = taskList.Where(task => !task.IsFaulted).ToList();
+                    }
+                }
+
+                brResults.AddRange(taskList.Select(t => t.Result));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Failed getting TrendRapportAlle org info for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
+            }
 
             var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
             result.TrendReports =

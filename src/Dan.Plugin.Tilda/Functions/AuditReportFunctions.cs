@@ -120,7 +120,6 @@ public class AuditReportFunctions(
             throw new EvidenceSourcePermanentServerException(1001, $"Angitt kilde ({req.OrganizationNumber}) støtter ikke datasettet");
         }
 
-
         try
         {
             result = await tildaAuditReportsAlls.First().GetAuditReportsAllAsync(req, param.month, param.year, param.filter);
@@ -135,7 +134,7 @@ public class AuditReportFunctions(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError("Failed getting TilsynsRapportAlle for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
         }
 
         if (result == null)
@@ -146,39 +145,46 @@ public class AuditReportFunctions(
         var brResults = new List<TildaRegistryEntry>();
         if (param.HasGeoSearchParams())
         {
-            var taskList = new List<Task<TildaRegistryEntry>>();
-
-            if (result.AuditReports != null)
-            {
-                var distinctList = result.AuditReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault())
-                    .ToList();
-                taskList.AddRange(distinctList.Select(item => GetOrganizationFromBr(item.ControlObject, param)));
-            }
-
-            var taskResult = Task.WhenAll(taskList);
             try
             {
-                await taskResult;
-            }
-            catch (Exception)
-            {
-                // Don't want one failed fetch to break the listing of the rest of the orgs
-                if (taskResult.IsFaulted)
+                var taskList = new List<Task<TildaRegistryEntry>>();
+
+                if (result.AuditReports != null)
                 {
-                    var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
-                    foreach (var task in failedTasks)
-                    {
-                        logger.LogError(task.Exception, task.Exception?.Message);
-                    }
-
-                    taskList = taskList.Where(task => !task.IsFaulted).ToList();
+                    var distinctList = result.AuditReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault())
+                        .ToList();
+                    taskList.AddRange(distinctList.Select(item => GetOrganizationFromBr(item.ControlObject, param)));
                 }
-            }
 
-            taskList = taskList
-                .Where(task => task.Result is not null)
-                .ToList();
-            brResults.AddRange(taskList.Select(t => t.Result));
+                var taskResult = Task.WhenAll(taskList);
+                try
+                {
+                    await taskResult;
+                }
+                catch (Exception)
+                {
+                    // Don't want one failed fetch to break the listing of the rest of the orgs
+                    if (taskResult.IsFaulted)
+                    {
+                        var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
+                        foreach (var task in failedTasks)
+                        {
+                            logger.LogError(task.Exception, task.Exception?.Message);
+                        }
+
+                        taskList = taskList.Where(task => !task.IsFaulted).ToList();
+                    }
+                }
+
+                taskList = taskList
+                    .Where(task => task.Result is not null)
+                    .ToList();
+                brResults.AddRange(taskList.Select(t => t.Result));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Failed getting TilsynsRapportAlle org data for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
+            }
 
             var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
             result.AuditReports =

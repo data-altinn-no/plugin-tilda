@@ -124,7 +124,7 @@ public class AuditCoordinationFunctions(
         }
         catch (Exception ex)
         {
-            logger.LogError("{message}", ex.Message);
+            logger.LogError("Failed getting TilsynsKoordineringAlle for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
         }
 
         if (result == null)
@@ -135,39 +135,46 @@ public class AuditCoordinationFunctions(
         var brResults = new List<TildaRegistryEntry>();
         if (param.HasGeoSearchParams())
         {
-            var taskList = new List<Task<TildaRegistryEntry>>();
-
-            if (result.AuditCoordinations != null)
-            {
-                var distinctList = result.AuditCoordinations.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
-                taskList.AddRange(distinctList.Select(item => GetOrganizationFromBr(item.ControlObject, param)));
-            }
-
-            var taskResult = Task.WhenAll(taskList);
             try
             {
-                await taskResult;
-            }
-            catch (Exception)
-            {
-                // Don't want one failed fetch to break the listing of the rest of the orgs
-                if (taskResult.IsFaulted)
-                {
-                    var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
-                    foreach (var task in failedTasks)
-                    {
-                        logger.LogError(task.Exception, "{message}", task.Exception?.Message);
-                    }
-                    taskList = taskList.Where(task => !task.IsFaulted).ToList();
-                }
-            }
-            taskList = taskList
-                .Where(task => task.Result is not null)
-                .GroupBy(x => x.Result.OrganizationNumber)
-                .Select(y => y.FirstOrDefault())
-                .ToList();
+                var taskList = new List<Task<TildaRegistryEntry>>();
 
-            brResults.AddRange(taskList.Select(t => t.Result));
+                if (result.AuditCoordinations != null)
+                {
+                    var distinctList = result.AuditCoordinations.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault()).ToList();
+                    taskList.AddRange(distinctList.Select(item => GetOrganizationFromBr(item.ControlObject, param)));
+                }
+
+                var taskResult = Task.WhenAll(taskList);
+                try
+                {
+                    await taskResult;
+                }
+                catch (Exception)
+                {
+                    // Don't want one failed fetch to break the listing of the rest of the orgs
+                    if (taskResult.IsFaulted)
+                    {
+                        var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
+                        foreach (var task in failedTasks)
+                        {
+                            logger.LogError(task.Exception, "{message}", task.Exception?.Message);
+                        }
+                        taskList = taskList.Where(task => !task.IsFaulted).ToList();
+                    }
+                }
+                taskList = taskList
+                    .Where(task => task.Result is not null)
+                    .GroupBy(x => x.Result.OrganizationNumber)
+                    .Select(y => y.FirstOrDefault())
+                    .ToList();
+
+                brResults.AddRange(taskList.Select(t => t.Result));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Failed getting TilsynsKoordineringAlle org info for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
+            }
 
             var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
             result.AuditCoordinations =
