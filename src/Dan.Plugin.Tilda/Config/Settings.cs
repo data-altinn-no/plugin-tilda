@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Dan.Plugin.Tilda.Config
@@ -54,5 +55,25 @@ namespace Dan.Plugin.Tilda.Config
 
         public string MaskinportenEnvironment { get; set; }
         public string ClientId { get; set; }
+        private IEnumerable<string> TildaP6List { get; set; }
+        private IEnumerable<string> TildaP9List { get; set; }
+
+        public IEnumerable<string> TildaP6
+        {
+            get
+            {
+                TildaP6List = TildaP6List ?? new KeyVault(KeyVaultName).Get("TildaP6").Result.Replace(" ", "").Split(',');
+                return TildaP6List;
+            }
+        }
+
+        public IEnumerable<string> TildaP9
+        {
+            get
+            {
+                TildaP9List = TildaP9List ?? new KeyVault(KeyVaultName).Get("TildaP9").Result.Replace(" ", "").Split(',');
+                return TildaP9List;
+            }
+        }
     }
 }
