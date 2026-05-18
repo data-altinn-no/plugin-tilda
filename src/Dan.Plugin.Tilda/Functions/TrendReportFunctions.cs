@@ -107,9 +107,7 @@ public class TrendReportFunctions(
     {
         var sourceList = tildaSourceProvider.GetRelevantSources<ITildaTrendReportsAll>(req.OrganizationNumber).ToList();
         TrendReportList result = null;
-        var brResults = new List<TildaRegistryEntry>();
         var ecb = new EvidenceBuilder(metadata, "TildaTrendrapportAllev1");
-
 
         //should only return the one source
         if (sourceList.Count!= 1)
@@ -128,7 +126,20 @@ public class TrendReportFunctions(
             {
                 result.TrendReports = null;
             }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+        }
 
+        if (result == null)
+        {
+            return ecb.GetEvidenceValues();
+        }
+
+        var brResults = new List<TildaRegistryEntry>();
+        if (param.HasGeoSearchParams())
+        {
             var taskList = new List<Task<TildaRegistryEntry>>();
 
             if (result.TrendReports != null)
@@ -157,25 +168,14 @@ public class TrendReportFunctions(
             }
 
             brResults.AddRange(taskList.Select(t => t.Result));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-        }
 
-        if (result == null)
-        {
-            return ecb.GetEvidenceValues();
-        }
-
-        if (param.HasGeoSearchParams())
-        {
             var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
             result.TrendReports =
                 result.TrendReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
         }
+        // If brResults is null or empty, filtered will be the same as it was before
         var filtered = (TrendReportList)filterService.FilterAuditList(result, brResults);
-        ecb.AddEvidenceValue($"tilsynstrendrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
+        ecb.AddEvidenceValue("tilsynstrendrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
 
         return ecb.GetEvidenceValues();
     }

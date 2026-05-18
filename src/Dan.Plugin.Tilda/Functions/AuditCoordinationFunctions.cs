@@ -102,9 +102,7 @@ public class AuditCoordinationFunctions(
     {
         var sourceList = tildaSourceProvider.GetRelevantSources<ITildaAuditCoordinationAll>(req.OrganizationNumber).ToList();
         AuditCoordinationList result = null;
-        var brResults = new List<TildaRegistryEntry>();
         var ecb = new EvidenceBuilder(metadata, "TildaTilsynskoordineringAllev1");
-
 
         //should only return the one source
         if (sourceList.Count != 1)
@@ -123,7 +121,20 @@ public class AuditCoordinationFunctions(
             {
                 result.AuditCoordinations = null;
             }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("{message}", ex.Message);
+        }
 
+        if (result == null)
+        {
+            return ecb.GetEvidenceValues();
+        }
+
+        var brResults = new List<TildaRegistryEntry>();
+        if (param.HasGeoSearchParams())
+        {
             var taskList = new List<Task<TildaRegistryEntry>>();
 
             if (result.AuditCoordinations != null)
@@ -157,23 +168,12 @@ public class AuditCoordinationFunctions(
                 .ToList();
 
             brResults.AddRange(taskList.Select(t => t.Result));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError("{message}", ex.Message);
-        }
 
-        if (result == null)
-        {
-            return ecb.GetEvidenceValues();
-        }
-
-        if (param.HasGeoSearchParams())
-        {
             var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
             result.AuditCoordinations =
                 result.AuditCoordinations?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
         }
+        // If brResults is null or empty, filtered will be the same as it was before
         var filtered = (AuditCoordinationList)filterService.FilterAuditList(result, brResults);
         ecb.AddEvidenceValue($"tilsynskoordineringer", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
 

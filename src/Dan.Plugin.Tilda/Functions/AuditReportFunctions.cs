@@ -110,7 +110,6 @@ public class AuditReportFunctions(
     {
         var sourceList = tildaSourceProvider.GetRelevantSources<ITildaAuditReportsAll>(req.OrganizationNumber);
         AuditReportList result = null;
-        var brResults = new List<TildaRegistryEntry>();
         var ecb = new EvidenceBuilder(metadata, "TildaTilsynsrapportAllev1");
 
 
@@ -133,7 +132,20 @@ public class AuditReportFunctions(
             {
                 result.AuditReports = null;
             }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+        }
 
+        if (result == null)
+        {
+            return ecb.GetEvidenceValues();
+        }
+
+        var brResults = new List<TildaRegistryEntry>();
+        if (param.HasGeoSearchParams())
+        {
             var taskList = new List<Task<TildaRegistryEntry>>();
 
             if (result.AuditReports != null)
@@ -167,24 +179,13 @@ public class AuditReportFunctions(
                 .Where(task => task.Result is not null)
                 .ToList();
             brResults.AddRange(taskList.Select(t => t.Result));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-        }
 
-        if (result == null)
-        {
-            return ecb.GetEvidenceValues();
-        }
-
-        if (param.HasGeoSearchParams())
-        {
             var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
             result.AuditReports =
                 result.AuditReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
         }
 
+        // If brResults is null or empty, filtered will be the same as it was before
         var filtered = (AuditReportList)filterService.FilterAuditList(result, brResults);
         ecb.AddEvidenceValue("tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None),
             result.ControlAgency, false);
