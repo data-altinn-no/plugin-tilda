@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace Dan.Tilda.Models.Audits.Storulykke;
 
@@ -6,5 +6,5 @@ namespace Dan.Tilda.Models.Audits.Storulykke;
 public class StorulykkevirksomhetListe
 {
     [JsonProperty("storulykkevirksomheter")]
-    public List<string>? Organizations { get; set; }
+    public IEnumerable<string>? Organizations { get; set; }
 }

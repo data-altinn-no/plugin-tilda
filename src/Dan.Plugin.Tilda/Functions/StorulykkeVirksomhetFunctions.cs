@@ -67,4 +67,26 @@ public class StorulykkeVirksomhetFunctions
 
         return eb.GetEvidenceValues();
     }
+
+    [Function("TildaStorulykkevirksomhetAlle")]
+    public async Task<HttpResponseData> TildaStorulykkevirksomhetAlle([HttpTrigger(AuthorizationLevel.Function, "post", Route = "TildaStorulykkevirksomhetAlle")] HttpRequestData req, FunctionContext context)
+    {
+        var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        var evidenceHarvesterRequest = JsonConvert.DeserializeObject<EvidenceHarvesterRequest>(requestBody);
+
+        return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesStorulykkevirksomhetAlle(evidenceHarvesterRequest));
+    }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    // EvidenceSourceResponse.CreateResponse doesn't support methods that don't return a Task. Need to update Common with that functionality first
+    private async Task<List<EvidenceValue>> GetEvidenceValuesStorulykkevirksomhetAlle(EvidenceHarvesterRequest evidenceHarvesterRequest)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+    {
+        var eb = new EvidenceBuilder(_metadata, "TildaStorulykkevirksomhetAlle");
+
+        eb.AddEvidenceValue("StorulykkevirksomheterParagraf6", JsonConvert.SerializeObject(new StorulykkevirksomhetListe() { Organizations = _settings.TildaP6 }), "Tilda", false);
+        eb.AddEvidenceValue("StorulykkevirksomheterParagraf9", JsonConvert.SerializeObject(new StorulykkevirksomhetListe() { Organizations = _settings.TildaP9 }), "Tilda", false);
+
+        return eb.GetEvidenceValues();
+    }
 }
