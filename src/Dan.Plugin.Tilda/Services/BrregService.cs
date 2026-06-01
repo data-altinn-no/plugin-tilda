@@ -1,19 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
+using Azure.Core;
 using Dan.Common.Exceptions;
 using Dan.Common.Extensions;
 using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Models;
+using Dan.Plugin.TIlda.Utils;
 using Dan.Tilda.Models.Entities;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Serialization.HybridRow;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO.Pipelines;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Policy;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Dan.Plugin.Tilda.Services;
 
@@ -24,6 +32,8 @@ public interface IBrregService
     Task<List<BREntityRegisterEntry>> GetFromBr(string organization, bool? includeSubunits, bool skipCache = false);
 
     Task<List<string>> GetKofuviAddresses(string organizationNumber);
+
+    Task<IEnumerable<AccountsInformationYear>> GetAnnualAccountsFromBr(string organizationNumber);
 }
 
 public class BrregService(
@@ -36,6 +46,7 @@ public class BrregService(
     private readonly HttpClient _erClient = httpClientFactory.CreateClient("ERHttpClient");
     private readonly HttpClient _kofuviClient = httpClientFactory.CreateClient("KofuviClient");
     private readonly Settings _settings = settings.Value;
+    private readonly HttpClient _accountsClient = httpClientFactory.CreateClient();
 
     private static readonly TimeSpan DefaultCacheDuration = TimeSpan.FromMinutes(60);
 
@@ -102,6 +113,52 @@ public class BrregService(
 
         return result;
     }
+
+    public async Task<IEnumerable<AccountsInformationYear>> GetAnnualAccountsFromBr(string organizationNumber)
+    {
+        var result = new List<AccountsInformationYear>();            
+
+        try
+        {
+            var annualAccounts = await GetAnnualAccountsForYear(organizationNumber);
+            if (annualAccounts is not null)
+            {
+                result.AddRange(annualAccounts);
+            }
+        }
+        catch (Exception e)
+        {
+            logger.LogDebug("Failed to get AnnualAccounts for {orgNumber}. Exception message: {message}",
+                organizationNumber,
+                e.Message);
+            return result;
+        }        
+
+        return result;
+    }
+
+    private async Task<List<AccountsInformationYear>> GetAnnualAccountsForYear(string organizationNumber)
+    {
+        var accountsUrl = $"https://data.brreg.no/regnskapsregisteret/regnskap/{organizationNumber}";
+        var requestMessage = new HttpRequestMessage(HttpMethod.Get, accountsUrl);
+
+        var authenticationString = $"{_settings.RRUserName}:{_settings.RRPassword}";
+        var base64EncodedAuthenticationString = Convert.ToBase64String(ASCIIEncoding.UTF8.GetBytes(authenticationString));
+        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+
+        var response = await _safeHttpClient.SendAsync(requestMessage);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var data = await response.Content.ReadAsStringAsync();
+          
+            var regnskaper = JsonConvert.DeserializeObject<List<BrregRegnskap>>(data);
+            return regnskaper?.Select(MapToAccountsInformationYear).ToList();
+        }
+        else
+            return null;
+    }
+
 
     public async Task<List<BREntityRegisterEntry>> GetFromBr(string organization, bool? includeSubunits, bool skipCache = false)
     {
@@ -345,5 +402,56 @@ public class BrregService(
         }
 
         return result;
+    }
+
+    private static AccountsInformationYear MapToAccountsInformationYear(BrregRegnskap r)
+    {
+        var dr = r.ResultatregnskapResultat?.Driftsresultat;
+        var fr = r.ResultatregnskapResultat?.Finansresultat;
+        var ei = r.Eiendeler;
+        var ek = r.EgenkapitalGjeld?.Egenkapital;
+        var gj = r.EgenkapitalGjeld?.GjeldOversikt;
+
+        return new AccountsInformationYear
+        {
+            FraDato = r.Regnskapsperiode?.FraDato ?? DateTime.MinValue,
+            TilDato = r.Regnskapsperiode?.TilDato ?? DateTime.MinValue,
+
+            Salgsinntekter = dr?.Driftsinntekter?.Salgsinntekter ?? 0,
+            SumDriftsinntekter = dr?.Driftsinntekter?.SumDriftsinntekter ?? 0,
+            Loennskostnad = dr?.Driftskostnad?.Loennskostnad ?? 0,
+            SumDriftskostnad = dr?.Driftskostnad?.SumDriftskostnad ?? 0,
+            Driftsresultat = dr?.Driftsresultat ?? 0,
+
+            SumFinansinntekter = fr?.Finansinntekt?.SumFinansinntekter ?? 0,
+            RentekostnadSammeKonsern = fr?.Finanskostnad?.RentekostnadSammeKonsern ?? 0,
+            AnnenRentekostnad = fr?.Finanskostnad?.AnnenRentekostnad ?? 0,
+            SumFinanskostnad = fr?.Finanskostnad?.SumFinanskostnad ?? 0,
+            NettoFinans = fr?.NettoFinans ?? 0,
+
+            OrdinaertResultatFoerSkattekostnad = r.ResultatregnskapResultat?.OrdinaertResultatFoerSkattekostnad ?? 0,
+            OrdinaertResultatSkattekostnad = r.ResultatregnskapResultat?.OrdinaertResultatSkattekostnad ?? 0,
+            EkstraordinaerePoster = r.ResultatregnskapResultat?.EkstraordinaerePoster ?? 0,
+            SkattekostnadEkstraordinaertResultat = r.ResultatregnskapResultat?.SkattekostnadEkstraordinaertResultat ?? 0,
+            Aarsresultat = r.ResultatregnskapResultat?.Aarsresultat ?? 0,
+            Totalresultat = r.ResultatregnskapResultat?.Totalresultat ?? 0,
+
+            Goodwill = ei?.Goodwill ?? 0,
+            SumAnleggsmidler = ei?.Anleggsmidler?.SumAnleggsmidler ?? 0,
+            SumVarer = ei?.SumVarer ?? 0,
+            SumFordringer = ei?.SumFordringer ?? 0,
+            SumInvesteringer = ei?.SumInvesteringer ?? 0,
+            SumBankinnskuddOgKontanter = ei?.SumBankinnskuddOgKontanter ?? 0,
+            SumOmloepsmidler = ei?.Omloepsmidler?.SumOmloepsmidler ?? 0,
+            SumEiendeler = ei?.SumEiendeler ?? 0,
+
+            SumInnskuttEgenkapital = ek?.InnskuttEgenkapital?.SumInnskuttEgenkaptial ?? 0,
+            SumOpptjentEgenkapital = ek?.OpptjentEgenkapital?.SumOpptjentEgenkapital ?? 0,
+            SumEgenkapital = ek?.SumEgenkapital ?? 0,
+            SumLangsiktigGjeld = gj?.LangsiktigGjeld?.SumLangsiktigGjeld ?? 0,
+            SumKortsiktigGjeld = gj?.KortsiktigGjeld?.SumKortsiktigGjeld ?? 0,
+            SumGjeld = gj?.SumGjeld ?? 0,
+            SumEgenkapitalGjeld = r.EgenkapitalGjeld?.SumEgenkapitalGjeld ?? 0,
+        };
     }
 }

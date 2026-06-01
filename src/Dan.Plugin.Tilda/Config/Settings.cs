@@ -75,5 +75,8 @@ namespace Dan.Plugin.Tilda.Config
                 return TildaP9List;
             }
         }
+
+        public string RRUserName { get; set; }
+        public string RRPassword { get; set; }
     }
 }

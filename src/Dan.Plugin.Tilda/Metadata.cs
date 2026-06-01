@@ -90,6 +90,7 @@ namespace Dan.Plugin.Tilda
             {
                 a.AddRange(GetTildaMeldingTilAnnenMyndighetMetadata());
             }
+            a.AddRange(GetTildaOkonomiskVurderingMetadata());
 
             return a;
         }
@@ -122,6 +123,34 @@ namespace Dan.Plugin.Tilda
                         EvidenceParamName = "internTilsynsId",
                         ParamType = EvidenceParamType.String,
                         Required = true
+                    }
+                }
+            };
+
+            return new List<EvidenceCode>()
+            {
+                a
+            };
+        }
+        private static IEnumerable<EvidenceCode> GetTildaOkonomiskVurderingMetadata()
+        {
+            var a = new EvidenceCode()
+            {
+                Description = "TildaOkonomiskVurderingV1",
+                EvidenceCodeName = "TildaOkonomiskVurderingV1",
+                EvidenceSource = "Tilda",
+                IsAsynchronous = false,
+                BelongsToServiceContexts = belongsToTilda,
+                MaxValidDays = 365,
+                AuthorizationRequirements = GetTildaAuthRequirements<ITildaPdfReport>(),
+                Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
+                Values = new List<EvidenceValue>()
+                {
+                    new EvidenceValue()
+                    {
+                        EvidenceValueName = "default",
+                        Source = "Tilda",
+                        ValueType = EvidenceValueType.JsonSchema
                     }
                 }
             };
