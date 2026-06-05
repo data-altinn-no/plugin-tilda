@@ -147,39 +147,11 @@ public class AuditReportFunctions(
         {
             try
             {
-                var taskList = new List<Task<TildaRegistryEntry>>();
-
                 if (result.AuditReports != null)
                 {
-                    var distinctList = result.AuditReports.GroupBy(x => x.ControlObject).Select(y => y.FirstOrDefault())
-                        .ToList();
-                    taskList.AddRange(distinctList.Select(item => GetOrganizationFromBr(item.ControlObject, param)));
+                    var distinctOrgs = result.AuditReports.Select(x => x.ControlObject).Distinct().ToList();
+                    brResults.AddRange(await GetOrganizationsFromBrBounded(distinctOrgs, param, logger));
                 }
-
-                var taskResult = Task.WhenAll(taskList);
-                try
-                {
-                    await taskResult;
-                }
-                catch (Exception)
-                {
-                    // Don't want one failed fetch to break the listing of the rest of the orgs
-                    if (taskResult.IsFaulted)
-                    {
-                        var failedTasks = taskList.Where(task => task.IsFaulted).ToList();
-                        foreach (var task in failedTasks)
-                        {
-                            logger.LogError(task.Exception, task.Exception?.Message);
-                        }
-
-                        taskList = taskList.Where(task => !task.IsFaulted).ToList();
-                    }
-                }
-
-                taskList = taskList
-                    .Where(task => task.Result is not null)
-                    .ToList();
-                brResults.AddRange(taskList.Select(t => t.Result));
             }
             catch (Exception ex)
             {
