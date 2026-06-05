@@ -106,12 +106,22 @@ var host = new HostBuilder()
 
         services.AddSingleton<ITildaSourceProvider, TildaSourceProvider>();
 
-        // Per-host circuit breaker on the data source client: each upstream authority
-        // (scheme://host:port) gets its own breaker state, so a failing tilsynsmyndighet
-        // fails fast without affecting calls to the other sources. Appends to Dan.Common's
-        // SafeHttpClient registration; its registry-based circuit breaker policy is replaced
-        // with a no-op after host build below.
+        // Appends to Dan.Common's SafeHttpClient registration (its registry-based circuit
+        // breaker policy is replaced with a no-op after host build below):
+        //
+        // - Pooled connection lifetime: TildaDataSource instances are captured by the singleton
+        //   TildaSourceProvider, so their HttpClients (and handler chains) live for the process
+        //   lifetime and the factory's handler rotation never applies. Recycling pooled
+        //   connections ensures upstream DNS changes (failover, traffic manager) are picked up.
+        //
+        // - Per-host circuit breaker: each upstream authority (scheme://host:port) gets its own
+        //   breaker state, so a failing tilsynsmyndighet fails fast without affecting calls to
+        //   the other sources.
         services.AddHttpClient("SafeHttpClient")
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            })
             .AddResilienceHandler("per-host-breaker", builder =>
             {
                 builder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
@@ -123,6 +133,13 @@ var host = new HostBuilder()
                 });
             })
             .SelectPipelineByAuthority();
+
+        // Also held for the process lifetime by the singleton-captured TildaDataSources
+        services.AddHttpClient("AlertHttpClient")
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            });
 
         // Client configured without circuit breaker policies. shorter timeout
         services.AddHttpClient("ERHttpClient", client =>

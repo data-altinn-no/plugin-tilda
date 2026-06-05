@@ -37,9 +37,14 @@ public class FilterService : IFilterService
             return resultList;
         }
 
+        var enkOrgs = orgs
+            .Where(x => x.OrganisationForm == "ENK")
+            .Select(x => x.OrganizationNumber)
+            .ToHashSet();
+
         bool IsEnk(string orgNo)
         {
-            return orgs.Any(x => x.OrganizationNumber == orgNo && x.OrganisationForm == "ENK");
+            return enkOrgs.Contains(orgNo);
         }
 
         switch (resultList)

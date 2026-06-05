@@ -158,7 +158,7 @@ public class AuditReportFunctions(
                 logger.LogError("Failed getting TilsynsRapportAlle org data for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
             }
 
-            var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
+            var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToHashSet();
             result.AuditReports =
                 result.AuditReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
         }

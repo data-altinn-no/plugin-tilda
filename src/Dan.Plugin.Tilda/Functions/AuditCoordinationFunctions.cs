@@ -148,7 +148,7 @@ public class AuditCoordinationFunctions(
                 logger.LogError("Failed getting TilsynsKoordineringAlle org info for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
             }
 
-            var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
+            var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToHashSet();
             result.AuditCoordinations =
                 result.AuditCoordinations?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
         }

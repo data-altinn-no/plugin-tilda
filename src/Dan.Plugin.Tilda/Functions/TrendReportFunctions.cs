@@ -153,7 +153,7 @@ public class TrendReportFunctions(
                 logger.LogError("Failed getting TrendRapportAlle org info for org {OrganizationNumber}: {message}", req.OrganizationNumber, ex.Message);
             }
 
-            var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToList();
+            var orgNumbers = brResults.Select(br => br.OrganizationNumber).ToHashSet();
             result.TrendReports =
                 result.TrendReports?.Where(r => orgNumbers.Contains(r.ControlObject)).ToList();
         }
