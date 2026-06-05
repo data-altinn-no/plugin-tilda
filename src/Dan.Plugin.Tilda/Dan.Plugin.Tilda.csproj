@@ -3,6 +3,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <OutputType>Exe</OutputType>
+    <!-- Isolated workers are console apps and default to workstation GC; this workload is
+         allocation-heavy (large JSON payloads fanned out across ~26 sources per request) -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="worker-logging.json" />

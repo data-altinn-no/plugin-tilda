@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Dan.Tilda.Models.Audits;
@@ -31,15 +32,22 @@ public static class HttpClientExtensions
             logger.LogInformation(
                 "Data retrieval started from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor}",
                 sourceOrgNo, url, requestor);
-            var result = await client.SendAsync(request);
+            // Note: buffered send (default completion option) so HttpClient.Timeout covers the
+            // body download; with ResponseHeadersRead a stalled body would hang indefinitely
+            using var result = await client.SendAsync(request);
             logger.LogInformation(
                 "Data retrieval completed from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} status={status}",
                 sourceOrgNo, url, requestor, t.ElapsedMilliseconds, "ok");
 
             if (result.IsSuccessStatusCode)
             {
-                var body = await result.Content.ReadAsStringAsync();
-                resultList = JsonConvert.DeserializeObject<T>(body);
+                // Deserialize from the buffered response stream instead of materializing the body
+                // as a string first; "Alle" payloads are large enough that the intermediate string
+                // (~2x payload size) would land on the large object heap
+                await using var stream = await result.Content.ReadAsStreamAsync();
+                using var streamReader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(streamReader);
+                resultList = JsonSerializer.CreateDefault().Deserialize<T>(jsonReader);
                 if (resultList == null)
                 {
                     resultList = new T();
@@ -111,7 +119,7 @@ public static class HttpClientExtensions
 
             logger.LogInformation("Data retrieval started from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor}",
                 sourceOrgNo, url, requestor);
-            var responseMessage = await client.SendAsync(request);
+            using var responseMessage = await client.SendAsync(request);
             logger.LogInformation(
                 "Data retrieval completed from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} status={status}",
                 sourceOrgNo, url, requestor, t.ElapsedMilliseconds, "ok");
