@@ -68,6 +68,10 @@ public static class HttpClientExtensions
         }
         catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
+            resultList.SetStatusAndTextAndOwner(
+                $"Failed: timeout when retrieving data from {sourceOrgNo}. ElapsedMs: {t.ElapsedMilliseconds}",
+                StatusEnum.Failed, sourceOrgNo);
+
             logger.LogError("Timeout when fetching data sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} ex={ex} message={message} status={status}",
                 sourceOrgNo, url, requestor, t.ElapsedMilliseconds, ex.GetType().Name, ex.Message, "hardfail");
         }

@@ -60,7 +60,6 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
     {
         var brResult = await brregService.GetFromBr(organizationNumber, false);
         var brEntity = brResult.First();
-        AccountsInformation accountsInformation = null;
 
         // Filters out on parameters, currently only on "geo search" params
         if (!brEntity.MatchesFilterParameters(tildaParameters))
@@ -68,12 +67,14 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
             return null;
         }
 
-        if (brEntity.Organisasjonsform?.Kode != "ENK")
-        {
-            accountsInformation = await brregService.GetAnnualTurnoverFromBr(organizationNumber);
-        }
-
-        var kofuviAddresses = await brregService.GetKofuviAddresses(organizationNumber);
+        // Annual turnover and kofuvi addresses are independent lookups, fetch them in parallel
+        var accountsTask = brEntity.Organisasjonsform?.Kode != "ENK"
+            ? brregService.GetAnnualTurnoverFromBr(organizationNumber)
+            : Task.FromResult<AccountsInformation>(null);
+        var kofuviTask = brregService.GetKofuviAddresses(organizationNumber);
+        await Task.WhenAll(accountsTask, kofuviTask);
+        var accountsInformation = accountsTask.Result;
+        var kofuviAddresses = kofuviTask.Result;
 
         var organization = ConvertBRtoTilda(brEntity, accountsInformation);
         if (kofuviAddresses.Count > 0)
@@ -124,13 +125,15 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
         var result = new List<TildaRegistryEntry>();
         var brResult = await brregService.GetFromBr(organizationNumber, false);
         var brEntity = brResult.First();
-        AccountsInformation accountsInformation = null;
-        if (string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform?.Kode != "ENK")
-        {
-            accountsInformation = await brregService.GetAnnualTurnoverFromBr(organizationNumber);
-        }
 
-        var kofuviAddresses = await brregService.GetKofuviAddresses(organizationNumber);
+        // Annual turnover and kofuvi addresses are independent lookups, fetch them in parallel
+        var accountsTask = string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform?.Kode != "ENK"
+            ? brregService.GetAnnualTurnoverFromBr(organizationNumber)
+            : Task.FromResult<AccountsInformation>(null);
+        var kofuviTask = brregService.GetKofuviAddresses(organizationNumber);
+        await Task.WhenAll(accountsTask, kofuviTask);
+        var accountsInformation = accountsTask.Result;
+        var kofuviAddresses = kofuviTask.Result;
 
         var organization = ConvertBRtoTilda(brEntity, accountsInformation);
         if (kofuviAddresses.Count > 0)
