@@ -22,9 +22,6 @@ namespace Dan.Plugin.Tilda.Config
 
         public bool IsLocalDevelopment { get; set; }
 
-        public string Breaker_RetryWaitTime { get; set; }
-        public string Breaker_OpenCircuitTime { get; set; }
-
         public string KofuviEndpoint { get; set; }
         public string KvName { get; set; }
         public string KvKofuviCertificateName { get; set; }

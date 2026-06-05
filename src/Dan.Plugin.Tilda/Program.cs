@@ -5,9 +5,7 @@ using Dan.Plugin.Tilda;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Polly;
-using Polly.Extensions.Http;
 using Polly.Registry;
 using System;
 using System.Linq;
@@ -41,7 +39,9 @@ var host = new HostBuilder()
         var configurationRoot = context.Configuration;
         services.Configure<Settings>(configurationRoot);
 
-        var settings = services.BuildServiceProvider().GetRequiredService<IOptions<Settings>>().Value;
+        // Bind a local copy for use during service registration, without building an
+        // intermediate service provider (which would construct duplicate singletons)
+        var settings = configurationRoot.Get<Settings>();
 
         DefaultAzureCredential credentials = new();
         services.AddSingleton(credentials);
@@ -105,9 +105,6 @@ var host = new HostBuilder()
 
         services.AddSingleton<ITildaSourceProvider, TildaSourceProvider>();
 
-        var policyRegistry = services.BuildServiceProvider().GetRequiredService<IPolicyRegistry<string>>();
-        policyRegistry.Add("defaultCircuitBreaker", HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(4, TimeSpan.Parse(settings.Breaker_RetryWaitTime)));
-
         // Client configured without circuit breaker policies. shorter timeout
         services.AddHttpClient("ERHttpClient", client =>
         {
@@ -139,5 +136,12 @@ var host = new HostBuilder()
         });
     })
     .Build();
+
+// Dan.Common wires SafeHttpClient/PluginHttpClient with a single circuit breaker whose state is
+// shared across all upstream hosts, meaning a few failures from one tilsynsmyndighet would open
+// the circuit for every other source. Replace it with a no-op; failures are handled gracefully
+// per source (Failed status in GetData) and bounded by the SafeHttpClientTimeout app setting.
+host.Services.GetRequiredService<IPolicyRegistry<string>>()["SafeHttpClientPolicy"] =
+    Policy.NoOpAsync<HttpResponseMessage>();
 
 await host.RunAsync();
