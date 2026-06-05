@@ -177,6 +177,8 @@ public class AssessmentResult
     public string Recommendation { get; set; } = "";
     public AltmanZScoreResult AltmanZScore { get; set; } = new();
     public IndustryComparison IndustryComparison { get; set; } = new();
+
+    public List<AccountsInformationYear> AccountYearsUsed { get; set; } = new();
 }
 
 /// <summary>
@@ -260,12 +262,13 @@ public class EconomicAssessment
             Level = level,
             Summary = summary,
             Indicators = indicators,
+            AccountYearsUsed = _accounts,
             RiskFactors = riskFactors,
             PositiveFactors = positiveFactors,
             RedFlags = redFlags,
             Recommendation = recommendation,
             AltmanZScore = ComputeAltmanZScore(),
-            IndustryComparison = ComputeIndustryComparison(),
+            //IndustryComparison = ComputeIndustryComparison(),
         };
     }
 
