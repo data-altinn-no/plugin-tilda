@@ -63,7 +63,7 @@ public class BrregService(
             }
 
 
-            var response = await _safeHttpClient.GetAsync(accountsUrl);
+            using var response = await _safeHttpClient.GetAsync(accountsUrl);
             if (!response.IsSuccessStatusCode)
             {
                 return result;
