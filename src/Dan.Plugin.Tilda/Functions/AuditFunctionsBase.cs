@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,11 +10,18 @@ using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Services;
 using Dan.Tilda.Models.Entities;
 using Dan.Tilda.Models.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace Dan.Plugin.Tilda.Functions;
 
 public abstract class AuditFunctionsBase(IBrregService brregService)
 {
+    // Caps the outbound fan-out when enriching "Alle" results with org info from BR.
+    // Each lookup can spawn up to 3 sequential HTTP calls (enheter, regnskap, kofuvi),
+    // so unbounded parallelism over hundreds of orgs risks SNAT port exhaustion and
+    // rate limiting from BR on cold cache.
+    private const int MaxConcurrentBrLookups = 16;
+
     protected static TildaParameters GetValuesFromParameters(EvidenceHarvesterRequest req)
     {
         DateTime? fromDateTime = null;
@@ -52,7 +60,6 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
     {
         var brResult = await brregService.GetFromBr(organizationNumber, false);
         var brEntity = brResult.First();
-        AccountsInformation accountsInformation = null;
 
         // Filters out on parameters, currently only on "geo search" params
         if (!brEntity.MatchesFilterParameters(tildaParameters))
@@ -60,12 +67,14 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
             return null;
         }
 
-        if (brEntity.Organisasjonsform?.Kode != "ENK")
-        {
-            accountsInformation = await brregService.GetAnnualTurnoverFromBr(organizationNumber);
-        }
-
-        var kofuviAddresses = await brregService.GetKofuviAddresses(organizationNumber);
+        // Annual turnover and kofuvi addresses are independent lookups, fetch them in parallel
+        var accountsTask = brEntity.Organisasjonsform?.Kode != "ENK"
+            ? brregService.GetAnnualTurnoverFromBr(organizationNumber)
+            : Task.FromResult<AccountsInformation>(null);
+        var kofuviTask = brregService.GetKofuviAddresses(organizationNumber);
+        await Task.WhenAll(accountsTask, kofuviTask);
+        var accountsInformation = accountsTask.Result;
+        var kofuviAddresses = kofuviTask.Result;
 
         var organization = ConvertBRtoTilda(brEntity, accountsInformation);
         if (kofuviAddresses.Count > 0)
@@ -76,18 +85,55 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
         return organization;
     }
 
+    /// <summary>
+    /// Looks up org info from BR for a set of organization numbers with bounded parallelism.
+    /// Failed lookups are logged and skipped so one failed fetch doesn't break the listing
+    /// of the rest of the orgs. Results filtered out by <paramref name="param"/> are excluded.
+    /// </summary>
+    protected async Task<List<TildaRegistryEntry>> GetOrganizationsFromBrBounded(
+        IEnumerable<string> organizationNumbers, TildaParameters param, ILogger logger)
+    {
+        var results = new ConcurrentBag<TildaRegistryEntry>();
+        await Parallel.ForEachAsync(
+            organizationNumbers.Distinct(),
+            new ParallelOptions { MaxDegreeOfParallelism = MaxConcurrentBrLookups },
+            async (organizationNumber, _) =>
+            {
+                try
+                {
+                    var entry = await GetOrganizationFromBr(organizationNumber, param);
+                    if (entry is not null)
+                    {
+                        results.Add(entry);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed getting org info from BR for org {OrganizationNumber}: {message}",
+                        organizationNumber, ex.Message);
+                }
+            });
+
+        return results
+            .GroupBy(x => x.OrganizationNumber)
+            .Select(y => y.First())
+            .ToList();
+    }
+
     protected async Task<List<TildaRegistryEntry>> GetOrganizationsFromBr(string organizationNumber)
     {
         var result = new List<TildaRegistryEntry>();
         var brResult = await brregService.GetFromBr(organizationNumber, false);
         var brEntity = brResult.First();
-        AccountsInformation accountsInformation = null;
-        if (string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform?.Kode != "ENK")
-        {
-            accountsInformation = await brregService.GetAnnualTurnoverFromBr(organizationNumber);
-        }
 
-        var kofuviAddresses = await brregService.GetKofuviAddresses(organizationNumber);
+        // Annual turnover and kofuvi addresses are independent lookups, fetch them in parallel
+        var accountsTask = string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform?.Kode != "ENK"
+            ? brregService.GetAnnualTurnoverFromBr(organizationNumber)
+            : Task.FromResult<AccountsInformation>(null);
+        var kofuviTask = brregService.GetKofuviAddresses(organizationNumber);
+        await Task.WhenAll(accountsTask, kofuviTask);
+        var accountsInformation = accountsTask.Result;
+        var kofuviAddresses = kofuviTask.Result;
 
         var organization = ConvertBRtoTilda(brEntity, accountsInformation);
         if (kofuviAddresses.Count > 0)

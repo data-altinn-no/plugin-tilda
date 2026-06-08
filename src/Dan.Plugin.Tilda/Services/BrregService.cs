@@ -44,7 +44,7 @@ public class BrregService(
         var result = new AccountsInformation();
         try
         {
-            var accountsUrl = $"http://data.brreg.no/regnskapsregisteret/regnskap/{organizationNumber}";
+            var accountsUrl = $"https://data.brreg.no/regnskapsregisteret/regnskap/{organizationNumber}";
             var cacheKey = $"Tilda-Cache_Absolute_GET_{accountsUrl}";
 
             try
@@ -63,7 +63,12 @@ public class BrregService(
             }
 
 
-            var response = await _safeHttpClient.GetAsync(accountsUrl);
+            using var response = await _safeHttpClient.GetAsync(accountsUrl);
+            if (!response.IsSuccessStatusCode)
+            {
+                return result;
+            }
+
             var rawResult = await response.Content.ReadAsStringAsync();
 
             var tmp = JsonConvert.DeserializeObject<JArray>(rawResult);

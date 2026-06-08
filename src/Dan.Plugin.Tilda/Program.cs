@@ -5,9 +5,8 @@ using Dan.Plugin.Tilda;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Http.Resilience;
 using Polly;
-using Polly.Extensions.Http;
 using Polly.Registry;
 using System;
 using System.Linq;
@@ -41,7 +40,9 @@ var host = new HostBuilder()
         var configurationRoot = context.Configuration;
         services.Configure<Settings>(configurationRoot);
 
-        var settings = services.BuildServiceProvider().GetRequiredService<IOptions<Settings>>().Value;
+        // Bind a local copy for use during service registration, without building an
+        // intermediate service provider (which would construct duplicate singletons)
+        var settings = configurationRoot.Get<Settings>();
 
         DefaultAzureCredential credentials = new();
         services.AddSingleton(credentials);
@@ -105,8 +106,40 @@ var host = new HostBuilder()
 
         services.AddSingleton<ITildaSourceProvider, TildaSourceProvider>();
 
-        var policyRegistry = services.BuildServiceProvider().GetRequiredService<IPolicyRegistry<string>>();
-        policyRegistry.Add("defaultCircuitBreaker", HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(4, TimeSpan.Parse(settings.Breaker_RetryWaitTime)));
+        // Appends to Dan.Common's SafeHttpClient registration (its registry-based circuit
+        // breaker policy is replaced with a no-op after host build below):
+        //
+        // - Pooled connection lifetime: TildaDataSource instances are captured by the singleton
+        //   TildaSourceProvider, so their HttpClients (and handler chains) live for the process
+        //   lifetime and the factory's handler rotation never applies. Recycling pooled
+        //   connections ensures upstream DNS changes (failover, traffic manager) are picked up.
+        //
+        // - Per-host circuit breaker: each upstream authority (scheme://host:port) gets its own
+        //   breaker state, so a failing tilsynsmyndighet fails fast without affecting calls to
+        //   the other sources.
+        services.AddHttpClient("SafeHttpClient")
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            })
+            .AddResilienceHandler("per-host-breaker", builder =>
+            {
+                builder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+                {
+                    FailureRatio = 0.5,                          // open when >=50% of calls fail...
+                    MinimumThroughput = 8,                       // ...but only with enough samples (no tripping on a single blip)
+                    SamplingDuration = TimeSpan.FromSeconds(30), // failure ratio measured over this window
+                    BreakDuration = TimeSpan.FromSeconds(20),    // fail fast for 20s, then probe again
+                });
+            })
+            .SelectPipelineByAuthority();
+
+        // Also held for the process lifetime by the singleton-captured TildaDataSources
+        services.AddHttpClient("AlertHttpClient")
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            });
 
         // Client configured without circuit breaker policies. shorter timeout
         services.AddHttpClient("ERHttpClient", client =>
@@ -139,5 +172,13 @@ var host = new HostBuilder()
         });
     })
     .Build();
+
+// Dan.Common wires SafeHttpClient/PluginHttpClient with a single circuit breaker whose state is
+// shared across all upstream hosts, meaning a few failures from one tilsynsmyndighet would open
+// the circuit for every other source. Replace it with a no-op; the per-host circuit breaker
+// registered above provides fail-fast per upstream instead, and calls are bounded by the
+// SafeHttpClientTimeout app setting.
+host.Services.GetRequiredService<IPolicyRegistry<string>>()["SafeHttpClientPolicy"] =
+    Policy.NoOpAsync<HttpResponseMessage>();
 
 await host.RunAsync();

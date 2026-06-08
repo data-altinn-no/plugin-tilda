@@ -22,9 +22,6 @@ namespace Dan.Plugin.Tilda.Config
 
         public bool IsLocalDevelopment { get; set; }
 
-        public string Breaker_RetryWaitTime { get; set; }
-        public string Breaker_OpenCircuitTime { get; set; }
-
         public string KofuviEndpoint { get; set; }
         public string KvName { get; set; }
         public string KvKofuviCertificateName { get; set; }
@@ -42,14 +39,14 @@ namespace Dan.Plugin.Tilda.Config
         private static X509Certificate2 _kofuviCertificate { get; set; }
         public static X509Certificate2 KofuviCertificate
         {
-            get => _kofuviCertificate ?? new KeyVault(KeyVaultName).GetCertificate(KofuviCertificateName).Result;
+            get => _kofuviCertificate ??= new KeyVault(KeyVaultName).GetCertificate(KofuviCertificateName).Result;
             set => _kofuviCertificate = value;
         }
 
         private X509Certificate2 _digdirCertificate { get; set; }
         public X509Certificate2 DigdirCertificate
         {
-            get => _digdirCertificate ?? new KeyVault(KeyVaultName).GetCertificate(DigdirCertificateName).Result;
+            get => _digdirCertificate ??= new KeyVault(KeyVaultName).GetCertificate(DigdirCertificateName).Result;
             set => _digdirCertificate = value;
         }
 
