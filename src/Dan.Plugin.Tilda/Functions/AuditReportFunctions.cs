@@ -54,7 +54,7 @@ public class AuditReportFunctions(
 
     private async Task<List<EvidenceValue>> GetEvidenceValuesTilsynsrapport(EvidenceHarvesterRequest req, TildaParameters param)
     {
-        var brResultTask = GetOrganizationsFromBr(req.OrganizationNumber);
+        var brResultTask = GetOrganizationsFromBr(req.OrganizationNumber, logger);
 
         var taskList = new List<Task<AuditReportList>>();
         try
@@ -72,6 +72,7 @@ public class AuditReportFunctions(
 
         await Task.WhenAll(taskList);
         var brResult = await brResultTask;
+        var orgs = brResult.Organizations;
         var list = new List<AuditReportList>();
 
         foreach (var values in taskList.Select(task => task.Result))
@@ -89,14 +90,14 @@ public class AuditReportFunctions(
 
         var ecb = new EvidenceBuilder(metadata, "TildaTilsynsrapportv1");
 
-        foreach (var unit in brResult)
+        foreach (var unit in orgs)
         {
             ecb.AddEvidenceValue("enhetsinformasjon", JsonConvert.SerializeObject(unit), "Enhetsregisteret", false);
         }
 
         foreach (var a in list)
         {
-            var filtered = (AuditReportList)filterService.FilterAuditList(a, brResult);
+            var filtered = (AuditReportList)filterService.FilterAuditList(a, orgs, brResult.OrgInfoUnavailable);
             ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
         }
 

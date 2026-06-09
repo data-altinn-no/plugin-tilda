@@ -54,7 +54,7 @@ public class TrendReportFunctions(
 
     private async Task<List<EvidenceValue>> GetEvidenceValuesTrend(EvidenceHarvesterRequest req, TildaParameters param)
     {
-        var brResultTask = GetOrganizationsFromBr(req.OrganizationNumber);
+        var brResultTask = GetOrganizationsFromBr(req.OrganizationNumber, logger);
 
         var taskList = new List<Task<TrendReportList>>();
         try
@@ -71,6 +71,7 @@ public class TrendReportFunctions(
 
         await Task.WhenAll(taskList);
         var brResult = await brResultTask;
+        var orgs = brResult.Organizations;
         var list = new List<TrendReportList>();
 
         foreach (var values in taskList.Select(task => task.Result))
@@ -88,14 +89,14 @@ public class TrendReportFunctions(
 
         var ecb = new EvidenceBuilder(metadata, "TildaTrendrapportv1");
 
-        foreach (var unit in brResult)
+        foreach (var unit in orgs)
         {
             ecb.AddEvidenceValue("enhetsinformasjon", JsonConvert.SerializeObject(unit), "Enhetsregisteret", false);
         }
 
         foreach (var a in list)
         {
-            var filtered = (TrendReportList)filterService.FilterAuditList(a, brResult);
+            var filtered = (TrendReportList)filterService.FilterAuditList(a, orgs, brResult.OrgInfoUnavailable);
             ecb.AddEvidenceValue($"tilsynstrendrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
         }
 

@@ -49,10 +49,12 @@ public class BrregService(
 
             try
             {
-                result = await cache.GetValueAsync<AccountsInformation>(cacheKey);
-                if (result is not null)
+                // Don't assign into `result`: a cache miss returns null and would clobber the
+                // empty AccountsInformation the failure paths below return.
+                var cached = await cache.GetValueAsync<AccountsInformation>(cacheKey);
+                if (cached is not null)
                 {
-                    return result;
+                    return cached;
                 }
             }
             catch (Exception e)

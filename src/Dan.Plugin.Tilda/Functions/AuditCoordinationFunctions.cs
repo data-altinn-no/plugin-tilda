@@ -54,7 +54,7 @@ public class AuditCoordinationFunctions(
 
     private async Task<List<EvidenceValue>> GetEvidenceValuesTilsynskoordinering(EvidenceHarvesterRequest req, TildaParameters param)
     {
-        var brResultTask = GetOrganizationsFromBr(req.OrganizationNumber);
+        var brResultTask = GetOrganizationsFromBr(req.OrganizationNumber, logger);
 
         var taskList = new List<Task<AuditCoordinationList>>();
         try
@@ -71,6 +71,7 @@ public class AuditCoordinationFunctions(
 
         await Task.WhenAll(taskList);
         var brResult = await brResultTask;
+        var orgs = brResult.Organizations;
         var list = new List<AuditCoordinationList>();
 
         foreach (var values in taskList.Select(task => task.Result))
@@ -87,10 +88,10 @@ public class AuditCoordinationFunctions(
         }
 
         var ecb = new EvidenceBuilder(metadata, "TildaTilsynskoordineringv1");
-        foreach (var unit in brResult)
+        foreach (var unit in orgs)
             ecb.AddEvidenceValue("enhetsinformasjon", JsonConvert.SerializeObject(unit), "Enhetsregisteret", false);
 
-        foreach (var filtered in list.Select(a => (AuditCoordinationList)filterService.FilterAuditList(a, brResult)))
+        foreach (var filtered in list.Select(a => (AuditCoordinationList)filterService.FilterAuditList(a, orgs, brResult.OrgInfoUnavailable)))
         {
             ecb.AddEvidenceValue("tilsynskoordineringer", JsonConvert.SerializeObject(filtered, Formatting.None), filtered.ControlAgency, false);
         }

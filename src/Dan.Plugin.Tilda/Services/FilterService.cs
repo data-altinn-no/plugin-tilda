@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dan.Plugin.Tilda.Models;
 using Dan.Tilda.Models.Audits;
@@ -12,12 +13,12 @@ namespace Dan.Plugin.Tilda.Services;
 
 public interface IFilterService
 {
-    IAuditList FilterAuditList(IAuditList resultList, List<TildaRegistryEntry> orgs);
+    IAuditList FilterAuditList(IAuditList resultList, List<TildaRegistryEntry> orgs, bool orgInfoUnavailable = false);
 }
 
 public class FilterService : IFilterService
 {
-    public IAuditList FilterAuditList(IAuditList resultList, List<TildaRegistryEntry> orgs)
+    public IAuditList FilterAuditList(IAuditList resultList, List<TildaRegistryEntry> orgs, bool orgInfoUnavailable = false)
     {
         // *** TEMPORARY TILDA FILTERING ***
         // We need to temporarily remove _all_ data from the result list if orgForm is ENK
@@ -25,26 +26,35 @@ public class FilterService : IFilterService
         // - remove meldingTilAnnenMyndighet
         // - remove tilsynsnotater
         // - remove kontaktperson name
-        if (orgs == null || orgs.Count == 0)
+        Func<string, bool> IsEnk;
+
+        if (orgInfoUnavailable)
         {
-            return resultList;
+            // Fail closed: we couldn't determine org forms from BR (e.g. a timeout), so we can't
+            // tell which control objects are ENK. Treat every one as ENK and strip protected
+            // fields rather than risk exposing an ENK's data.
+            IsEnk = _ => true;
         }
-
-        var firstOrg = orgs.First();
-        // If first organization is a specific test organization, disable filtering
-        if (firstOrg.OrganizationNumber == "111111111")
+        else
         {
-            return resultList;
-        }
+            if (orgs == null || orgs.Count == 0)
+            {
+                return resultList;
+            }
 
-        var enkOrgs = orgs
-            .Where(x => x.OrganisationForm == "ENK")
-            .Select(x => x.OrganizationNumber)
-            .ToHashSet();
+            var firstOrg = orgs.First();
+            // If first organization is a specific test organization, disable filtering
+            if (firstOrg.OrganizationNumber == "111111111")
+            {
+                return resultList;
+            }
 
-        bool IsEnk(string orgNo)
-        {
-            return enkOrgs.Contains(orgNo);
+            var enkOrgs = orgs
+                .Where(x => x.OrganisationForm == "ENK")
+                .Select(x => x.OrganizationNumber)
+                .ToHashSet();
+
+            IsEnk = enkOrgs.Contains;
         }
 
         switch (resultList)

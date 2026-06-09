@@ -41,7 +41,7 @@ public class NpdidFunctions(
 
     private async Task<List<EvidenceValue>> GetEvidenceValuesNpdid(EvidenceHarvesterRequest req, TildaParameters param)
     {
-        var brResultTask = GetOrganizationsFromBr(req.OrganizationNumber);
+        var brResultTask = GetOrganizationsFromBr(req.OrganizationNumber, logger);
 
         var taskList = new List<Task<NpdidAuditReportList>>();
         try
@@ -59,6 +59,7 @@ public class NpdidFunctions(
 
         await Task.WhenAll(taskList);
         var brResult = await brResultTask;
+        var orgs = brResult.Organizations;
         var list = new List<NpdidAuditReportList>();
 
         foreach (var task in taskList)
@@ -78,13 +79,13 @@ public class NpdidFunctions(
 
         var ecb = new EvidenceBuilder(metadata, "TildaNPDIDv1");
 
-        foreach (var unit in brResult)
+        foreach (var unit in orgs)
             ecb.AddEvidenceValue("enhetsinformasjon", JsonConvert.SerializeObject(unit), "Enhetsregisteret", false);
         try
         {
             foreach (var a in list)
             {
-                var filtered = (NpdidAuditReportList)filterService.FilterAuditList(a, brResult);
+                var filtered = (NpdidAuditReportList)filterService.FilterAuditList(a, orgs, brResult.OrgInfoUnavailable);
                 ecb.AddEvidenceValue("tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
             }
         }
