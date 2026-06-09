@@ -142,9 +142,12 @@ var host = new HostBuilder()
             });
 
         // Client configured without circuit breaker policies. shorter timeout
+        // brreg's enhetsregisteret normally responds in ~200ms; 10s only trips on a genuine
+        // stall, and a stall here is non-fatal (org info is added-value enrichment, see
+        // AuditFunctionsBase.GetOrganizationsFromBr).
         services.AddHttpClient("ERHttpClient", client =>
         {
-            client.Timeout = new TimeSpan(0, 0, 5);
+            client.Timeout = new TimeSpan(0, 0, 10);
         });
 
         services.AddHttpClient("KofuviClient", client =>

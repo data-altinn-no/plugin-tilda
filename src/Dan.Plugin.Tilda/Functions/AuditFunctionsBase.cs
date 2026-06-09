@@ -120,28 +120,50 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
             .ToList();
     }
 
-    protected async Task<List<TildaRegistryEntry>> GetOrganizationsFromBr(string organizationNumber)
+    /// <summary>
+    /// Result of looking up the requestor's organization info from BR. Org info is added-value
+    /// enrichment, not critical, so a failed/timed-out lookup must never fail the whole request.
+    /// When <see cref="OrgInfoUnavailable"/> is true the caller must fail closed in filtering: we
+    /// can't tell whether the org is an ENK, so protected fields are stripped rather than exposed.
+    /// </summary>
+    protected sealed record BrOrganizationsResult(List<TildaRegistryEntry> Organizations, bool OrgInfoUnavailable);
+
+    protected async Task<BrOrganizationsResult> GetOrganizationsFromBr(string organizationNumber, ILogger logger = null)
     {
-        var result = new List<TildaRegistryEntry>();
-        var brResult = await brregService.GetFromBr(organizationNumber, false);
-        var brEntity = brResult.First();
-
-        // Annual turnover and kofuvi addresses are independent lookups, fetch them in parallel
-        var accountsTask = string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform?.Kode != "ENK"
-            ? brregService.GetAnnualTurnoverFromBr(organizationNumber)
-            : Task.FromResult<AccountsInformation>(null);
-        var kofuviTask = brregService.GetKofuviAddresses(organizationNumber);
-        await Task.WhenAll(accountsTask, kofuviTask);
-        var accountsInformation = accountsTask.Result;
-        var kofuviAddresses = kofuviTask.Result;
-
-        var organization = ConvertBRtoTilda(brEntity, accountsInformation);
-        if (kofuviAddresses.Count > 0)
+        try
         {
-            organization.Emails = kofuviAddresses;
+            var brResult = await brregService.GetFromBr(organizationNumber, false);
+            var brEntity = brResult.FirstOrDefault();
+            if (brEntity is null)
+            {
+                return new BrOrganizationsResult([], OrgInfoUnavailable: true);
+            }
+
+            // Annual turnover and kofuvi addresses are independent lookups, fetch them in parallel
+            var accountsTask = string.IsNullOrEmpty(brEntity.OverordnetEnhet) && brEntity.Organisasjonsform?.Kode != "ENK"
+                ? brregService.GetAnnualTurnoverFromBr(organizationNumber)
+                : Task.FromResult<AccountsInformation>(null);
+            var kofuviTask = brregService.GetKofuviAddresses(organizationNumber);
+            await Task.WhenAll(accountsTask, kofuviTask);
+            var accountsInformation = accountsTask.Result;
+            var kofuviAddresses = kofuviTask.Result;
+
+            var organization = ConvertBRtoTilda(brEntity, accountsInformation);
+            if (kofuviAddresses.Count > 0)
+            {
+                organization.Emails = kofuviAddresses;
+            }
+            return new BrOrganizationsResult([organization], OrgInfoUnavailable: false);
         }
-        result.Add(organization);
-        return result;
+        catch (Exception ex)
+        {
+            // BR org info is added-value enrichment, not critical: never fail the whole request on
+            // its account (e.g. an ERHttpClient timeout throws TaskCanceledException here). Signal
+            // that org info is unavailable so filtering fails closed.
+            logger?.LogError(ex, "Failed getting org info from BR for org {OrganizationNumber}: {message}",
+                organizationNumber, ex.Message);
+            return new BrOrganizationsResult([], OrgInfoUnavailable: true);
+        }
     }
 
     private TildaRegistryEntry ConvertBRtoTilda(BREntityRegisterEntry brResult, AccountsInformation accountsInformation)
