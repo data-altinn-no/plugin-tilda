@@ -106,14 +106,10 @@ var host = new HostBuilder()
 
         services.AddSingleton<ITildaSourceProvider, TildaSourceProvider>();
 
-        // Per-host connection cap shared by every outbound pool below. WSAENOBUFS ("system lacked
-        // sufficient buffer space") is a process-global socket-buffer limit, so it surfaces on
-        // whichever host the worker happens to be dialing when buffers run dry (seen on both
-        // data.brreg.no and maskinporten.no). The per-request fan-out (~26 sources + bounded BR
-        // enrichment) caps a single request, but nothing bounded the pools across concurrent
-        // requests: without this, in-flight requests open connections without limit until the
-        // worker exhausts its buffers. Capping per host turns cross-request overload into
-        // backpressure (requests wait for a free connection) instead of socket exhaustion.
+        // Per-host cap shared by every pool below. The per-request fan-out is bounded, but nothing
+        // bounded the pools across concurrent requests, so connections grew without limit until the
+        // worker hit WSAENOBUFS (process-global socket-buffer exhaustion, seen on both data.brreg.no
+        // and maskinporten.no). Capping per host gives backpressure instead.
         const int maxConnectionsPerHost = 50;
 
         // Appends to Dan.Common's SafeHttpClient registration (its registry-based circuit
@@ -153,12 +149,9 @@ var host = new HostBuilder()
                 MaxConnectionsPerServer = maxConnectionsPerHost,
             });
 
-        // Default (unnamed) factory client. The singleton MaskinportenService takes a plain
-        // HttpClient (its single _client field), which the factory resolves to the default-named
-        // client; that is the pool used for token requests to maskinporten.no. Without this it
-        // would use the factory's default handler: unbounded MaxConnectionsPerServer and, because
-        // the service is a captured singleton, a handler that never recycles (stale DNS on
-        // failover). Bound and recycle it like the rest.
+        // Default (unnamed) client: the singleton MaskinportenService's plain HttpClient resolves
+        // to this, so it's the pool for maskinporten.no token requests. Bound and recycle it like
+        // the rest (otherwise unbounded, and its singleton-captured handler never refreshes DNS).
         services.AddHttpClient(string.Empty)
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {

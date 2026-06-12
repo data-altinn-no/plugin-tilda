@@ -258,8 +258,7 @@ public class BrregService(
             {
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    // Dispose the main-unit response before replacing it so its connection
-                    // is returned to the pool rather than leaking under the fan-out load.
+                    // Dispose before replacing so the connection returns to the pool, not leaks.
                     response.Dispose();
                     response = await _erClient.GetAsync(subUnitUrl);
                     if (response.StatusCode == HttpStatusCode.NotFound)
