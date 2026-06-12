@@ -171,7 +171,7 @@ namespace Dan.Plugin.Tilda.TildaSources
                     _settings.ClientId, "brreg:tilda", null);
                 var message = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
-                var response = await _client.SendAsync(message);
+                using var response = await _client.SendAsync(message);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError(
@@ -220,7 +220,7 @@ namespace Dan.Plugin.Tilda.TildaSources
                     _settings.ClientId, "brreg:tilda", null);
                 var message = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
-                var response = await _client.SendAsync(message);
+                using var response = await _client.SendAsync(message);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError(
@@ -288,7 +288,6 @@ namespace Dan.Plugin.Tilda.TildaSources
             var resiliencePipeline = _pipelineProvider.GetPipeline("alert-pipeline");
             CloudEventFormatter formatter = new JsonEventFormatter();
             var cloudEventContent = cloudEvent.ToHttpContent(ContentMode.Structured, formatter);
-            HttpResponseMessage response;
             await resiliencePipeline.ExecuteAsync(async cancellationToken =>
             {
                 var token = await _maskinportenService.GetToken(_settings.DigdirCertificate, _settings.MaskinportenEnvironment,
@@ -296,7 +295,7 @@ namespace Dan.Plugin.Tilda.TildaSources
                 var message = new HttpRequestMessage(HttpMethod.Post, targetUrl);
                 message.Content = cloudEventContent;
                 message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
-                response = await _alertClient.SendAsync(message, cancellationToken);
+                using var response = await _alertClient.SendAsync(message, cancellationToken);
                 if (!response.IsSuccessStatusCode)
                 {
                     throw new Exception($"Unable to post alert message to {targetUrl}, code {response.StatusCode}, reason: {response.ReasonPhrase}");

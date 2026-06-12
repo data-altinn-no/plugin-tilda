@@ -106,6 +106,12 @@ var host = new HostBuilder()
 
         services.AddSingleton<ITildaSourceProvider, TildaSourceProvider>();
 
+        // Per-host cap shared by every pool below. The per-request fan-out is bounded, but nothing
+        // bounded the pools across concurrent requests, so connections grew without limit until the
+        // worker hit WSAENOBUFS (process-global socket-buffer exhaustion, seen on both data.brreg.no
+        // and maskinporten.no). Capping per host gives backpressure instead.
+        const int maxConnectionsPerHost = 50;
+
         // Appends to Dan.Common's SafeHttpClient registration (its registry-based circuit
         // breaker policy is replaced with a no-op after host build below):
         //
@@ -121,6 +127,7 @@ var host = new HostBuilder()
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                MaxConnectionsPerServer = maxConnectionsPerHost,
             })
             .AddResilienceHandler("per-host-breaker", builder =>
             {
@@ -139,6 +146,17 @@ var host = new HostBuilder()
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                MaxConnectionsPerServer = maxConnectionsPerHost,
+            });
+
+        // Default (unnamed) client: the singleton MaskinportenService's plain HttpClient resolves
+        // to this, so it's the pool for maskinporten.no token requests. Bound and recycle it like
+        // the rest (otherwise unbounded, and its singleton-captured handler never refreshes DNS).
+        services.AddHttpClient(string.Empty)
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                MaxConnectionsPerServer = maxConnectionsPerHost,
             });
 
         // Client configured without circuit breaker policies. shorter timeout
@@ -148,6 +166,11 @@ var host = new HostBuilder()
         services.AddHttpClient("ERHttpClient", client =>
         {
             client.Timeout = new TimeSpan(0, 0, 10);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            MaxConnectionsPerServer = maxConnectionsPerHost,
         });
 
         services.AddHttpClient("KofuviClient", client =>
@@ -156,7 +179,7 @@ var host = new HostBuilder()
             })
         .ConfigurePrimaryHttpMessageHandler(() =>
         {
-            var handler = new HttpClientHandler();
+            var handler = new HttpClientHandler { MaxConnectionsPerServer = maxConnectionsPerHost };
             handler.ClientCertificates.Add(Settings.KofuviCertificate);
             return handler;
         });
