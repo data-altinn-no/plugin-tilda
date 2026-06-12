@@ -106,6 +106,16 @@ var host = new HostBuilder()
 
         services.AddSingleton<ITildaSourceProvider, TildaSourceProvider>();
 
+        // Per-host connection cap shared by every outbound pool below. WSAENOBUFS ("system lacked
+        // sufficient buffer space") is a process-global socket-buffer limit, so it surfaces on
+        // whichever host the worker happens to be dialing when buffers run dry (seen on both
+        // data.brreg.no and maskinporten.no). The per-request fan-out (~26 sources + bounded BR
+        // enrichment) caps a single request, but nothing bounded the pools across concurrent
+        // requests: without this, in-flight requests open connections without limit until the
+        // worker exhausts its buffers. Capping per host turns cross-request overload into
+        // backpressure (requests wait for a free connection) instead of socket exhaustion.
+        const int maxConnectionsPerHost = 50;
+
         // Appends to Dan.Common's SafeHttpClient registration (its registry-based circuit
         // breaker policy is replaced with a no-op after host build below):
         //
@@ -121,6 +131,7 @@ var host = new HostBuilder()
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                MaxConnectionsPerServer = maxConnectionsPerHost,
             })
             .AddResilienceHandler("per-host-breaker", builder =>
             {
@@ -139,6 +150,20 @@ var host = new HostBuilder()
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                MaxConnectionsPerServer = maxConnectionsPerHost,
+            });
+
+        // Default (unnamed) factory client. The singleton MaskinportenService takes a plain
+        // HttpClient (its single _client field), which the factory resolves to the default-named
+        // client; that is the pool used for token requests to maskinporten.no. Without this it
+        // would use the factory's default handler: unbounded MaxConnectionsPerServer and, because
+        // the service is a captured singleton, a handler that never recycles (stale DNS on
+        // failover). Bound and recycle it like the rest.
+        services.AddHttpClient(string.Empty)
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                MaxConnectionsPerServer = maxConnectionsPerHost,
             });
 
         // Client configured without circuit breaker policies. shorter timeout
@@ -148,6 +173,11 @@ var host = new HostBuilder()
         services.AddHttpClient("ERHttpClient", client =>
         {
             client.Timeout = new TimeSpan(0, 0, 10);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            MaxConnectionsPerServer = maxConnectionsPerHost,
         });
 
         services.AddHttpClient("KofuviClient", client =>
@@ -156,7 +186,7 @@ var host = new HostBuilder()
             })
         .ConfigurePrimaryHttpMessageHandler(() =>
         {
-            var handler = new HttpClientHandler();
+            var handler = new HttpClientHandler { MaxConnectionsPerServer = maxConnectionsPerHost };
             handler.ClientCertificates.Add(Settings.KofuviCertificate);
             return handler;
         });

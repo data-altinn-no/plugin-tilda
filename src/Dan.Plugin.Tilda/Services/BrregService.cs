@@ -151,7 +151,7 @@ public class BrregService(
         string responseString;
         try
         {
-            var response = await _kofuviClient.GetAsync(targetUrl);
+            using var response = await _kofuviClient.GetAsync(targetUrl);
             if (!response.IsSuccessStatusCode)
             {
                 //skip logging 404 - just means there are no addresses for this organization and clutters logs
@@ -254,18 +254,28 @@ public class BrregService(
             }
 
             var response = await _erClient.GetAsync(mainUnitUrl);
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            try
             {
-                response = await _erClient.GetAsync(subUnitUrl);
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    throw new EvidenceSourcePermanentClientException(
-                        Metadata.ERROR_ORGANIZATION_NOT_FOUND,
-                        $"{organizationNumber} was not found in the Central Coordinating Register for Legal Entities");
+                    // Dispose the main-unit response before replacing it so its connection
+                    // is returned to the pool rather than leaking under the fan-out load.
+                    response.Dispose();
+                    response = await _erClient.GetAsync(subUnitUrl);
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        throw new EvidenceSourcePermanentClientException(
+                            Metadata.ERROR_ORGANIZATION_NOT_FOUND,
+                            $"{organizationNumber} was not found in the Central Coordinating Register for Legal Entities");
+                    }
                 }
-            }
 
-            rawResult = await response.Content.ReadAsStringAsync();
+                rawResult = await response.Content.ReadAsStringAsync();
+            }
+            finally
+            {
+                response.Dispose();
+            }
         }
         catch (HttpRequestException e)
         {
@@ -319,7 +329,7 @@ public class BrregService(
             }
 
             result = [];
-            var response = await _erClient.GetAsync(url);
+            using var response = await _erClient.GetAsync(url);
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 throw new EvidenceSourcePermanentClientException(
