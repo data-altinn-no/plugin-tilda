@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Dan.Common.Exceptions;
 using Dan.Common.Interfaces;
 using Dan.Common.Models;
@@ -19,6 +14,11 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Dan.Plugin.Tilda.Functions;
 
@@ -54,26 +54,13 @@ public class AuditCoordinationFunctions(
 
     private async Task<List<EvidenceValue>> GetEvidenceValuesTilsynskoordinering(EvidenceHarvesterRequest req, TildaParameters param)
     {
-        var brResultTask = GetOrganizationsFromBr(req.OrganizationNumber, logger);
+        var subject = req.SubjectParty.Id;
+        bool npdid = subject.Length < 9; // Assume npdid if less than 9 digits
 
-        var taskList = new List<Task<AuditCoordinationList>>();
-        try
-        {
-            foreach (var a in tildaSourceProvider.GetRelevantSources<ITildaAuditCoordination>(param.sourceFilter))
-            {
-                taskList.Add(a.GetAuditCoordinationAsync(req, param.fromDate, param.toDate));
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError("{exMessage}",ex.Message);
-        }
-
+        var taskList = GetReportListTasks(req, param, npdid);
         await Task.WhenAll(taskList);
-        var brResult = await brResultTask;
-        var orgs = brResult.Organizations;
-        var list = new List<AuditCoordinationList>();
 
+        var list = new List<AuditCoordinationList>();
         foreach (var values in taskList.Select(task => task.Result))
         {
             if (values.Status is
@@ -86,6 +73,17 @@ public class AuditCoordinationFunctions(
 
             list.Add(values);
         }
+
+        // need to get org number from control object if subject is npdid
+        var orgNumber = npdid ?
+            list.FirstOrDefault()?
+                .AuditCoordinations?
+                .FirstOrDefault()?
+                .ControlObject :
+                subject;
+        var brResultTask = GetOrganizationsFromBr(orgNumber, logger);
+        var brResult = await brResultTask;
+        var orgs = brResult.Organizations;
 
         var ecb = new EvidenceBuilder(metadata, "TildaTilsynskoordineringv1");
         foreach (var unit in orgs)
@@ -158,5 +156,33 @@ public class AuditCoordinationFunctions(
         ecb.AddEvidenceValue($"tilsynskoordineringer", JsonConvert.SerializeObject(filtered, Formatting.None), result.ControlAgency, false);
 
         return ecb.GetEvidenceValues();
+    }
+
+    private List<Task<AuditCoordinationList>> GetReportListTasks(EvidenceHarvesterRequest req, TildaParameters param, bool npdid)
+    {
+        var taskList = new List<Task<AuditCoordinationList>>();
+        try
+        {
+            if (npdid)
+            {
+                foreach (var a in tildaSourceProvider.GetRelevantSources<ITildaNPDIDAuditCoordination>(param.sourceFilter))
+                {
+                    taskList.Add(a.GetAuditCoordinationAsync(req, param.fromDate, param.toDate));
+                }
+            }
+            else
+            {
+                foreach (var a in tildaSourceProvider.GetRelevantSources<ITildaAuditCoordination>(param.sourceFilter))
+                {
+                    taskList.Add(a.GetAuditCoordinationAsync(req, param.fromDate, param.toDate));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("{exMessage}", ex.Message);
+            throw new EvidenceSourcePermanentClientException(1, "Could not create requests for specified sources");
+        }
+        return taskList;
     }
 }

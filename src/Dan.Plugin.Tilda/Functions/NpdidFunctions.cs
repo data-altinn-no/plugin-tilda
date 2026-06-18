@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -48,7 +48,7 @@ public class NpdidFunctions(
         {
             foreach (var a in tildaSourceProvider.GetRelevantSources<ITildaNPDIDAuditReports>(param.sourceFilter))
             {
-                taskList.Add(a.GetNPDIDAuditReportsAsync(req, param.fromDate, param.toDate, param.npdid));
+                taskList.Add(a.GetNPDIDAuditReportsAsync(req, param.fromDate, param.toDate));
             }
         }
         catch (Exception ex)

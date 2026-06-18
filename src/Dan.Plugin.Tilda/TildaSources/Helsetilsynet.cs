@@ -42,7 +42,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         }
 
-        public override string GetUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "")
+        public override string GetUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "")
         {
             string apiUrl = $"{baseUri}/{dataset}/v1/{organizationNumber}/{requestor}";
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Web;
 
 namespace Dan.Plugin.Tilda.Utils;
@@ -12,8 +12,7 @@ public interface IUriFormatter
         string requestor,
         DateTime? fromDate,
         DateTime? toDate,
-        string identifier = "",
-        string npdid = "");
+        string identifier = "");
 
     string GetUriAll(
         string baseUri,
@@ -22,13 +21,12 @@ public interface IUriFormatter
         string month,
         string year,
         string identifier = "",
-        string npdid = "",
         string filter = "");
 }
 
 public class UriFormatter : IUriFormatter
 {
-    public string GetUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "")
+    public string GetUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "")
     {
         string apiUrl = $"{baseUri}/{dataset}/{organizationNumber}?requestor={requestor}";
 
@@ -42,11 +40,6 @@ public class UriFormatter : IUriFormatter
             apiUrl += $"&toDate={((DateTime)toDate).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'", System.Globalization.CultureInfo.CurrentCulture)}";
         }
 
-        if (!string.IsNullOrEmpty(npdid))
-        {
-            apiUrl += $"&npdid={npdid}";
-        }
-
         if (!string.IsNullOrEmpty(identifier))
         {
             apiUrl += $"&id={identifier}";
@@ -55,7 +48,7 @@ public class UriFormatter : IUriFormatter
         return apiUrl;
     }
 
-    public string GetUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier ="",string npdid = "", string filter = "")
+    public string GetUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier ="", string filter = "")
     {
         string apiUrl = $"{baseUri}/{dataset}?requestor={requestor}";
 
@@ -67,11 +60,6 @@ public class UriFormatter : IUriFormatter
         if (!string.IsNullOrEmpty(year))
         {
             apiUrl += $"&aar={year}";
-        }
-
-        if (!string.IsNullOrEmpty(npdid))
-        {
-            apiUrl += $"&npdid={npdid}";
         }
 
         if (!string.IsNullOrEmpty(identifier))
