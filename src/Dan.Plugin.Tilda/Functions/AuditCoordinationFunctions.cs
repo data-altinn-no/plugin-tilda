@@ -75,15 +75,20 @@ public class AuditCoordinationFunctions(
         }
 
         // need to get org number from control object if subject is npdid
+        var orgs = new List<TildaRegistryEntry>();
         var orgNumber = npdid ?
             list.FirstOrDefault()?
                 .AuditCoordinations?
                 .FirstOrDefault()?
                 .ControlObject :
                 subject;
-        var brResultTask = GetOrganizationsFromBr(orgNumber, logger);
-        var brResult = await brResultTask;
-        var orgs = brResult.Organizations;
+        // Only populate orgs if we have a valid orgNumber
+        if(!string.IsNullOrEmpty(orgNumber))
+        {
+            var brResultTask = GetOrganizationsFromBr(orgNumber, logger);
+            var brResult = await brResultTask;
+            orgs = brResult.Organizations;
+        }
 
         var ecb = new EvidenceBuilder(metadata, "TildaTilsynskoordineringv1");
         foreach (var unit in orgs)
