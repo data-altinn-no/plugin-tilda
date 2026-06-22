@@ -627,6 +627,13 @@ namespace Dan.Plugin.Tilda
         {
             var schema = EvidenceValue.SchemaFromObject<AuditCoordination>(Formatting.Indented);
             var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
+            var authRequirements = GetTildaAuthRequirements<ITildaAuditCoordination>();
+            authRequirements.Add(new CustomSubjectRequirement
+            {
+                SubjectRegex = @"^\d{1,8}$",
+                SubjectRegexDescription = "NPDID, up to 8 digits, alternative to organisation number"
+            });
+
 
             var a = new EvidenceCode()
             {
@@ -638,7 +645,7 @@ namespace Dan.Plugin.Tilda
                 RequiredScopes = "brreg:tilda",
                 ServiceContext = "Tilda",
                 MaxValidDays = 365,
-                AuthorizationRequirements = GetTildaAuthRequirements<ITildaAuditCoordination>(),
+                AuthorizationRequirements = authRequirements,
                 Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {
@@ -731,6 +738,12 @@ namespace Dan.Plugin.Tilda
         {
             var schema = EvidenceValue.SchemaFromObject<AuditReportList>(Formatting.Indented);
             var schemaER = EvidenceValue.SchemaFromObject<TildaRegistryEntry>(Formatting.Indented);
+            var authRequirements = GetTildaAuthRequirements<ITildaAuditReports>();
+            authRequirements.Add(new CustomSubjectRequirement
+            {
+                SubjectRegex = @"^\d{1,8}$",
+                SubjectRegexDescription = "NPDID, up to 8 digits, alternative to organisation number"
+            });
 
             var a = new EvidenceCode()
             {
@@ -742,7 +755,7 @@ namespace Dan.Plugin.Tilda
                 RequiredScopes = "brreg:tilda",
                 ServiceContext = "Tilda",
                 MaxValidDays = 365,
-                AuthorizationRequirements = GetTildaAuthRequirements<ITildaAuditReports>(),
+                AuthorizationRequirements = authRequirements,
                 Timeout = TILDA_CANCELLATION_TOKEN_TIMEOUT_SECONDS,
                 Values = new List<EvidenceValue>()
                 {

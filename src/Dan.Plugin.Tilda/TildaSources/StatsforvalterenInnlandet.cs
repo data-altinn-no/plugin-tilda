@@ -37,15 +37,15 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         }
 
-        public override string GetUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "")
+        public override string GetUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "")
         {
             return StatsforvalterenFellestjenester.GetSfUri(baseUri, dataset, organizationNumber, requestor, fromDate,
-                toDate, identifier, npdid);
+                toDate, identifier);
         }
 
-        public override string GetUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "", string npdid = "", string filter = "")
+        public override string GetUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "",string filter = "")
         {
-            return StatsforvalterenFellestjenester.GetSfUriAll(baseUri, dataset, requestor, month, year, identifier, npdid, filter);
+            return StatsforvalterenFellestjenester.GetSfUriAll(baseUri, dataset, requestor, month, year, identifier, filter);
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         }
 
-        public static string GetSfUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "")
+        public static string GetSfUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "")
         {
             string apiUrl = $"{baseUri}/{dataset}/{organizationNumber}?requestor={requestor}";
 
@@ -50,7 +50,7 @@ namespace Dan.Plugin.Tilda.TildaSources
             return apiUrl;
         }
 
-        public static string GetSfUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "", string npdid = "", string filter="")
+        public static string GetSfUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "", string filter="")
         {
             string apiUrl = $"{baseUri}/{dataset}/?requestor={requestor}";
 

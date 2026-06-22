@@ -83,7 +83,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<AuditReportList> GetAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
-            var url = GetUri(BaseUri, AuditReportDatasetName, req.OrganizationNumber, req.Requestor, fromDate,
+            var url = GetUri(BaseUri, AuditReportDatasetName, req.SubjectParty.Id, req.Requestor, fromDate,
                 toDate);
 
             return await _client.GetData<AuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
@@ -91,7 +91,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<AuditReportList> GetAuditReportsAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
-            var url = GetUriAll(BaseUri, AuditReportDatasetName, req.Requestor, month, year, string.Empty, string.Empty, filter);
+            var url = GetUriAll(BaseUri, AuditReportDatasetName, req.Requestor, month, year, string.Empty, filter);
             return await _client.GetData<AuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
@@ -103,31 +103,31 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<TrendReportList> GetDataTrendAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
-            var url = GetUriAll(BaseUri, TrendDatasetName, req.Requestor, month, year, string.Empty, string.Empty, filter);
+            var url = GetUriAll(BaseUri, TrendDatasetName, req.Requestor, month, year, string.Empty, filter);
             return await _client.GetData<TrendReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
         public virtual async Task<AuditCoordinationList> GetAuditCoordinationAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
-            var url = GetUri(BaseUri, CoordinationDatasetName, req.OrganizationNumber, req.Requestor, fromDate, toDate);
+            var url = GetUri(BaseUri, CoordinationDatasetName, req.SubjectParty.Id, req.Requestor, fromDate, toDate);
             return await _client.GetData<AuditCoordinationList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
         public virtual async Task<AuditCoordinationList> GetAuditCoordinationAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
-            var url = GetUriAll(BaseUri, CoordinationDatasetName, req.Requestor, month, year, string.Empty, string.Empty, filter);
+            var url = GetUriAll(BaseUri, CoordinationDatasetName, req.Requestor, month, year, string.Empty, filter);
             return await _client.GetData<AuditCoordinationList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual async Task<NpdidAuditReportList> GetNPDIDAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate, string npdid)
+        public virtual async Task<NpdidAuditReportList> GetNPDIDAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
-            var url = GetUri(BaseUri, NpdidDatasetName, req.OrganizationNumber, req.Requestor, fromDate, toDate, null, npdid);
+            var url = GetUri(BaseUri, NpdidDatasetName, req.SubjectParty.Id, req.Requestor, fromDate, toDate, null);
             return await _client.GetData<NpdidAuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual async Task<NpdidAuditReportList> GetNPDIDAuditReportsAllAsync(EvidenceHarvesterRequest req, string month, string year, string npdid, string filter)
+        public virtual async Task<NpdidAuditReportList> GetNPDIDAuditReportsAllAsync(EvidenceHarvesterRequest req, string month, string year, string filter)
         {
-            var url = GetUriAll(BaseUri, NpdidDatasetName, req.Requestor, month, year, null, npdid);
+            var url = GetUriAll(BaseUri, NpdidDatasetName, req.Requestor, month, year, null, filter);
             return await _client.GetData<NpdidAuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
@@ -137,9 +137,9 @@ namespace Dan.Plugin.Tilda.TildaSources
             return await _client.GetData<AlertMessageList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual string GetUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "", string npdid = "")
+        public virtual string GetUri(string baseUri, string dataset, string organizationNumber, string requestor, DateTime? fromDate, DateTime? toDate, string identifier = "")
         {
-            return _uriFormatter.GetUri(baseUri, dataset, organizationNumber, requestor, fromDate, toDate, null, npdid);
+            return _uriFormatter.GetUri(baseUri, dataset, organizationNumber, requestor, fromDate, toDate, null);
         }
 
         public virtual async Task<byte[]> GetPdfReport(EvidenceHarvesterRequest req, string internTilsynsId)
@@ -148,9 +148,9 @@ namespace Dan.Plugin.Tilda.TildaSources
             return await _client.GetPdfreport(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
-        public virtual string GetUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "", string npdid = "", string filter = "")
+        public virtual string GetUriAll(string baseUri, string dataset, string requestor, string month, string year, string identifier = "", string filter = "")
         {
-            return _uriFormatter.GetUriAll(baseUri, dataset, requestor, month, year, identifier, null, filter);
+            return _uriFormatter.GetUriAll(baseUri, dataset, requestor, month, year, identifier, filter);
         }
 
         public virtual async Task<List<AlertSourceMessage>> GetAlertMessagesAsync(string from)
