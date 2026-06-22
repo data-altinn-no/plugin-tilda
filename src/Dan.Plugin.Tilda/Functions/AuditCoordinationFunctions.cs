@@ -83,18 +83,20 @@ public class AuditCoordinationFunctions(
                 .ControlObject :
                 subject;
         // Only populate orgs if we have a valid orgNumber
+        var orgInfoUnavailable = false;
         if(!string.IsNullOrEmpty(orgNumber))
         {
             var brResultTask = GetOrganizationsFromBr(orgNumber, logger);
             var brResult = await brResultTask;
             orgs = brResult.Organizations;
+            orgInfoUnavailable = brResult.OrgInfoUnavailable;
         }
 
         var ecb = new EvidenceBuilder(metadata, "TildaTilsynskoordineringv1");
         foreach (var unit in orgs)
             ecb.AddEvidenceValue("enhetsinformasjon", JsonConvert.SerializeObject(unit), "Enhetsregisteret", false);
 
-        foreach (var filtered in list.Select(a => (AuditCoordinationList)filterService.FilterAuditList(a, orgs, brResult.OrgInfoUnavailable)))
+        foreach (var filtered in list.Select(a => (AuditCoordinationList)filterService.FilterAuditList(a, orgs, orgInfoUnavailable)))
         {
             ecb.AddEvidenceValue("tilsynskoordineringer", JsonConvert.SerializeObject(filtered, Formatting.None), filtered.ControlAgency, false);
         }
