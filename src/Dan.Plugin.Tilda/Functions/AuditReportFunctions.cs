@@ -84,10 +84,10 @@ public class AuditReportFunctions(
                 .ControlObject :
                 subject;
         // Only populate orgs if we have a valid orgNumber
+        BrOrganizationsResult brResult = new([], OrgInfoUnavailable: false);
         if (!string.IsNullOrEmpty(orgNumber))
         {
-            var brResultTask = GetOrganizationsFromBr(orgNumber, logger);
-            var brResult = await brResultTask;
+            brResult = await GetOrganizationsFromBr(orgNumber, logger);
             orgs = brResult.Organizations;
         }
 
