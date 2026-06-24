@@ -89,6 +89,7 @@ public class AuditReportFunctions(
         {
             brResult = await GetOrganizationsFromBr(orgNumber, logger);
             orgs = brResult.Organizations;
+            orgInfoUnavailable = brResult.OrgInfoUnavailable;
         }
 
         var ecb = new EvidenceBuilder(metadata, "TildaTilsynsrapportv1");
@@ -100,7 +101,7 @@ public class AuditReportFunctions(
 
         foreach (var a in list)
         {
-            var filtered = (AuditReportList)filterService.FilterAuditList(a, orgs, brResult.OrgInfoUnavailable);
+            var filtered = (AuditReportList)filterService.FilterAuditList(a, orgs, orgInfoUnavailable);
             ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(filtered, Formatting.None), a.ControlAgency, false);
         }
 
