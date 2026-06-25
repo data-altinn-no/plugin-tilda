@@ -39,6 +39,15 @@ namespace Dan.Plugin.Tilda.Extensions
 
             return new TildaParameters(fromDateTime, toDateTime, npdid, false, sourceFilter, identifier, filter, year, month, postcode, municipalityNumber, nace);
         }
+
+        // Since Tilda supports NPDID which doesnt follow a strict scheme, we can get requests where scheme is null
+        // and that is okay, we just use the id. If scheme is set, then we don't want to use Id, as the Id will be
+        // formatted like 'scheme:id', so in that case we just pick the organisationnumber. Tilda doesnt support
+        // norwegian ssn (or any individual person) as subject, so don't need to account for that.
+        public static string GetTildaSubject(this EvidenceHarvesterRequest req)
+        {
+            return req.SubjectParty.Scheme is null ? req.SubjectParty.Id : req.SubjectParty.NorwegianOrganizationNumber;
+        }
     }
 }
 
