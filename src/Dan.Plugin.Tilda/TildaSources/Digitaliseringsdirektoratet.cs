@@ -9,7 +9,7 @@ using Polly.Registry;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
-    public class Digitaliseringsdirektoratet : TildaDataSource, ITildaAlertMessage, ITildaPdfReport, ITildaNPDIDAuditReports//, ITildaAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaTrendReportsAll, ITildaAuditCoordinationAll, ITildaAuditReportsAll, ITildaAlertMessage
+    public class Digitaliseringsdirektoratet : TildaDataSource //ITildaAlertMessage, ITildaPdfReport, ITildaNPDIDAuditReports//, ITildaAuditReports, ITildaAuditCoordination, ITildaTrendReports, ITildaTrendReportsAll, ITildaAuditCoordinationAll, ITildaAuditReportsAll, ITildaAlertMessage
     {
 
         private const string orgNo = "991825827";

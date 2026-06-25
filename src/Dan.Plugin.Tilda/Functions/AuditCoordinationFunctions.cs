@@ -8,6 +8,7 @@ using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Services;
 using Dan.Plugin.Tilda.Utils;
 using Dan.Tilda.Models.Audits.Coordination;
+using Dan.Tilda.Models.Audits.Report;
 using Dan.Tilda.Models.Entities;
 using Dan.Tilda.Models.Enums;
 using Microsoft.Azure.Functions.Worker;
@@ -74,6 +75,18 @@ public class AuditCoordinationFunctions(
             list.Add(values);
         }
 
+        var ecb = new EvidenceBuilder(metadata, "TildaTilsynskoordineringv1");
+
+        // If no one supports NPDID, we can basically just return an empty response this early
+        // as there is no use in looking more up without even having a valid org number
+        if (npdid && list.Count == 0)
+        {
+            ecb.AddEvidenceValue("enhetsinformasjon", null, "Enhetsregisteret", false);
+            ecb.AddEvidenceValue($"tilsynskoordineringer", JsonConvert.SerializeObject(new AuditCoordinationList(), Formatting.None), null, false);
+            var emptyResult = ecb.GetEvidenceValues();
+            return emptyResult;
+        }
+
         // need to get org number from control object if subject is npdid
         var orgs = new List<TildaRegistryEntry>();
         var orgNumber = npdid ?
@@ -92,7 +105,6 @@ public class AuditCoordinationFunctions(
             orgInfoUnavailable = brResult.OrgInfoUnavailable;
         }
 
-        var ecb = new EvidenceBuilder(metadata, "TildaTilsynskoordineringv1");
         foreach (var unit in orgs)
             ecb.AddEvidenceValue("enhetsinformasjon", JsonConvert.SerializeObject(unit), "Enhetsregisteret", false);
 
