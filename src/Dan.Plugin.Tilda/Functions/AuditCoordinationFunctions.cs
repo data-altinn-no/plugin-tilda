@@ -54,7 +54,7 @@ public class AuditCoordinationFunctions(
 
     private async Task<List<EvidenceValue>> GetEvidenceValuesTilsynskoordinering(EvidenceHarvesterRequest req, TildaParameters param)
     {
-        var subject = req.SubjectParty.Id;
+        var subject = req.SubjectParty.Scheme is null ? req.SubjectParty.Id : req.SubjectParty.NorwegianOrganizationNumber;
         bool npdid = subject.Length < 9; // Assume npdid if less than 9 digits
 
         var taskList = GetReportListTasks(req, param, npdid);
