@@ -83,7 +83,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<AuditReportList> GetAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
-            var url = GetUri(BaseUri, AuditReportDatasetName, req.SubjectParty.Id, req.Requestor, fromDate,
+            var url = GetUri(BaseUri, AuditReportDatasetName, req.GetTildaSubject(), req.Requestor, fromDate,
                 toDate);
 
             return await _client.GetData<AuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
@@ -109,7 +109,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<AuditCoordinationList> GetAuditCoordinationAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
-            var url = GetUri(BaseUri, CoordinationDatasetName, req.SubjectParty.Id, req.Requestor, fromDate, toDate);
+            var url = GetUri(BaseUri, CoordinationDatasetName, req.GetTildaSubject(), req.Requestor, fromDate, toDate);
             return await _client.GetData<AuditCoordinationList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
@@ -121,7 +121,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<NpdidAuditReportList> GetNPDIDAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
-            var url = GetUri(BaseUri, NpdidDatasetName, req.SubjectParty.Id, req.Requestor, fromDate, toDate, null);
+            var url = GetUri(BaseUri, NpdidDatasetName, req.GetTildaSubject(), req.Requestor, fromDate, toDate, null);
             return await _client.GetData<NpdidAuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 

@@ -54,7 +54,7 @@ public class AuditReportFunctions(
 
     private async Task<List<EvidenceValue>> GetEvidenceValuesTilsynsrapport(EvidenceHarvesterRequest req, TildaParameters param)
     {
-        var subject = req.SubjectParty.Id;
+        var subject = req.GetTildaSubject();
         bool npdid = subject.Length < 9; // Assume npdid if less than 9 digits
 
 
@@ -75,6 +75,18 @@ public class AuditReportFunctions(
             list.Add(values);
         }
 
+        var ecb = new EvidenceBuilder(metadata, "TildaTilsynsrapportv1");
+
+        // If no one supports NPDID, we can basically just return an empty response this early
+        // as there is no use in looking more up without even having a valid org number
+        if (npdid && list.Count == 0)
+        {
+            ecb.AddEvidenceValue("enhetsinformasjon", null, "Enhetsregisteret", false);
+            ecb.AddEvidenceValue($"tilsynsrapporter", JsonConvert.SerializeObject(new AuditReportList(), Formatting.None), null, false);
+            var emptyResult = ecb.GetEvidenceValues();
+            return emptyResult;
+        }
+
         // need to get org number from control object if subject is npdid
         var orgs = new List<TildaRegistryEntry>();
         var orgNumber = npdid ?
@@ -92,8 +104,6 @@ public class AuditReportFunctions(
             orgs = brResult.Organizations;
             orgInfoUnavailable = brResult.OrgInfoUnavailable;
         }
-
-        var ecb = new EvidenceBuilder(metadata, "TildaTilsynsrapportv1");
 
         foreach (var unit in orgs)
         {
