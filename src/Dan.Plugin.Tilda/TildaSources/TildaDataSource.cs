@@ -83,7 +83,8 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<AuditReportList> GetAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
-            var url = GetUri(BaseUri, AuditReportDatasetName, req.SubjectParty.Id, req.Requestor, fromDate,
+            var subject = req.SubjectParty.Scheme is null ? req.SubjectParty.Id : req.SubjectParty.NorwegianOrganizationNumber;
+            var url = GetUri(BaseUri, AuditReportDatasetName, subject, req.Requestor, fromDate,
                 toDate);
 
             return await _client.GetData<AuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
@@ -109,7 +110,8 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<AuditCoordinationList> GetAuditCoordinationAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
-            var url = GetUri(BaseUri, CoordinationDatasetName, req.SubjectParty.Id, req.Requestor, fromDate, toDate);
+            var subject = req.SubjectParty.Scheme is null ? req.SubjectParty.Id : req.SubjectParty.NorwegianOrganizationNumber;
+            var url = GetUri(BaseUri, CoordinationDatasetName, subject, req.Requestor, fromDate, toDate);
             return await _client.GetData<AuditCoordinationList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
@@ -121,7 +123,8 @@ namespace Dan.Plugin.Tilda.TildaSources
 
         public virtual async Task<NpdidAuditReportList> GetNPDIDAuditReportsAsync(EvidenceHarvesterRequest req, DateTime? fromDate, DateTime? toDate)
         {
-            var url = GetUri(BaseUri, NpdidDatasetName, req.SubjectParty.Id, req.Requestor, fromDate, toDate, null);
+            var subject = req.SubjectParty.Scheme is null ? req.SubjectParty.Id : req.SubjectParty.NorwegianOrganizationNumber;
+            var url = GetUri(BaseUri, NpdidDatasetName, subject, req.Requestor, fromDate, toDate, null);
             return await _client.GetData<NpdidAuditReportList>(url, OrganizationNumber, _logger, req.MPToken, req.Requestor);
         }
 
