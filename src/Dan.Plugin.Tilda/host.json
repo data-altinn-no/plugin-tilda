@@ -10,5 +10,11 @@
             "default": "Information",
             "Microsoft": "Warning"
         }
+    },
+    "extensions": {
+        "http": {
+            "maxConcurrentRequests": 80,
+            "maxOutstandingRequests": 1500
+        }
     }
 }
