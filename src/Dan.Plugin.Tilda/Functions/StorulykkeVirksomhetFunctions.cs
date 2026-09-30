@@ -35,32 +35,26 @@ public class StorulykkeVirksomhetFunctions
         return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesStorulykkevirksomhet(evidenceHarvesterRequest));
     }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    // EvidenceSourceResponse.CreateResponse doesn't support methods that don't return a Task. Need to update Common with that functionality first
     private async Task<List<EvidenceValue>> GetEvidenceValuesStorulykkevirksomhet(EvidenceHarvesterRequest evidenceHarvesterRequest)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         var eb = new EvidenceBuilder(_metadata, "TildaStorulykkevirksomhet");
 
-        var a = _settings.TildaP6;
-
-        var b = _settings.TildaP9;
-
+        var p6 = await _settings.GetTildaP6Async();
+        var p9 = await _settings.GetTildaP9Async();
 
         var result = new StorulykkevirksomhetKontroll
         {
             OrganizationNumber = evidenceHarvesterRequest.OrganizationNumber
         };
 
-        if (_settings.TildaP6.Contains(evidenceHarvesterRequest.OrganizationNumber))
+        if (p6.Contains(evidenceHarvesterRequest.OrganizationNumber))
         {
             result.Paragraph6 = true;
         }
 
-        if (_settings.TildaP9.Contains(evidenceHarvesterRequest.OrganizationNumber))
+        if (p9.Contains(evidenceHarvesterRequest.OrganizationNumber))
         {
             result.Paragraph9 = true;
-
         }
 
         eb.AddEvidenceValue("Storulykkevirksomhet", JsonConvert.SerializeObject(result), "Tilda", false);
@@ -77,15 +71,15 @@ public class StorulykkeVirksomhetFunctions
         return await EvidenceSourceResponse.CreateResponse(req, () => GetEvidenceValuesStorulykkevirksomhetAlle(evidenceHarvesterRequest));
     }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    // EvidenceSourceResponse.CreateResponse doesn't support methods that don't return a Task. Need to update Common with that functionality first
     private async Task<List<EvidenceValue>> GetEvidenceValuesStorulykkevirksomhetAlle(EvidenceHarvesterRequest evidenceHarvesterRequest)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         var eb = new EvidenceBuilder(_metadata, "TildaStorulykkevirksomhetAlle");
 
-        eb.AddEvidenceValue("StorulykkevirksomheterParagraf6", JsonConvert.SerializeObject(new StorulykkevirksomhetListe() { Organizations = _settings.TildaP6 }), "Tilda", false);
-        eb.AddEvidenceValue("StorulykkevirksomheterParagraf9", JsonConvert.SerializeObject(new StorulykkevirksomhetListe() { Organizations = _settings.TildaP9 }), "Tilda", false);
+        var p6 = await _settings.GetTildaP6Async();
+        var p9 = await _settings.GetTildaP9Async();
+
+        eb.AddEvidenceValue("StorulykkevirksomheterParagraf6", JsonConvert.SerializeObject(new StorulykkevirksomhetListe() { Organizations = p6 }), "Tilda", false);
+        eb.AddEvidenceValue("StorulykkevirksomheterParagraf9", JsonConvert.SerializeObject(new StorulykkevirksomhetListe() { Organizations = p9 }), "Tilda", false);
 
         return eb.GetEvidenceValues();
     }

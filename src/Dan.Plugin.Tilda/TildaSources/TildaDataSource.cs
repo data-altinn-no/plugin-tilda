@@ -167,7 +167,7 @@ namespace Dan.Plugin.Tilda.TildaSources
             string responseString;
             try
             {
-                var token = await _maskinportenService.GetToken(_settings.DigdirCertificate, _settings.MaskinportenEnvironment,
+                var token = await _maskinportenService.GetToken(await _settings.GetDigdirCertificateAsync(), _settings.MaskinportenEnvironment,
                     _settings.ClientId, "brreg:tilda", null);
                 var message = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
@@ -216,7 +216,7 @@ namespace Dan.Plugin.Tilda.TildaSources
             string responseString;
             try
             {
-                var token = await _maskinportenService.GetToken(_settings.DigdirCertificate, _settings.MaskinportenEnvironment,
+                var token = await _maskinportenService.GetToken(await _settings.GetDigdirCertificateAsync(), _settings.MaskinportenEnvironment,
                     _settings.ClientId, "brreg:tilda", null);
                 var message = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
@@ -290,7 +290,7 @@ namespace Dan.Plugin.Tilda.TildaSources
             var cloudEventContent = cloudEvent.ToHttpContent(ContentMode.Structured, formatter);
             await resiliencePipeline.ExecuteAsync(async cancellationToken =>
             {
-                var token = await _maskinportenService.GetToken(_settings.DigdirCertificate, _settings.MaskinportenEnvironment,
+                var token = await _maskinportenService.GetToken(await _settings.GetDigdirCertificateAsync(), _settings.MaskinportenEnvironment,
                     _settings.ClientId, "brreg:tilda", null);
                 var message = new HttpRequestMessage(HttpMethod.Post, targetUrl);
                 message.Content = cloudEventContent;

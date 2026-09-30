@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
+    <!-- Same aliasing as the main project so Polly.Core 8 exception types resolve unambiguously -->
+    <PackageReference Include="Polly" Version="7.2.4" Aliases="PollyLegacy" />
     <PackageReference Include="FakeItEasy" Version="9.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
     <PackageReference Include="xunit" Version="2.9.3" />

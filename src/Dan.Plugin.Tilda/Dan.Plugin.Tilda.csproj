@@ -8,6 +8,9 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Dan.Plugin.Tilda.Test" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="worker-logging.json" />
   </ItemGroup>
   <ItemGroup>
@@ -27,6 +30,11 @@
     <PackageReference Include="Microsoft.Azure.StackExchangeRedis" Version="3.3.1" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
     <PackageReference Include="Polly.Extensions" Version="8.7.0" />
+    <!-- Dan.Common pulls in legacy Polly 7 (Polly.Extensions.Http / Polly.Caching). It defines the same
+         exception type names (TimeoutRejectedException, BrokenCircuitException) as Polly.Core 8, which
+         the resilience handler actually throws. Alias the legacy assembly so the v8 types resolve
+         unqualified; Program.cs uses PollyLegacy:: for the registry/no-op policy. -->
+    <PackageReference Include="Polly" Version="7.2.4" Aliases="PollyLegacy" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

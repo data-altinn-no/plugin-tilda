@@ -56,6 +56,6 @@ public class StopwatchLog : IDisposable
     {
         Stopwatch.Stop();
         var elapsedMilliseconds = Stopwatch.ElapsedMilliseconds;
-        Logger?.LogInformation("[NadobeTimer] {logtext} elapsedMs={elapsedMs}", Logtext, elapsedMilliseconds);
+        Logger?.LogDebug("[NadobeTimer] {logtext} elapsedMs={elapsedMs}", Logtext, elapsedMilliseconds);
     }
 }

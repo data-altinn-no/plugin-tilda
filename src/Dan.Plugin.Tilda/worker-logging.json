@@ -4,13 +4,9 @@
             "Default": "Information",
             "Dan.Plugin.Tilda": "Information",
             "Microsoft": "Warning",
+            "Polly": "Warning",
             "Function": "Warning",
             "System.Net": "Warning"
-        },
-        "ApplicationInsights": {
-            "SamplingSettings": {
-                "IsEnabled": false
-            }
         }
     }
 }
