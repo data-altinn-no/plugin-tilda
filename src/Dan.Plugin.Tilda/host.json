@@ -1,9 +1,12 @@
 {
     "version": "2.0",
+    "functionTimeout": "00:02:00",
     "logging": {
         "applicationInsights": {
             "samplingSettings": {
-                "isEnabled": false
+                "isEnabled": true,
+                "maxTelemetryItemsPerSecond": 20,
+                "excludedTypes": "Request;Exception"
             }
         },
         "logLevel": {

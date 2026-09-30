@@ -6,6 +6,8 @@ using Dan.Tilda.Models.Audits;
 using Dan.Tilda.Models.Enums;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Polly.CircuitBreaker;
+using Polly.Timeout;
 
 namespace Dan.Plugin.Tilda.Extensions;
 
@@ -29,13 +31,13 @@ public static class HttpClientExtensions
             request.Headers.TryAddWithoutValidation("Accept", "application/json");
             request.Headers.TryAddWithoutValidation("Authorization", "bearer " + mpToken);
 
-            logger.LogInformation(
+            logger.LogDebug(
                 "Data retrieval started from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor}",
                 sourceOrgNo, url, requestor);
             // Note: buffered send (default completion option) so HttpClient.Timeout covers the
             // body download; with ResponseHeadersRead a stalled body would hang indefinitely
             using var result = await client.SendAsync(request);
-            logger.LogInformation(
+            logger.LogDebug(
                 "Data retrieval completed from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} status={status}",
                 sourceOrgNo, url, requestor, t.ElapsedMilliseconds, "ok");
 
@@ -73,6 +75,28 @@ public static class HttpClientExtensions
                     result.ReasonPhrase, "softfail"
                 );
             }
+        }
+        catch (TimeoutRejectedException ex)
+        {
+            // Per-attempt timeout inside the resilience pipeline (no response headers within
+            // SafeHttpClientAttemptTimeoutSeconds). Counted by the per-host circuit breaker.
+            resultList.SetStatusAndTextAndOwner(
+                $"Failed: timeout when retrieving data from {sourceOrgNo}. ElapsedMs: {t.ElapsedMilliseconds}",
+                StatusEnum.Failed, sourceOrgNo);
+
+            logger.LogError("Timeout when fetching data sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} ex={ex} message={message} status={status}",
+                sourceOrgNo, url, requestor, t.ElapsedMilliseconds, ex.GetType().Name, ex.Message, "hardfail");
+        }
+        catch (BrokenCircuitException ex)
+        {
+            // Breaker is open for this authority: fail fast without a network call. Expected and
+            // repeated during an upstream outage, hence Warning rather than Error.
+            resultList.SetStatusAndTextAndOwner(
+                $"Failed: circuit open for {sourceOrgNo}. ElapsedMs: {t.ElapsedMilliseconds}",
+                StatusEnum.Failed, sourceOrgNo);
+
+            logger.LogWarning("Circuit open, skipped fetch sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} ex={ex} message={message} status={status}",
+                sourceOrgNo, url, requestor, t.ElapsedMilliseconds, ex.GetType().Name, ex.Message, "circuit-open");
         }
         catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
@@ -117,10 +141,10 @@ public static class HttpClientExtensions
             request.Headers.TryAddWithoutValidation("Accept", "application/pdf");
             request.Headers.TryAddWithoutValidation("Authorization", "bearer " + mpToken);
 
-            logger.LogInformation("Data retrieval started from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor}",
+            logger.LogDebug("Data retrieval started from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor}",
                 sourceOrgNo, url, requestor);
             using var responseMessage = await client.SendAsync(request);
-            logger.LogInformation(
+            logger.LogDebug(
                 "Data retrieval completed from sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} status={status}",
                 sourceOrgNo, url, requestor, t.ElapsedMilliseconds, "ok");
 
@@ -143,6 +167,11 @@ public static class HttpClientExtensions
                     sourceOrgNo, url, requestor, t.ElapsedMilliseconds, responseMessage.StatusCode.ToString(), responseMessage.ReasonPhrase, "softfail"
                 );
             }
+        }
+        catch (BrokenCircuitException ex)
+        {
+            logger.LogWarning("Circuit open, skipped fetch sourceOrgNo={sourceOrgNo} on url={url} from requestor={requestor} elapsedMs={elapsedMs} ex={ex} message={message} status={status}",
+                sourceOrgNo, url, requestor, t.ElapsedMilliseconds, ex.GetType().Name, ex.Message, "circuit-open");
         }
         catch (Exception ex)
         {
