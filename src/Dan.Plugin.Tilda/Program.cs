@@ -37,6 +37,7 @@ var host = new HostBuilder()
         configuration
             .AddJsonFile("worker-logging.json", optional:true);
     })
+    .ConfigureLogging((context, logging) => logging.Apply(context.Configuration))
     .ConfigureServices((context, services) =>
     {
         // This makes IOption<Settings> available in the DI container.
