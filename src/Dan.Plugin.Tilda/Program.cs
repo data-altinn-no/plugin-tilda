@@ -1,3 +1,5 @@
+extern alias PollyLegacy;
+
 using Dan.Common.Extensions;
 using Dan.Common.Interfaces;
 using Dan.Common.Services;
@@ -7,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
-using Polly.Registry;
 using System;
 using System.Linq;
 using System.Net.Http;
@@ -25,6 +26,8 @@ using Dan.Plugin.Tilda.Utils;
 using Microsoft.Azure.Cosmos.Fluent;
 using Polly.Retry;
 using StackExchange.Redis;
+using Dan.Plugin.Tilda.Config;
+using Microsoft.Extensions.Options;
 using Settings = Dan.Plugin.Tilda.Config.Settings;
 
 var host = new HostBuilder()
@@ -34,6 +37,7 @@ var host = new HostBuilder()
         configuration
             .AddJsonFile("worker-logging.json", optional:true);
     })
+    .ConfigureLogging((context, logging) => logging.Apply(context.Configuration))
     .ConfigureServices((context, services) =>
     {
         // This makes IOption<Settings> available in the DI container.
@@ -46,6 +50,25 @@ var host = new HostBuilder()
 
         DefaultAzureCredential credentials = new();
         services.AddSingleton(credentials);
+
+        // Certificates and the P6/P9 lists are loaded lazily from Key Vault through a
+        // thread-safe async cache on Settings (see Settings/CachedSecret), sharing this
+        // credential instead of probing a fresh DefaultAzureCredential per read.
+        services.PostConfigure<Settings>(s => s.SecretStore = new KeyVault(s.KvName, credentials));
+
+        // Dan.Common applies SafeHttpClientTimeout (default 30s) as HttpClient.Timeout on
+        // SafeHttpClient. The per-attempt timeout inside the resilience pipeline must be strictly
+        // shorter, otherwise the outer cancellation fires first and the breaker never sees the
+        // failure (which is exactly the production behaviour this guards against).
+        var safeHttpClientTimeoutSeconds = int.TryParse(configurationRoot["SafeHttpClientTimeout"], out var configuredTimeout)
+            ? configuredTimeout
+            : 30;
+        if (settings.SafeHttpClientAttemptTimeoutSeconds <= 0 ||
+            settings.SafeHttpClientAttemptTimeoutSeconds >= safeHttpClientTimeoutSeconds)
+        {
+            throw new InvalidOperationException(
+                $"SafeHttpClientAttemptTimeoutSeconds ({settings.SafeHttpClientAttemptTimeoutSeconds}) must be > 0 and < SafeHttpClientTimeout ({safeHttpClientTimeoutSeconds})");
+        }
         // In case of still using access key (or local redis),
         if (settings.RedisConnectionString.Contains("password=") ||
             settings.RedisConnectionString.Contains("127.0.0.1"))
@@ -120,26 +143,17 @@ var host = new HostBuilder()
         //   lifetime and the factory's handler rotation never applies. Recycling pooled
         //   connections ensures upstream DNS changes (failover, traffic manager) are picked up.
         //
-        // - Per-host circuit breaker: each upstream authority (scheme://host:port) gets its own
-        //   breaker state, so a failing tilsynsmyndighet fails fast without affecting calls to
-        //   the other sources.
+        // - Per-host circuit breaker with an inner per-attempt timeout: each upstream authority
+        //   (scheme://host:port) gets its own breaker state, so a failing tilsynsmyndighet fails
+        //   fast without affecting calls to the other sources. See SafeHttpClientResilience for
+        //   why the timeout has to live inside the pipeline.
         services.AddHttpClient("SafeHttpClient")
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 PooledConnectionLifetime = TimeSpan.FromMinutes(5),
                 MaxConnectionsPerServer = maxConnectionsPerHost,
             })
-            .AddResilienceHandler("per-host-breaker", builder =>
-            {
-                builder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
-                {
-                    FailureRatio = 0.5,                          // open when >=50% of calls fail...
-                    MinimumThroughput = 8,                       // ...but only with enough samples (no tripping on a single blip)
-                    SamplingDuration = TimeSpan.FromSeconds(30), // failure ratio measured over this window
-                    BreakDuration = TimeSpan.FromSeconds(20),    // fail fast for 20s, then probe again
-                });
-            })
-            .SelectPipelineByAuthority();
+            .AddPerHostResilience(TimeSpan.FromSeconds(settings.SafeHttpClientAttemptTimeoutSeconds));
 
         // Also held for the process lifetime by the singleton-captured TildaDataSources
         services.AddHttpClient("AlertHttpClient")
@@ -177,10 +191,16 @@ var host = new HostBuilder()
             {
                 client.Timeout = new TimeSpan(0, 0, 5);
             })
-        .ConfigurePrimaryHttpMessageHandler(() =>
+        .ConfigurePrimaryHttpMessageHandler(sp =>
         {
+            // Runs on each handler rotation (BrregService is transient, so the factory's 2-min
+            // rotation applies). The certificate is a cache hit after the first load; blocking
+            // here is acceptable because handler creation is synchronous by contract and the
+            // isolated worker has no synchronization context.
+            var certificate = sp.GetRequiredService<IOptions<Settings>>().Value
+                .GetKofuviCertificateAsync().GetAwaiter().GetResult();
             var handler = new HttpClientHandler { MaxConnectionsPerServer = maxConnectionsPerHost };
-            handler.ClientCertificates.Add(Settings.KofuviCertificate);
+            handler.ClientCertificates.Add(certificate);
             return handler;
         });
 
@@ -202,9 +222,10 @@ var host = new HostBuilder()
 // Dan.Common wires SafeHttpClient/PluginHttpClient with a single circuit breaker whose state is
 // shared across all upstream hosts, meaning a few failures from one tilsynsmyndighet would open
 // the circuit for every other source. Replace it with a no-op; the per-host circuit breaker
-// registered above provides fail-fast per upstream instead, and calls are bounded by the
-// SafeHttpClientTimeout app setting.
-host.Services.GetRequiredService<IPolicyRegistry<string>>()["SafeHttpClientPolicy"] =
-    Policy.NoOpAsync<HttpResponseMessage>();
+// registered above provides fail-fast per upstream instead. Calls are bounded primarily by the
+// per-attempt timeout inside that pipeline (SafeHttpClientAttemptTimeoutSeconds), with the
+// SafeHttpClientTimeout app setting (HttpClient.Timeout) as the outer backstop for stalled bodies.
+host.Services.GetRequiredService<PollyLegacy::Polly.Registry.IPolicyRegistry<string>>()["SafeHttpClientPolicy"] =
+    PollyLegacy::Polly.Policy.NoOpAsync<HttpResponseMessage>();
 
 await host.RunAsync();

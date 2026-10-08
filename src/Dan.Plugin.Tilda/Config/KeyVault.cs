@@ -1,47 +1,49 @@
-﻿using System;
+using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Azure.Identity;
+using Azure.Core;
 using Azure.Security.KeyVault.Secrets;
 
 namespace Dan.Plugin.Tilda.Config;
 
-public class KeyVault
+public interface ISecretStore
 {
-    private SecretClient SecretClient { get; }
+    /// <summary>Get a secret value by name.</summary>
+    Task<string> GetSecretAsync(string name);
 
-    /// <summary>
-    /// Key Vault for Core
-    /// </summary>
-    /// <param name="vaultName">Name of the Key Vault</param>
-    public KeyVault(string vaultName)
+    /// <summary>Get a certificate stored as a base64 PKCS#12 secret.</summary>
+    Task<X509Certificate2> GetCertificateAsync(string name);
+}
+
+/// <summary>
+/// Key Vault-backed secret store. Takes the process-wide TokenCredential so it shares the
+/// credential chain and token cache with everything else instead of probing a fresh
+/// DefaultAzureCredential on every read.
+/// </summary>
+public sealed class KeyVault : ISecretStore
+{
+    private readonly SecretClient _client;
+
+    public KeyVault(string vaultName, TokenCredential credential)
     {
-        SecretClient = new SecretClient(new Uri($"https://{vaultName}.vault.azure.net/"), new DefaultAzureCredential());
+        if (string.IsNullOrWhiteSpace(vaultName))
+        {
+            throw new ArgumentException("Key Vault name is not configured (KvName)", nameof(vaultName));
+        }
+
+        _client = new SecretClient(new Uri($"https://{vaultName}.vault.azure.net/"), credential);
     }
 
-    /// <summary>
-    /// Get a secret from the key vault
-    /// </summary>
-    /// <param name="key">Secret name</param>
-    /// <returns>The secret value</returns>
-    public async Task<string> Get(string key)
+    public async Task<string> GetSecretAsync(string name)
     {
-        var secret = await SecretClient.GetSecretAsync(key);
+        var secret = await _client.GetSecretAsync(name);
         return secret.Value.Value;
     }
 
-    /// <summary>
-    /// Get a certificate from the key vault
-    /// </summary>
-    /// <param name="key">Certificate name</param>
-    /// <returns>The certificate</returns>
-    public async Task<X509Certificate2> GetCertificate(string key)
+    public async Task<X509Certificate2> GetCertificateAsync(string name)
     {
-        var base64Certificate = await Get(key);
+        var base64Certificate = await GetSecretAsync(name);
         var certBytes = Convert.FromBase64String(base64Certificate);
-
-        var cert = new X509Certificate2(certBytes, string.Empty, X509KeyStorageFlags.MachineKeySet);
-
-        return await Task.FromResult(cert);
+        return X509CertificateLoader.LoadPkcs12(certBytes, string.Empty, X509KeyStorageFlags.MachineKeySet);
     }
 }

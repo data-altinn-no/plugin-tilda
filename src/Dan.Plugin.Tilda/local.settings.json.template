@@ -4,12 +4,9 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
 
+    "SafeHttpClientTimeout": "10",
+    "SafeHttpClientAttemptTimeoutSeconds": "5",
 
-    "Settings:DefaultCircuitBreakerOpenCircuitTimeSeconds": "10",
-    "Settings:DefaultCircuitBreakerFailureBeforeTripping": "4",
-    "Settings:SafeHttpClientTimeout": "30",
-
-    "Settings:EndpointUrl": "https://example.com"
-
+    "EndpointUrl": "https://example.com"
   }
 }
