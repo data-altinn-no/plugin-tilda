@@ -4,7 +4,6 @@ using Dan.Plugin.Tilda.Config;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.ApplicationInsights;
 
 namespace Dan.Plugin.Tilda.Test.Config;
 
@@ -60,27 +59,6 @@ public class LoggingFiltersTests
 
         logger.IsEnabled(LogLevel.Warning).Should().BeFalse();
         logger.IsEnabled(LogLevel.Error).Should().BeTrue();
-    }
-
-    [Fact]
-    public void NoisyCategories_HaveProviderSpecificRulesForApplicationInsights()
-    {
-        // The AI SDK registers provider-specific rules, which make the logger ignore every
-        // provider-agnostic rule for that provider. Our noisy-category rules must therefore also
-        // exist as ApplicationInsightsLoggerProvider-specific rules.
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(WorkerLoggingJson).Build();
-        var services = new ServiceCollection();
-        services.AddLogging(logging => logging.Apply(configuration));
-        var options = services.BuildServiceProvider()
-            .GetRequiredService<Microsoft.Extensions.Options.IOptions<LoggerFilterOptions>>().Value;
-
-        foreach (var (category, level) in LoggingFilters.NoisyCategories)
-        {
-            options.Rules.Should().Contain(r =>
-                r.ProviderName == typeof(ApplicationInsightsLoggerProvider).FullName &&
-                r.CategoryName == category &&
-                r.LogLevel == level);
-        }
     }
 
     private sealed class CapturingLoggerProvider : ILoggerProvider

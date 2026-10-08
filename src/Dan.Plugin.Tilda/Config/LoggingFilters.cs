@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.ApplicationInsights;
 
 namespace Dan.Plugin.Tilda.Config;
 
@@ -24,9 +23,9 @@ public static class LoggingFilters
     ///
     /// worker-logging.json is loaded into configuration, but a bare HostBuilder never binds its
     /// "Logging" section to the logger factory, so its LogLevel rules had no effect. Bind it here,
-    /// and additionally pin the noisiest categories both provider-agnostically and specifically
-    /// for the Application Insights provider: the filter algorithm ignores provider-agnostic rules
-    /// for a provider whenever any provider-specific rule exists for it, which the AI SDK sets up.
+    /// and additionally pin the noisiest categories in code so they hold even if the file is
+    /// missing. The rules are provider-agnostic: Dan.Common only registers the OpenTelemetry
+    /// logging provider and adds no provider-specific rules, so agnostic rules apply to it.
     /// </summary>
     public static ILoggingBuilder Apply(this ILoggingBuilder logging, IConfiguration configuration)
     {
@@ -35,7 +34,6 @@ public static class LoggingFilters
         foreach (var (category, minimumLevel) in NoisyCategories)
         {
             logging.AddFilter(category, minimumLevel);
-            logging.AddFilter<ApplicationInsightsLoggerProvider>(category, minimumLevel);
         }
 
         return logging;
