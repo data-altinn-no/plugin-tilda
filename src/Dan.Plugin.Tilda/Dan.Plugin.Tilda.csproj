@@ -24,14 +24,14 @@
     <PackageReference Include="CloudNative.CloudEvents.NewtonsoftJson" Version="2.9.0" />
     <!-- Experimental pre-release: Dan.Common with OpenTelemetry instead of classic AI SDK.
          Revert to a stable Dan.Common version once this is validated and released properly. -->
-    <PackageReference Include="Dan.Common" Version="1.0.0-preview11-otel" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.63.0" />
+    <PackageReference Include="Dan.Common" Version="1.12.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.63.2" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.1.0" OutputItemType="Analyzer" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
     <PackageReference Include="Microsoft.Azure.StackExchangeRedis" Version="3.3.1" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
-    <PackageReference Include="Polly.Extensions" Version="8.7.0" />
+    <PackageReference Include="Polly.Extensions" Version="8.8.0" />
     <!-- Dan.Common pulls in legacy Polly 7 (Polly.Extensions.Http / Polly.Caching). It defines the same
          exception type names (TimeoutRejectedException, BrokenCircuitException) as Polly.Core 8, which
          the resilience handler actually throws. Alias the legacy assembly so the v8 types resolve
