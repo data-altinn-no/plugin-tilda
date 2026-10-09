@@ -36,7 +36,7 @@
          exception type names (TimeoutRejectedException, BrokenCircuitException) as Polly.Core 8, which
          the resilience handler actually throws. Alias the legacy assembly so the v8 types resolve
          unqualified; Program.cs uses PollyLegacy:: for the registry/no-op policy. -->
-    <PackageReference Include="Polly" Version="7.2.4" Aliases="PollyLegacy" />
+    <PackageReference Include="Polly" Version="8.8.0" Aliases="PollyLegacy" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
