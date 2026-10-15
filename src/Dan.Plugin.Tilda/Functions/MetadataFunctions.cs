@@ -1,21 +1,26 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dan.Common.Interfaces;
 using Dan.Common.Models;
+using Dan.Common.Services;
 using Dan.Common.Util;
+using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Services;
 using Dan.Plugin.Tilda.Utils;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Options;
 
 namespace Dan.Plugin.Tilda.Functions;
 
 public class MetadataFunctions(
     IBrregService brregService,
+    ICcrClientService ccrClientService,
     ITildaSourceProvider tildaSourceProvider,
-    IEvidenceSourceMetadata metadata) : AuditFunctionsBase(brregService)
+    IEvidenceSourceMetadata metadata,
+    IOptions<Settings> settings) : AuditFunctionsBase(brregService, ccrClientService, settings)
 {
 
     [Function("TildaMetadatav1")]

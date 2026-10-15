@@ -1,10 +1,11 @@
-﻿using Dan.Plugin.Tilda.Models;
+using Dan.Common.Models;
+using Dan.Plugin.Tilda.Models;
 
 namespace Dan.Plugin.Tilda.Extensions;
 
 public static class BrEntityRegisterEntryExtensions
 {
-    public static bool MatchesFilterParameters(this BREntityRegisterEntry brEntity, TildaParameters tildaParameters)
+    public static bool MatchesFilterParameters(this EntityRegistryUnit brEntity, TildaParameters tildaParameters)
     {
         // No params; nothing to filter on
         if (tildaParameters == null)
