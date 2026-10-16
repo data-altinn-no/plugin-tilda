@@ -69,7 +69,7 @@ public abstract class AuditFunctionsBase(
         var brEntity = await ccrClient.GetUnit(organizationNumber, _settings.DanEnvironment);
 
         // Filters out on parameters, currently only on "geo search" params
-        if (!brEntity.MatchesFilterParameters(tildaParameters))
+        if (brEntity is null || !brEntity.MatchesFilterParameters(tildaParameters))
         {
             return null;
         }
@@ -243,7 +243,8 @@ public abstract class AuditFunctionsBase(
             return OperationStatus.UnderTvangsavviklingEllerTvangsopplosning;
         }
 
-        if (brResult.Slettedato != DateTime.MinValue)
+        if (brResult.Slettedato != null &&
+            brResult.Slettedato != DateTime.MinValue)
         {
             return OperationStatus.Slettet;
         }
