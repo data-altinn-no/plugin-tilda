@@ -1,5 +1,6 @@
-﻿using Dan.Plugin.Tilda.Extensions;
+using Dan.Plugin.Tilda.Extensions;
 using Dan.Plugin.Tilda.Models;
+using Dan.Common.Models;
 
 namespace Dan.Plugin.Tilda.Test.Extensions;
 
@@ -11,7 +12,7 @@ public class BrEntityRegisterEntryExtensionsTests
         // Arrange
         TildaParameters? tildaParameters = null;
 
-        var brEntity = new BREntityRegisterEntry();
+        var brEntity = new EntityRegistryUnit();
 
         // Act
         var actual = brEntity.MatchesFilterParameters(tildaParameters);
@@ -39,7 +40,7 @@ public class BrEntityRegisterEntryExtensionsTests
             nace: null
         );
 
-        var brEntity = new BREntityRegisterEntry();
+        var brEntity = new EntityRegistryUnit();
 
         // Act
         var actual = brEntity.MatchesFilterParameters(tildaParameters);
@@ -76,11 +77,11 @@ public class BrEntityRegisterEntryExtensionsTests
             nace: nace
         );
 
-        var brEntity = new BREntityRegisterEntry
+        var brEntity = new EntityRegistryUnit
         {
-            Naeringskode1 = new InstitusjonellSektorkode { Kode = code1 },
-            Naeringskode2 = new InstitusjonellSektorkode { Kode = code2 },
-            Naeringskode3 = new InstitusjonellSektorkode { Kode = code3 },
+            Naeringskode1 = new NaeringsKodeDto { Kode = code1 },
+            Naeringskode2 = new NaeringsKodeDto { Kode = code2 },
+            Naeringskode3 = new NaeringsKodeDto { Kode = code3 },
         };
 
         // Act

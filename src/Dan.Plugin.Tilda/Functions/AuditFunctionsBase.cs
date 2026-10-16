@@ -1,26 +1,34 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Dan.Common.Extensions;
 using Dan.Common.Models;
+using Dan.Common.Services;
+using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Extensions;
 using Dan.Plugin.Tilda.Models;
 using Dan.Plugin.Tilda.Services;
 using Dan.Tilda.Models.Entities;
 using Dan.Tilda.Models.Enums;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Dan.Plugin.Tilda.Functions;
 
-public abstract class AuditFunctionsBase(IBrregService brregService)
+public abstract class AuditFunctionsBase(
+    IBrregService brregService,
+    ICcrClientService ccrClient,
+    IOptions<Settings> settings)
 {
     // Caps the outbound fan-out when enriching "Alle" results with org info from BR.
     // Each lookup can spawn up to 3 sequential HTTP calls (enheter, regnskap, kofuvi),
     // so unbounded parallelism over hundreds of orgs risks SNAT port exhaustion and
     // rate limiting from BR on cold cache.
     private const int MaxConcurrentBrLookups = 16;
+
+    private readonly Settings _settings = settings.Value;
 
     protected static TildaParameters GetValuesFromParameters(EvidenceHarvesterRequest req)
     {
@@ -58,11 +66,10 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
 
     protected async Task<TildaRegistryEntry> GetOrganizationFromBr(string organizationNumber, TildaParameters tildaParameters = null)
     {
-        var brResult = await brregService.GetFromBr(organizationNumber, false);
-        var brEntity = brResult.First();
+        var brEntity = await ccrClient.GetUnit(organizationNumber, _settings.DanEnvironment);
 
         // Filters out on parameters, currently only on "geo search" params
-        if (!brEntity.MatchesFilterParameters(tildaParameters))
+        if (brEntity is null || !brEntity.MatchesFilterParameters(tildaParameters))
         {
             return null;
         }
@@ -132,8 +139,7 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
     {
         try
         {
-            var brResult = await brregService.GetFromBr(organizationNumber, false);
-            var brEntity = brResult.FirstOrDefault();
+            var brEntity = await ccrClient.GetUnit(organizationNumber, _settings.DanEnvironment);
             if (brEntity is null)
             {
                 return new BrOrganizationsResult([], OrgInfoUnavailable: true);
@@ -166,7 +172,7 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
         }
     }
 
-    private TildaRegistryEntry ConvertBRtoTilda(BREntityRegisterEntry brResult, AccountsInformation accountsInformation)
+    private TildaRegistryEntry ConvertBRtoTilda(EntityRegistryUnit brResult, AccountsInformation accountsInformation)
     {
         // *** TEMPORARY TILDA FILTERING ***
         if (brResult.Organisasjonsform == null)
@@ -210,7 +216,7 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
         {
             item.PublicLocationAddress = new ErAddress()
             {
-                AddressName = string.Join(",", brResult.Forretningsadresse?.Adressenavn ?? []),
+                AddressName = string.Join(",", brResult.Forretningsadresse?.Adresse ?? []),
                 PostNumber = brResult.Forretningsadresse?.Postnummer,
                 PostName = brResult.Forretningsadresse?.Poststed,
                 CountyNumber = brResult.Forretningsadresse?.Kommunenummer,
@@ -220,24 +226,25 @@ public abstract class AuditFunctionsBase(IBrregService brregService)
         return item;
     }
 
-    private OperationStatus GetOperationStatus(BREntityRegisterEntry brResult)
+    private OperationStatus GetOperationStatus(EntityRegistryUnit brResult)
     {
-        if (brResult.Konkurs)
+        if (brResult.Konkurs is true)
         {
             return OperationStatus.Konkurs;
         }
 
-        if (brResult.UnderAvvikling)
+        if (brResult.UnderAvvikling is true)
         {
             return OperationStatus.UnderAvvikling;
         }
 
-        if (brResult.UnderTvangsavviklingEllerTvangsopplosning)
+        if (brResult.UnderTvangsavviklingEllerTvangsopplosning is true)
         {
             return OperationStatus.UnderTvangsavviklingEllerTvangsopplosning;
         }
 
-        if (brResult.Slettedato != DateTime.MinValue)
+        if (brResult.Slettedato != null &&
+            brResult.Slettedato != DateTime.MinValue)
         {
             return OperationStatus.Slettet;
         }

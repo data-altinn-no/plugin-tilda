@@ -21,8 +21,6 @@ public interface IBrregService
 {
     Task<AccountsInformation> GetAnnualTurnoverFromBr(string organizationNumber);
 
-    Task<List<BREntityRegisterEntry>> GetFromBr(string organization, bool? includeSubunits, bool skipCache = false);
-
     Task<List<string>> GetKofuviAddresses(string organizationNumber);
 }
 
@@ -105,34 +103,6 @@ public class BrregService(
             logger.LogDebug("Failed to get AnnualTurnover for {orgNumber}. Exception message: {message}",
                 organizationNumber,
                 e.Message);
-        }
-
-        return result;
-    }
-
-    public async Task<List<BREntityRegisterEntry>> GetFromBr(string organization, bool? includeSubunits, bool skipCache = false)
-    {
-        var result = new List<BREntityRegisterEntry>();
-
-        if (organization is "111111111" or "811105562")
-        {
-            result.Add(new BREntityRegisterEntry()
-            {
-                Navn = "TESTORGANISASJON",
-                Organisasjonsnummer = 111111111,
-                Organisasjonsform = new Organisasjonsform() { Kode = "TEST" }
-            });
-
-            return result;
-        }
-
-        if (includeSubunits == true)
-        {
-            result.AddRange(await GetAllUnitsFromBr(organization, skipCache));
-        }
-        else
-        {
-            result.Add(await GetOrganizationInfoFromBr(organization, skipCache));
         }
 
         return result;
@@ -223,143 +193,5 @@ public class BrregService(
             await cache.SetValueAsync(cacheKey, result, errorCacheOptions);
             return result;
         }
-    }
-
-    private async Task<BREntityRegisterEntry> GetOrganizationInfoFromBr(string organizationNumber, bool skipCache = false)
-    {
-        var mainUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/enheter/{organizationNumber}";
-        var subUnitUrl = $"https://data.brreg.no/enhetsregisteret/api/underenheter/{organizationNumber}";
-        var cacheKey = $"Tilda-Cache_Absolute_GET_{mainUnitUrl}";
-        BREntityRegisterEntry result;
-
-        string rawResult;
-        try
-        {
-            if (!skipCache)
-            {
-                try
-                {
-                    result = await cache.GetValueAsync<BREntityRegisterEntry>(cacheKey);
-                    if (result is not null)
-                    {
-                        return result;
-                    }
-                }
-                catch (Exception e)
-                {
-                    logger.LogWarning("Failed to get GetOrganizationInfoFromBr from cache for {orgNumber}, fetching from source directly. Exception message: {message}",
-                        organizationNumber,
-                        e.Message);
-                }
-            }
-
-            var response = await _erClient.GetAsync(mainUnitUrl);
-            try
-            {
-                if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    // Dispose before replacing so the connection returns to the pool, not leaks.
-                    response.Dispose();
-                    response = await _erClient.GetAsync(subUnitUrl);
-                    if (response.StatusCode == HttpStatusCode.NotFound)
-                    {
-                        throw new EvidenceSourcePermanentClientException(
-                            Metadata.ERROR_ORGANIZATION_NOT_FOUND,
-                            $"{organizationNumber} was not found in the Central Coordinating Register for Legal Entities");
-                    }
-                }
-
-                rawResult = await response.Content.ReadAsStringAsync();
-            }
-            finally
-            {
-                response.Dispose();
-            }
-        }
-        catch (HttpRequestException e)
-        {
-            throw new EvidenceSourcePermanentServerException(Metadata.ERROR_CCR_UPSTREAM_ERROR, null, e);
-        }
-
-        try
-        {
-            result = JsonConvert.DeserializeObject<BREntityRegisterEntry>(rawResult);
-
-            var cacheOptions = new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = DefaultCacheDuration
-            };
-            await cache.SetValueAsync(cacheKey, result, cacheOptions);
-        }
-        catch
-        {
-            throw new EvidenceSourcePermanentServerException(Metadata.ERROR_CCR_UPSTREAM_ERROR,
-                "Did not understand the data model returned from upstream source");
-        }
-
-        return result;
-    }
-
-    private async Task<List<BREntityRegisterEntry>> GetAllUnitsFromBr(string organizationNumber, bool skipCache = false)
-    {
-        List<BREntityRegisterEntry> result;
-        string rawResult;
-        var url = $"https://data.brreg.no/enhetsregisteret/api/enheter/?overordnetEnhet={organizationNumber}";
-        var cacheKey = $"Tilda-Cache_Absolute_GET_{url}";
-
-        try
-        {
-            if (!skipCache)
-            {
-                try
-                {
-                    result = await cache.GetValueAsync<List<BREntityRegisterEntry>>(cacheKey);
-                    if (result is not null)
-                    {
-                        return result;
-                    }
-                }
-                catch (Exception e)
-                {
-                    logger.LogWarning("Failed to get GetAllUnitsFromBr from cache for {orgNumber}, fetching from source directly. Exception message: {message}",
-                        organizationNumber,
-                        e.Message);
-                }
-            }
-
-            result = [];
-            using var response = await _erClient.GetAsync(url);
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                throw new EvidenceSourcePermanentClientException(
-                        Metadata.ERROR_ORGANIZATION_NOT_FOUND,
-                        $"{organizationNumber} was not found in the Central Coordinating Register for Legal Entities");
-            }
-
-            rawResult = await response.Content.ReadAsStringAsync();
-        }
-        catch (HttpRequestException e)
-        {
-            throw new EvidenceSourcePermanentServerException(Metadata.ERROR_CCR_UPSTREAM_ERROR, null, e);
-        }
-
-        try
-        {
-            var parsed = JsonConvert.DeserializeObject<List<BREntityRegisterEntry>>(rawResult);
-            result.AddRange(parsed);
-
-            var cacheOptions = new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = DefaultCacheDuration
-            };
-            await cache.SetValueAsync(cacheKey, result, cacheOptions);
-        }
-        catch
-        {
-            throw new EvidenceSourcePermanentServerException(Metadata.ERROR_CCR_UPSTREAM_ERROR,
-                "Did not understand the data model returned from upstream source");
-        }
-
-        return result;
     }
 }

@@ -7,6 +7,7 @@
     "SafeHttpClientTimeout": "10",
     "SafeHttpClientAttemptTimeoutSeconds": "5",
 
-    "EndpointUrl": "https://example.com"
+    "EndpointUrl": "https://example.com",
+    "DanEnvironment": "test" // need to be local, dev, test or prod
   }
 }

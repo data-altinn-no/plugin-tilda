@@ -1,7 +1,9 @@
 using Dan.Common.Exceptions;
 using Dan.Common.Interfaces;
 using Dan.Common.Models;
+using Dan.Common.Services;
 using Dan.Common.Util;
+using Dan.Plugin.Tilda.Config;
 using Dan.Plugin.Tilda.Extensions;
 using Dan.Plugin.Tilda.Interfaces;
 using Dan.Plugin.Tilda.Models;
@@ -14,6 +16,7 @@ using Dan.Tilda.Models.Enums;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -25,9 +28,11 @@ namespace Dan.Plugin.Tilda.Functions;
 
 public class AuditCoordinationFunctions(
     IBrregService brregService,
+    ICcrClientService ccrClientService,
     ITildaSourceProvider tildaSourceProvider,
     IEvidenceSourceMetadata metadata,
-    IFilterService filterService) : AuditFunctionsBase(brregService)
+    IFilterService filterService,
+    IOptions<Settings> settings) : AuditFunctionsBase(brregService, ccrClientService, settings)
 {
     private ILogger logger;
 

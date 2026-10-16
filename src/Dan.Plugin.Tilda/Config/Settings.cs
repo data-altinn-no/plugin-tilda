@@ -44,6 +44,8 @@ namespace Dan.Plugin.Tilda.Config
         public string MaskinportenEnvironment { get; set; }
         public string ClientId { get; set; }
 
+        public string DanEnvironment { get; set; }
+
         /// <summary>
         /// Secret store used to lazily load certificates and lists. Internal (not bound from
         /// configuration); set via PostConfigure in Program.cs, or directly by tests.

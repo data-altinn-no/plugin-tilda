@@ -108,41 +108,6 @@ public class BrregServiceTests
         result.AnnualTurnover.Should().BeNull();
     }
 
-    // --- GetFromBr / GetOrganizationInfoFromBr: fails surface as exceptions for the caller ---
-
-    [Fact]
-    public async Task GetFromBr_SoftFail_NotFound_ThrowsPermanentClientException()
-    {
-        // 404 on both main unit and sub unit => organization genuinely not found.
-        var sut = CreateService(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
-
-        var act = async () => await sut.GetFromBr(OrgNo, includeSubunits: false);
-
-        await act.Should().ThrowAsync<EvidenceSourcePermanentClientException>();
-    }
-
-    [Fact]
-    public async Task GetFromBr_HardFail_RequestException_ThrowsPermanentServerException()
-    {
-        var sut = CreateService(_ => throw new HttpRequestException("dns failure"));
-
-        var act = async () => await sut.GetFromBr(OrgNo, includeSubunits: false);
-
-        await act.Should().ThrowAsync<EvidenceSourcePermanentServerException>();
-    }
-
-    [Fact]
-    public async Task GetFromBr_HardFail_Timeout_PropagatesToCaller()
-    {
-        // Contract: BrregService does NOT translate HttpClient timeouts. The caller
-        // (AuditFunctionsBase.GetOrganizationsFromBr) catches them and fails closed, so the
-        // exception must escape here rather than being swallowed into a "found nothing" result.
-        var sut = CreateService(_ => throw new TaskCanceledException("timeout", new TimeoutException()));
-
-        var act = async () => await sut.GetFromBr(OrgNo, includeSubunits: false);
-
-        await act.Should().ThrowAsync<TaskCanceledException>();
-    }
 
     private sealed class StubHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responder)
         : HttpMessageHandler
