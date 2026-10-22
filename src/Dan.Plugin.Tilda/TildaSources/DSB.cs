@@ -12,7 +12,7 @@ namespace Dan.Plugin.Tilda.TildaSources
 {
     public class DSB : TildaDataSource
     {
-        private const string orgNo = "111111111";
+        private const string orgNo = "974760983";
         public const string controlAgency = "Direktoratet for sikkerhet og beredskap";
 
         public override string ControlAgency => controlAgency;

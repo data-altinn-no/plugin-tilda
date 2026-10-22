@@ -14,7 +14,7 @@ using Polly.Registry;
 
 namespace Dan.Plugin.Tilda.TildaSources
 {
-    public class NSO : TildaDataSource
+    public class NSO : TildaDataSource, ITildaAuditReports
     {
         private const string orgNo = "960478150";
         public const string controlAgency = "Næringslivets sikkerhetsorganisasjon";
