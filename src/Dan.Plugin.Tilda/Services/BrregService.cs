@@ -127,7 +127,7 @@ public class BrregService(
                 //skip logging 404 - just means there are no addresses for this organization and clutters logs
                 if (response.StatusCode != HttpStatusCode.NotFound)
                 {
-                    logger.LogError(
+                    logger.LogWarning(
                         "Failed to get kofuvi addresses for org={organizationNumber} on url={targetUrl} with unsuccessful response status={statusCode}",
                         organizationNumber, targetUrl, response.StatusCode
                     );
@@ -144,7 +144,7 @@ public class BrregService(
         }
         catch (Exception ex)
         {
-            logger.LogError(
+            logger.LogWarning(
                 "Failed to get kofuvi addresses for org={organizationNumber} on url={targetUrl} with exception ex={ex} message={message} status={status}",
                 organizationNumber, targetUrl, ex.GetType().Name, ex.Message, "hardfail"
             );
@@ -181,7 +181,7 @@ public class BrregService(
         }
         catch (Exception ex)
         {
-            logger.LogError(
+            logger.LogWarning(
                 "Failed to deserialize kofuvi response for org={organizationNumber} with exception ex={ex} message={message} status={status}",
                 organizationNumber, ex.GetType().Name, ex.Message, "hardfail"
             );
