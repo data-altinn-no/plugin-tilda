@@ -30,7 +30,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.1.0" OutputItemType="Analyzer" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
     <PackageReference Include="Microsoft.Azure.StackExchangeRedis" Version="3.3.1" />
-    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="11.0.0" />
     <PackageReference Include="Polly.Extensions" Version="8.7.0" />
     <!-- Dan.Common pulls in legacy Polly 7 (Polly.Extensions.Http / Polly.Caching). It defines the same
          exception type names (TimeoutRejectedException, BrokenCircuitException) as Polly.Core 8, which
