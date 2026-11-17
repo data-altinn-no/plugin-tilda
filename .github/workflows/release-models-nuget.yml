@@ -1,6 +1,7 @@
 # Workflow creating a GitHub package
 name: Dan.Tilda.Models Release Nuget
 permissions:
+  id-token: write
   contents: read
 
 on:
